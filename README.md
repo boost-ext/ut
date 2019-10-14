@@ -1,4 +1,4 @@
-# [Boost].UT <a href="http://www.boost.org/LICENSE_1_0.txt" target="_blank">![Boost Licence](http://img.shields.io/badge/license-boost-blue.svg)</a> <a href="https://travis-ci.org/boost-experimental/ut" target="_blank">![Build Status](https://img.shields.io/travis/boost-experimental/ut/master.svg?label=linux/osx)</a> <a href="https://codecov.io/gh/boost-experimental/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-experimental/ut/branch/master/graph/badge.svg)</a> <a href="http://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a> <a href="https://godbolt.org/z/o6E97U">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+# [Boost].UT <a href="http://www.boost.org/LICENSE_1_0.txt" target="_blank">![Boost Licence](http://img.shields.io/badge/license-boost-blue.svg)</a> <a href="https://travis-ci.org/boost-experimental/ut" target="_blank">![Build Status](https://img.shields.io/travis/boost-experimental/ut/master.svg?label=linux/osx)</a> <a href="https://ci.appveyor.com/project/krzysztof-jusiak/ut" target="_blank">![Build Status](https://img.shields.io/appveyor/ci/krzysztof-jusiak/ut/master.svg?label=windows)</a> <a href="https://codecov.io/gh/boost-experimental/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-experimental/ut/branch/master/graph/badge.svg)</a> <a href="http://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a> <a href="https://godbolt.org/z/o6E97U">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 
 > Your C++20 **single header, macro-free** μ(micro)/unit test framework
 
@@ -29,7 +29,7 @@ constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
 ```cpp
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "hello world"_test = [] {
     expect(0_i == sum());
@@ -177,7 +177,7 @@ asserts: 13 | 12 passed | 1 failed
 #### Behavior Driven Development
 
 ```cpp
-"Scenario"_test = [] {
+"scenario"_test = [] {
   given("I have...") = [] {
     when("I run...") = [] {
       then("I expect...") = [] { expect(1_u == 1u); };
@@ -190,6 +190,8 @@ asserts: 13 | 12 passed | 1 failed
 #### Test Suites
 
 ```cpp
+namespace ut = boost::ut;
+
 using ut::operator""_test;
 
 auto _ = "test suite"_test = [] {
@@ -218,7 +220,9 @@ skip | "don't run"_test = [] {
 #### Config
 
 ```cpp
-class silent_cfg {
+namespace ut = boost::ut;
+
+class cfg {
  public:
   /**
    * @example "name"_test = [] {};
@@ -263,8 +267,7 @@ class silent_cfg {
   auto on(ut::events::log) { }
 };
 
-template<> inline auto ut::cfg<ut::override> = 
-  silent_cfg{};
+template<> inline auto ut::cfg<ut::override> = cfg{};
 
 int main() {
   using namespace ut;

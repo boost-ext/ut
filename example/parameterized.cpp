@@ -7,6 +7,7 @@
 //
 #include <boost/ut.hpp>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 int main() {
@@ -22,9 +23,9 @@ int main() {
   | std::tuple<bool, int>{};
 
   "args and types"_test = []<class TArg>(const TArg& arg) {
-    !expect(std::is_integral_v<TArg>);
-    expect(42_i == arg or true_b == arg);
-    expect(type<TArg> == type<int> or type<TArg> == type<bool>);
+    !expect(std::is_integral_v<TArg> or std::is_floating_point_v<TArg>);
+    expect(42_i == arg or arg == 42._f);
+    expect(type<TArg> == type<int> or type<TArg> == type<float>);
   }
-  | std::tuple{true, 42};
+  | std::tuple{42, 42.f};
 }
