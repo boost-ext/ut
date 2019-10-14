@@ -7,10 +7,10 @@
 //
 #include <boost/ut.hpp>
 
-using ut::operator""_test;
+using boost::ut::operator""_test;
 
 auto _ = "test suite"_test = [] {
-  using namespace ut;
+  using namespace boost::ut;
   "should be equal"_test = [] { expect(42_i == 42); };
   "should not be equal "_test = [] { expect(1_i != 2); };
 };

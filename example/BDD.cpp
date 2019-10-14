@@ -8,7 +8,7 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "scenario"_test = [] {
     given("I have...") = [] {

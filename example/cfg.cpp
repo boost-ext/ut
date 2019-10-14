@@ -7,6 +7,8 @@
 //
 #include <boost/ut.hpp>
 
+namespace ut = boost::ut;
+
 class silent_cfg {
  public:
   template <class Test>

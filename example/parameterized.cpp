@@ -10,7 +10,7 @@
 #include <vector>
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "args"_test = [](const auto& arg) {
     expect(arg > 0_i) << "all values greater than 0";

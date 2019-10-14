@@ -15,6 +15,8 @@
 #include <string_view>
 #include <vector>
 
+namespace ut = boost::ut;
+
 struct fake_cfg {
   struct assertion_call {
     std::experimental::source_location location{};

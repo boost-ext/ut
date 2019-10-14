@@ -9,7 +9,7 @@
 #include <vector>
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "[vector]"_test = [] {
     std::vector<int> v(5);

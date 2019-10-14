@@ -27,15 +27,15 @@
 #include <type_traits>
 #include <utility>
 
-namespace ut {
+namespace boost::ut {
 inline namespace v1 {
 namespace reflection {
 template <class T>
 constexpr auto type_name() {
 #if defined(__clang__)
-  constexpr auto REFLECTION_TYPE_NAME_OFFSET = 42;
+  constexpr auto REFLECTION_TYPE_NAME_OFFSET = 49;
 #elif defined(__GNUC__)
-  constexpr auto REFLECTION_TYPE_NAME_OFFSET = 57;
+  constexpr auto REFLECTION_TYPE_NAME_OFFSET = 64;
 #else
 #error "Compiler is not supported!"
 #endif
@@ -915,5 +915,5 @@ template <class T>
 using namespace literals;
 using namespace operators;
 }  // namespace v1
-}  // namespace ut
+}  // namespace boost::ut
 #endif
