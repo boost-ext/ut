@@ -855,7 +855,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
     return std::apply(
         [=](const auto&... args) {
           (
-              []<class TArg>(const auto& f, const TArg& arg) {
+              []<class TArg>(const auto& f, [[maybe_unused]] const TArg& arg) {
                 if constexpr (std::is_invocable_v<F, TArg>) {
                   f(arg);
                 } else {
