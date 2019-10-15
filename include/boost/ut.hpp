@@ -7,6 +7,8 @@
 //
 #pragma once
 
+#include <ciso646>  // and, or, not
+
 #if not defined(__cpp_variadic_templates) or                               \
     not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or \
     not defined(__cpp_alias_templates) or                                  \
@@ -15,33 +17,42 @@
     not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
 #error "[Boost].UT requires C++20 support"
 #else
+#if __has_include(<experimental/source_location>)
+#include <experimental/source_location>
+#else
+namespace std::experimental {
+struct source_location {
+  const char* file_{__FILE__};
+  decltype(__LINE__) line_{__LINE__};
+  static constexpr auto current() noexcept { return source_location{}; }
+  constexpr auto file_name() const noexcept { return file_; }
+  constexpr auto line() const noexcept { return line_; }
+};
+}  // namespace std::experimental
+#endif
 #include <cstddef>
 #include <cstdlib>
-#include <experimental/source_location>
-#include <experimental/type_traits>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
-namespace ut {
+namespace boost::ut {
 inline namespace v1 {
 namespace reflection {
 template <class T>
-constexpr auto type_name() {
-#if defined(__clang__)
-  constexpr auto REFLECTION_TYPE_NAME_OFFSET = 42;
+constexpr auto type_name() -> std::string_view {
+#if defined(_MSC_VER) and not defined(__clang__)
+  return {&__FUNCSIG__[111], sizeof(__FUNCSIG__) - 119};
+#elif defined(__clang__)
+  return {&__PRETTY_FUNCTION__[61], sizeof(__PRETTY_FUNCTION__) - 63};
 #elif defined(__GNUC__)
-  constexpr auto REFLECTION_TYPE_NAME_OFFSET = 57;
-#else
-#error "Compiler is not supported!"
+  return {&__PRETTY_FUNCTION__[76], sizeof(__PRETTY_FUNCTION__) - 127};
 #endif
-  return std::string_view{
-      &__PRETTY_FUNCTION__[REFLECTION_TYPE_NAME_OFFSET],
-      sizeof(__PRETTY_FUNCTION__) - REFLECTION_TYPE_NAME_OFFSET - 2};
 }
 }  // namespace reflection
 
@@ -287,7 +298,7 @@ template <auto N>
 class integral_constant : op {
  public:
   static constexpr auto value = N;
-  constexpr operator auto() const { return N; }
+  constexpr operator decltype(N)() const { return N; }
   constexpr auto get() const { return N; }
 };
 
@@ -355,16 +366,28 @@ template <class T>
 constexpr auto is_op_v = std::is_base_of_v<op, T> or std::is_class_v<T>;
 
 template <class T>
-using is_floating_point_constant_t = decltype(T::epsilon);
+constexpr auto is_floating_point_constant_impl(int)
+    -> decltype(T::epsilon, bool()) {
+  return true;
+}
+template <class>
+constexpr auto is_floating_point_constant_impl(...) {
+  return false;
+}
 template <class T>
 constexpr auto is_floating_point_constant_v =
-    std::experimental::is_detected_v<is_floating_point_constant_t, T>;
+    is_floating_point_constant_impl<T>(0);
 
 template <class T>
-using is_integral_constant_t = decltype(T::value);
+constexpr auto is_integral_constant_impl(int) -> decltype(T::value, bool()) {
+  return true;
+}
+template <class>
+constexpr auto is_integral_constant_impl(...) {
+  return false;
+}
 template <class T>
-constexpr auto is_integral_constant_v =
-    std::experimental::is_detected_v<is_integral_constant_t, T>;
+constexpr auto is_integral_constant_v = is_integral_constant_impl<T>(0);
 
 template <class T>
 constexpr auto get_impl(const T& t, int) -> decltype(t.get()) {
@@ -825,22 +848,22 @@ constexpr auto operator|(const F& f, const TContainer& container) {
   };
 }
 
-namespace detail {
-template <class F, class TArg>
-constexpr auto call(const F& f, const TArg& arg) {
-  if constexpr (std::is_invocable_v<F, TArg>) {
-    f(arg);
-  } else {
-    f.template operator()<TArg>();
-  }
-}
-}  // namespace detail
-
 template <class F, class... Ts>
 constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
   return [=] {
     return std::apply(
-        [=](const auto&... args) { (detail::call(f, args), ...); }, t);
+        [=](const auto&... args) {
+          (
+              []<class TArg>(const auto& f, const TArg& arg) {
+                if constexpr (std::is_invocable_v<F, TArg>) {
+                  f(arg);
+                } else {
+                  f.template operator()<TArg>();
+                }
+              }(f, args),
+              ...);
+        },
+        t);
   };
 }
 }  //  namespace operators
@@ -915,5 +938,5 @@ template <class T>
 using namespace literals;
 using namespace operators;
 }  // namespace v1
-}  // namespace ut
+}  // namespace boost::ut
 #endif

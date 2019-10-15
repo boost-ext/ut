@@ -8,6 +8,8 @@
 #include <boost/ut.hpp>
 #include <iostream>
 
+namespace ut = boost::ut;
+
 namespace ft {
 struct cfg : ut::default_cfg {
   template <class Test>

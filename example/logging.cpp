@@ -8,7 +8,7 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "logging"_test = [] {
     log << "pre";

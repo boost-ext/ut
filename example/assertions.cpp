@@ -13,7 +13,7 @@
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "const"_test = [] {
     expect(42_l == 42_l);

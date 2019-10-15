@@ -15,6 +15,8 @@
 #include <string_view>
 #include <vector>
 
+namespace ut = boost::ut;
+
 struct fake_cfg {
   struct assertion_call {
     std::experimental::source_location location{};
@@ -252,11 +254,12 @@ int main() {
     cfg = fake_cfg{};
 
     "args and types"_test = []<class TArg>(const TArg& arg) {
-      expect(42_i == arg or true_b == arg);
+      expect(42_i == arg or arg == 42._f);
+      expect(type<TArg> == type<int> or type<TArg> == type<float>);
     }
-    | std::tuple{true, 42};
+    | std::tuple{42, 42.f};
 
-    assert(2 == std::size(cfg.assertion_calls));
+    assert(4 == std::size(cfg.assertion_calls));
   }
 
   {

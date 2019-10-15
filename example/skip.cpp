@@ -8,6 +8,6 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
   skip | "don't run"_test = [] { expect(42_i == 43) << "should not fire!"; };
 }

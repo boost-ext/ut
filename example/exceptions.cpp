@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "exceptions"_test = [] {
     expect(throws<std::runtime_error>([] { throw std::runtime_error{""}; }))

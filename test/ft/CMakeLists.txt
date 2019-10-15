@@ -6,5 +6,9 @@
 #
 add_executable(ft ts1.cpp ts2.cpp main.cpp)
 include_directories(include)
-add_definitions(-include cfg.hpp)
+if (MSVC)
+  add_definitions(/FI cfg.hpp)
+else()
+  add_definitions(-include cfg.hpp)
+endif()
 add_custom_command(TARGET ft COMMAND ./ft)

@@ -10,7 +10,7 @@
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
 int main() {
-  using namespace ut;
+  using namespace boost::ut;
 
   "hello world"_test = [] {
     expect(0_i == sum());
