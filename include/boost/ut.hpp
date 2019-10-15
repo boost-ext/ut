@@ -31,10 +31,8 @@ struct source_location {
 }  // namespace std::experimental
 #endif
 #include <cstddef>
-#include <cstdlib>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -402,6 +400,9 @@ constexpr auto get(const T& t) {
   return get_impl(t, 0);
 }
 
+template<class T>
+constexpr auto abs(T t) -> T { return t < T{} ? -t : t; }
+
 template <class T>
 struct type_ : op {
   static constexpr auto value = reflection::type_name<T>();
@@ -437,9 +438,9 @@ class eq_ : op {
                   is_integral_constant_v<TRhs>) {
       return TLhs::value == TRhs::value;
     } else if constexpr (is_floating_point_constant_v<TLhs>) {
-      return std::abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
+      return abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
     } else if constexpr (is_floating_point_constant_v<TRhs>) {
-      return std::abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
+      return abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
     } else {
       return get(lhs_) == get(rhs_);
     }
@@ -930,10 +931,8 @@ using _ld = detail::value<long double>;
 [[maybe_unused]] constexpr auto then = [](std::string_view name) {
   return detail::test{name};
 };
-template <class T = void>
-[[maybe_unused]] constexpr auto type = detail::type_<T>{};
 template <class T>
-[[maybe_unused]] constexpr auto exception = detail::type_<T>{};
+[[maybe_unused]] constexpr auto type = detail::type_<T>{};
 
 using namespace literals;
 using namespace operators;

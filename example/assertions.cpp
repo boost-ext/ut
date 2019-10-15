@@ -50,11 +50,12 @@ int main() {
   };
 
   "strings"_test = [] {
-    using std::literals::string_literals::operator""s;
+    using namespace std::literals::string_view_literals;
+    using namespace std::literals::string_literals;
+
     expect("str"s == "str"s);
     expect("str1"s != "str2"s);
 
-    using std::literals::string_view_literals::operator""sv;
     expect("str"sv == "str"sv);
     expect("str1"sv != "str2"sv);
 
