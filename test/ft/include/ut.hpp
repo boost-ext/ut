@@ -5,24 +5,27 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
+#pragma once
+
 #include <boost/ut.hpp>
 #include <iostream>
 
-namespace ut = boost::ut;
-
 namespace ft {
-struct cfg : ut::default_cfg {
+struct cfg : boost::ut::default_cfg {
   template <class Test>
-  auto on(ut::events::test_run<Test> test) {
+  auto on(boost::ut::events::test_run<Test> test) {
     std::cout << test.name << '\n';
     test.test();
   }
 
-  using ut::default_cfg::on;
+  using boost::ut::default_cfg::on;
 };
 }  // namespace ft
 
 template <>
-inline auto ut::cfg<ut::override> = ft::cfg{};
+#if defined(_MSC_VER)
+static
+#endif
+inline auto boost::ut::cfg<boost::ut::override> = ft::cfg{};
 
-using ut::operator""_test;
+using boost::ut::operator""_test;

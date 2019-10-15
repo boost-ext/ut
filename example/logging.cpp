@@ -11,8 +11,8 @@ int main() {
   using namespace boost::ut;
 
   "logging"_test = [] {
-    log << "pre";
+    boost::ut::log << "pre";
     expect(42_i == 42) << "message on failure";
-    log << "post";
+    boost::ut::log << "post";
   };
 }

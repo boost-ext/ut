@@ -15,7 +15,7 @@ if (ENABLE_MEMCHECK AND MEMORYCHECK_COMMAND)
 else()
   function(example name)
     add_executable(${name} ${name}.cpp)
-    add_custom_command(TARGET ${name} COMMAND ./${name})
+    add_custom_command(TARGET ${name} COMMAND ${name})
   endfunction()
 endif()
 

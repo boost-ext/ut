@@ -5,12 +5,9 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#undef NDEBUG
 #include "boost/ut.hpp"
 
-#include <cassert>
 #include <cstdlib>
-#include <experimental/source_location>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -55,7 +52,7 @@ auto ut::cfg<ut::override> = fake_cfg{};
 
 int main() {
   using namespace ut;
-  using std::literals::string_view_literals::operator""sv;
+  using namespace std::literals::string_view_literals;
 
   auto& cfg = ut::cfg<ut::override>;
 
@@ -98,35 +95,39 @@ int main() {
     static_assert(_ld(42.42) == 42.42_ld);
   }
 
+  constexpr auto test_assert = [](bool result) {
+    if (not result) { throw; }
+  };
+
   {
-    assert(42_i == 42_i);
-    assert(42_i == 42);
-    assert(42 == 42_i);
-    assert(not(1_i == 2));
-    assert(not(2 == 1_i));
+    test_assert(42_i == 42_i);
+    test_assert(42_i == 42);
+    test_assert(42 == 42_i);
+    test_assert(not(1_i == 2));
+    test_assert(not(2 == 1_i));
   }
 
   {
-    assert(_ul(42) == 42ul);
-    assert(_i(42) == 42);
-    assert(42 == _i(42));
-    assert(true == _b(true));
-    assert(_b(true) != _b(false));
-    assert(_i(42) > _i({}));
-    assert(42_i < 88);
-    assert(true_b != false_b);
-    assert(42 >= 42_i);
-    assert(43 >= 42_i);
-    assert(42 <= 42_i);
-    assert(42 <= 43_i);
-    assert(not false_b);
+    test_assert(_ul(42) == 42ul);
+    test_assert(_i(42) == 42);
+    test_assert(42 == _i(42));
+    test_assert(true == _b(true));
+    test_assert(_b(true) != _b(false));
+    test_assert(_i(42) > _i({}));
+    test_assert(42_i < 88);
+    test_assert(true_b != false_b);
+    test_assert(42 >= 42_i);
+    test_assert(43 >= 42_i);
+    test_assert(42 <= 42_i);
+    test_assert(42 <= 43_i);
+    test_assert(not false_b);
   }
 
   {
-    assert(true_b and 42_c == 42_c);
-    assert(false_b or 42_c == 42_c);
-    assert(true_b or 42_c != 42_c);
-    assert(not(42_c < 0));
+    test_assert(true_b and 42_c == 42_c);
+    test_assert(false_b or 42_c == 42_c);
+    test_assert(true_b or 42_c != 42_c);
+    test_assert(not(42_c < 0));
   }
 
   {
@@ -139,16 +140,16 @@ int main() {
   {
     cfg = fake_cfg{};
 
-    "assertions"_test = [] { expect(42_i == 42); };
+    "test_assertions"_test = [] { expect(42_i == 42); };
 
-    assert(1 == std::size(cfg.test_calls));
-    assert("assertions"sv == cfg.test_calls[0]);
-    assert(0 == std::size(cfg.test_skip_calls));
-    assert(0 == std::size(cfg.log_calls));
-    assert(0 == cfg.fatal_assertion_calls);
-    assert(1 == std::size(cfg.assertion_calls));
-    assert(cfg.assertion_calls[0].location.line());
-    assert(cfg.assertion_calls[0].result);
+    test_assert(1 == std::size(cfg.test_calls));
+    test_assert("test_assertions"sv == cfg.test_calls[0]);
+    test_assert(0 == std::size(cfg.test_skip_calls));
+    test_assert(0 == std::size(cfg.log_calls));
+    test_assert(0 == cfg.fatal_assertion_calls);
+    test_assert(1 == std::size(cfg.assertion_calls));
+    test_assert(cfg.assertion_calls[0].location.line() > 0);
+    test_assert(cfg.assertion_calls[0].result);
   }
 
   {
@@ -158,11 +159,11 @@ int main() {
     "run"_test = [] {};
     "ignore"_test = [] {};
 
-    assert(1 == std::size(cfg.test_calls));
-    assert("run"sv == cfg.test_calls[0]);
-    assert(0 == std::size(cfg.test_skip_calls));
-    assert(0 == std::size(cfg.log_calls));
-    assert(0 == cfg.fatal_assertion_calls);
+    test_assert(1 == std::size(cfg.test_calls));
+    test_assert("run"sv == cfg.test_calls[0]);
+    test_assert(0 == std::size(cfg.test_skip_calls));
+    test_assert(0 == std::size(cfg.log_calls));
+    test_assert(0 == cfg.fatal_assertion_calls);
   }
 
   {
@@ -171,25 +172,24 @@ int main() {
     "run"_test = [] {};
     skip | "skip"_test = [] {};
 
-    assert(1 == std::size(cfg.test_calls));
-    assert("run"sv == cfg.test_calls[0]);
-    assert(1 == std::size(cfg.test_skip_calls));
-    assert("skip"sv == cfg.test_skip_calls[0]);
-    assert(0 == std::size(cfg.log_calls));
-    assert(0 == cfg.fatal_assertion_calls);
+    test_assert(1 == std::size(cfg.test_calls));
+    test_assert("run"sv == cfg.test_calls[0]);
+    test_assert(1 == std::size(cfg.test_skip_calls));
+    test_assert("skip"sv == cfg.test_skip_calls[0]);
+    test_assert(0 == std::size(cfg.log_calls));
+    test_assert(0 == cfg.fatal_assertion_calls);
   }
 
   {
     cfg = fake_cfg{};
 
     "logging"_test = [] {
-      log << "msg1"
-          << "msg2";
+      boost::ut::log << "msg1" << "msg2";
     };
 
-    assert(2 == std::size(cfg.log_calls));
-    assert("msg1"sv == cfg.log_calls[0]);
-    assert("msg2"sv == cfg.log_calls[1]);
+    test_assert(2 == std::size(cfg.log_calls));
+    test_assert("msg1"sv == cfg.log_calls[0]);
+    test_assert("msg2"sv == cfg.log_calls[1]);
   }
 
   {
@@ -202,7 +202,7 @@ int main() {
       expect(nothrow([] {})) << "doesn't throw";
     };
 
-    assert(3 == std::size(cfg.assertion_calls));
+    test_assert(3 == std::size(cfg.assertion_calls));
   }
 
   {
@@ -226,7 +226,7 @@ int main() {
       };
     };
 
-    assert(4 == std::size(cfg.assertion_calls));
+    test_assert(4 == std::size(cfg.assertion_calls));
   }
 
   {
@@ -236,7 +236,7 @@ int main() {
       expect(arg > 0_i) << "all values greater than 0";
     } | std::vector{1, 2, 3};
 
-    assert(3 == std::size(cfg.assertion_calls));
+    test_assert(3 == std::size(cfg.assertion_calls));
   }
 
   {
@@ -247,7 +247,7 @@ int main() {
     }
     | std::tuple<bool, int>{};
 
-    assert(2 == std::size(cfg.assertion_calls));
+    test_assert(2 == std::size(cfg.assertion_calls));
   }
 
   {
@@ -259,7 +259,7 @@ int main() {
     }
     | std::tuple{42, 42.f};
 
-    assert(4 == std::size(cfg.assertion_calls));
+    test_assert(4 == std::size(cfg.assertion_calls));
   }
 
   {
@@ -274,6 +274,6 @@ int main() {
       };
     };
 
-    assert(2 == std::size(cfg.assertion_calls));
+    test_assert(2 == std::size(cfg.assertion_calls));
   }
 }
