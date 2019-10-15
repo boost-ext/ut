@@ -300,6 +300,9 @@ class integral_constant : op {
   constexpr auto get() const { return N; }
 };
 
+template<class T>
+constexpr auto abs(T t) -> T { return t < T{} ? -t : t; }
+
 template <class T>
 constexpr T pow(const T base, const std::size_t exp) {
   return exp ? base * pow(base, exp - 1) : T(1);
@@ -399,9 +402,6 @@ template <class T>
 constexpr auto get(const T& t) {
   return get_impl(t, 0);
 }
-
-template<class T>
-constexpr auto abs(T t) -> T { return t < T{} ? -t : t; }
 
 template <class T>
 struct type_ : op {
