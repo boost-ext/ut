@@ -54,6 +54,63 @@ constexpr auto type_name() -> std::string_view {
 }
 }  // namespace reflection
 
+namespace math {
+template<class T>
+constexpr auto abs(T t) -> T { return t < T{} ? -t : t; }
+
+template <class T>
+constexpr T pow(const T base, const std::size_t exp) {
+  return exp ? base * pow(base, exp - 1) : T(1);
+}
+
+template <class T, char... Cs>
+constexpr auto num() {
+  constexpr char cs[]{Cs...};
+  T result = {};
+  auto size = 0u, i = 0u;
+
+  while (i < sizeof...(Cs) and cs[i] != '.') {
+    if (cs[i++] != '\'') {
+      ++size;
+    }
+  }
+
+  auto should_skip = 1;
+  i = 0u;
+  while (i < sizeof...(Cs) and cs[i] != '.') {
+    if (cs[i] == '\'') {
+      --should_skip;
+    } else {
+      result += pow(T(10), size - i - should_skip) * (cs[i] - '0');
+    }
+    ++i;
+  }
+  return result;
+}
+
+template <char... Cs>
+constexpr auto den() {
+  constexpr char cs[]{Cs...};
+  auto result = 0;
+  auto i = 0u;
+  while (cs[i++] != '.')
+    ;
+  for (auto j = i; j < sizeof...(Cs); ++j) {
+    result += pow(10, sizeof...(Cs) - j) * (cs[j] - '0');
+  }
+  return result;
+}
+
+template <class T, char... Cs>
+constexpr auto den_size() {
+  constexpr char cs[]{Cs...};
+  auto i = 0u;
+  while (cs[i++] != '.')
+    ;
+  return sizeof...(Cs) - i + 1;
+}
+} // namespace math
+
 namespace events {
 template <class Test>
 struct test_run {
@@ -300,65 +357,10 @@ class integral_constant : op {
   constexpr auto get() const { return N; }
 };
 
-template<class T>
-constexpr auto abs(T t) -> T { return t < T{} ? -t : t; }
-
-template <class T>
-constexpr T pow(const T base, const std::size_t exp) {
-  return exp ? base * pow(base, exp - 1) : T(1);
-}
-
-template <class T, char... Cs>
-constexpr auto num() {
-  constexpr char cs[]{Cs...};
-  T result = {};
-  auto size = 0u, i = 0u;
-
-  while (i < sizeof...(Cs) and cs[i] != '.') {
-    if (cs[i++] != '\'') {
-      ++size;
-    }
-  }
-
-  auto skip = 1;
-  i = 0u;
-  while (i < sizeof...(Cs) and cs[i] != '.') {
-    if (cs[i] == '\'') {
-      --skip;
-    } else {
-      result += pow(T(10), size - i - skip) * (cs[i] - '0');
-    }
-    ++i;
-  }
-  return result;
-}
-
-template <char... Cs>
-constexpr auto den() {
-  constexpr char cs[]{Cs...};
-  auto result = 0;
-  auto i = 0u;
-  while (cs[i++] != '.')
-    ;
-  for (auto j = i; j < sizeof...(Cs); ++j) {
-    result += pow(10, sizeof...(Cs) - j) * (cs[j] - '0');
-  }
-  return result;
-}
-
-template <class T, char... Cs>
-constexpr auto den_size() {
-  constexpr char cs[]{Cs...};
-  auto i = 0u;
-  while (cs[i++] != '.')
-    ;
-  return sizeof...(Cs) - i + 1;
-}
-
 template <class T, auto N, auto D, auto Size, auto P = 1>
 struct floating_point_constant : op {
-  static constexpr auto epsilon = T(1) / pow(10, Size);
-  static constexpr auto value = T(P) * (T(N) + (T(D) / pow(10, Size)));
+  static constexpr auto epsilon = T(1) / math::pow(10, Size);
+  static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
   constexpr operator T() const { return value; }
   constexpr auto get() const { return value; }
 };
@@ -438,9 +440,9 @@ class eq_ : op {
                   is_integral_constant_v<TRhs>) {
       return TLhs::value == TRhs::value;
     } else if constexpr (is_floating_point_constant_v<TLhs>) {
-      return abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
+      return math::abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
     } else if constexpr (is_floating_point_constant_v<TRhs>) {
-      return abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
+      return math::abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
     } else {
       return get(lhs_) == get(rhs_);
     }
@@ -690,68 +692,68 @@ constexpr auto operator""_test(const char* name, std::size_t size) {
 
 template <char... Cs>
 constexpr auto operator""_i() {
-  return detail::integral_constant<detail::num<int, Cs...>()>{};
+  return detail::integral_constant<math::num<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_s() {
-  return detail::integral_constant<detail::num<short, Cs...>()>{};
+  return detail::integral_constant<math::num<short, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_c() {
-  return detail::integral_constant<detail::num<char, Cs...>()>{};
+  return detail::integral_constant<math::num<char, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_l() {
-  return detail::integral_constant<detail::num<long, Cs...>()>{};
+  return detail::integral_constant<math::num<long, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_ll() {
-  return detail::integral_constant<detail::num<long long, Cs...>()>{};
+  return detail::integral_constant<math::num<long long, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_u() {
-  return detail::integral_constant<detail::num<unsigned, Cs...>()>{};
+  return detail::integral_constant<math::num<unsigned, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_uc() {
-  return detail::integral_constant<detail::num<unsigned char, Cs...>()>{};
+  return detail::integral_constant<math::num<unsigned char, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_us() {
-  return detail::integral_constant<detail::num<unsigned short, Cs...>()>{};
+  return detail::integral_constant<math::num<unsigned short, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_ul() {
-  return detail::integral_constant<detail::num<unsigned long, Cs...>()>{};
+  return detail::integral_constant<math::num<unsigned long, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_f() {
-  return detail::floating_point_constant<float, detail::num<int, Cs...>(),
-                                         detail::den<Cs...>(),
-                                         detail::den_size<int, Cs...>()>{};
+  return detail::floating_point_constant<float, math::num<int, Cs...>(),
+                                         math::den<Cs...>(),
+                                         math::den_size<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_d() {
-  return detail::floating_point_constant<double, detail::num<int, Cs...>(),
-                                         detail::den<Cs...>(),
-                                         detail::den_size<int, Cs...>()>{};
+  return detail::floating_point_constant<double, math::num<int, Cs...>(),
+                                         math::den<Cs...>(),
+                                         math::den_size<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_ld() {
-  return detail::floating_point_constant<long double, detail::num<int, Cs...>(),
-                                         detail::den<Cs...>(),
-                                         detail::den_size<int, Cs...>()>{};
+  return detail::floating_point_constant<long double, math::num<int, Cs...>(),
+                                         math::den<Cs...>(),
+                                         math::den_size<int, Cs...>()>{};
 }
 }  // namespace literals
 

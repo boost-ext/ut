@@ -150,7 +150,7 @@ asserts: 13 | 12 passed | 1 failed
   | std::vector{1, 2, 3};
 
 "types"_test =
-    []<class T>() {
+    []<class T> {
       expect(std::is_integral_v<T>) << "all types are integrals";
     }
   | std::tuple<bool, int>{};
