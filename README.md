@@ -7,7 +7,7 @@
 * **Macro-free** (Based on modern C++ features)
 * **Easy to use** (Minimal interface)
 * **Fast to compile/execute** (No allocations/no dynamic dispatch)
-* **Extensible** (Custom configuration)
+* **Extensible** ([Custom configurations](example/cfgs))
 
 ### Testing
 
@@ -230,7 +230,7 @@ class cfg {
    * @param test.test function
    */
   template<class Test>
-  auto on(ut::events::test<Test> test) { 
+  auto on(ut::events::test_run<Test> test) {
     test.test(); // execute test
   }
 

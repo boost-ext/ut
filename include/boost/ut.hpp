@@ -140,21 +140,6 @@ struct fatal_assertion {};
 }  // namespace events
 
 class default_cfg {
-  auto test_begin(std::string_view name) {
-    out_ << "Running \"" << name << "\"...";
-    fails_ = asserts_.fail;
-  }
-
-  auto test_end() {
-    if (asserts_.fail > fails_) {
-      ++tests_.fail;
-      out_ << "\nFAILED\n";
-    } else {
-      ++tests_.pass;
-      out_ << "OK\n";
-    }
-  }
-
  public:
   template <class T>
   auto on(events::test_run<T> test) {
@@ -230,7 +215,22 @@ class default_cfg {
     }
   }
 
- private:
+ protected:
+  auto test_begin(std::string_view name) -> void {
+    out_ << "Running \"" << name << "\"...";
+    fails_ = asserts_.fail;
+  }
+
+  auto test_end() -> void {
+    if (asserts_.fail > fails_) {
+      ++tests_.fail;
+      out_ << "\nFAILED\n";
+    } else {
+      ++tests_.pass;
+      out_ << "OK\n";
+    }
+  }
+
   static inline std::stringstream out_{};
 
   struct {
