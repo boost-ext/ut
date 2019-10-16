@@ -6,8 +6,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
-#include <vector>
 #include <functional>
+#include <vector>
 
 namespace ut = boost::ut;
 
@@ -57,12 +57,9 @@ auto ut::cfg<ut::override> = run_cfg{};
 
 using ut::operator""_test;
 
-auto _ =
-"test suite"_test = [] {
+auto _ = "test suite"_test = [] {
   using namespace ut;
   "should be equal"_test = [] { expect(42_i == 42); };
 };
 
-int main(int argc, const char** argv) {
-  ut::cfg<ut::override>.run(argc, argv);
-}
+int main(int argc, const char** argv) { ut::cfg<ut::override>.run(argc, argv); }

@@ -26,6 +26,6 @@ template <>
 #if defined(_MSC_VER)
 static
 #endif
-inline auto boost::ut::cfg<boost::ut::override> = ft::cfg{};
+    inline auto boost::ut::cfg<boost::ut::override> = ft::cfg{};
 
 using boost::ut::operator""_test;

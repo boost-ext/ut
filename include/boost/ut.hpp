@@ -55,8 +55,10 @@ constexpr auto type_name() -> std::string_view {
 }  // namespace reflection
 
 namespace math {
-template<class T>
-constexpr auto abs(T t) -> T { return t < T{} ? -t : t; }
+template <class T>
+constexpr auto abs(T t) -> T {
+  return t < T{} ? -t : t;
+}
 
 template <class T>
 constexpr T pow(const T base, const std::size_t exp) {
@@ -109,7 +111,7 @@ constexpr auto den_size() {
     ;
   return sizeof...(Cs) - i + 1;
 }
-} // namespace math
+}  // namespace math
 
 namespace events {
 template <class Test>

@@ -96,7 +96,9 @@ int main() {
   }
 
   constexpr auto test_assert = [](bool result) {
-    if (not result) { throw; }
+    if (not result) {
+      throw;
+    }
   };
 
   {
@@ -184,7 +186,8 @@ int main() {
     test_cfg = fake_cfg{};
 
     "logging"_test = [] {
-      boost::ut::log << "msg1" << "msg2";
+      boost::ut::log << "msg1"
+                     << "msg2";
     };
 
     test_assert(2 == std::size(test_cfg.log_calls));
