@@ -9,7 +9,7 @@
 
 namespace ut = boost::ut;
 
-class silent_cfg {
+class example_cfg {
  public:
   template <class Test>
   auto on(ut::events::test_run<Test> test) {
@@ -26,9 +26,9 @@ class silent_cfg {
 };
 
 template <>
-auto ut::cfg<ut::override> = silent_cfg{};
+auto ut::cfg<ut::override> = example_cfg{};
 
 int main() {
   using namespace ut;
-  "silent"_test = [] { expect(1_i == 2) << "ignored by config"; };
+  "should be ignored"_test = [] { expect(1_i == 2) << "doesn't fire"; };
 }
