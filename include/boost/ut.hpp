@@ -32,12 +32,15 @@ struct source_location {
 #endif
 #include <cstddef>
 #include <iostream>
+#include <algorithm>
+#include <experimental/iterator>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace boost::ut {
 inline namespace v1 {
@@ -758,10 +761,25 @@ constexpr auto operator""_ld() {
 }  // namespace literals
 
 namespace operators {
+template<class T>
+constexpr auto& operator<<(std::ostream& os, const std::vector<T>& v) {
+  os << '{';
+  std::copy(std::cbegin(v),
+            std::cend(v),
+            std::experimental::make_ostream_joiner(os, ", "));
+  os << '}';
+  return os;
+}
+
 template <
     class TLhs, class TRhs,
     std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
 constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template<class T>
+constexpr auto operator==(const std::vector<T>& lhs, const std::vector<T>& rhs) {
   return detail::eq_{lhs, rhs};
 }
 
