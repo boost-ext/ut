@@ -154,7 +154,13 @@ class default_cfg {
         out_ << "\n \"" << test.name << "\"...";
       }
 
-      test.test();
+      active_exception_ = false;
+      try {
+        test.test();
+      } catch (...) {
+        out_ << "\n  Unexpected exception!";
+        active_exception_ = true;
+      }
 
       if (not--level_) {
         test_end();
@@ -224,7 +230,7 @@ class default_cfg {
   }
 
   auto test_end() -> void {
-    if (asserts_.fail > fails_) {
+    if (asserts_.fail > fails_ or active_exception_) {
       ++tests_.fail;
       out_ << "\nFAILED\n";
     } else {
@@ -248,6 +254,7 @@ class default_cfg {
 
   std::size_t fails_{};
   std::size_t level_{};
+  bool active_exception_{};
 };
 
 struct override {};

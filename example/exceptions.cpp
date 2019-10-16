@@ -16,5 +16,6 @@ int main() {
         << "throws runtime_error";
     expect(throws([] { throw 0; })) << "throws any exception";
     expect(nothrow([] {})) << "doesn't throw";
+    // expect([] { throw std::runtime_error{""}; return true; }()); // fail
   };
 }
