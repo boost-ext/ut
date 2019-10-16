@@ -24,7 +24,10 @@ struct fake_cfg {
   auto on(ut::events::test_run<Test> test) {
     if (std::empty(test_filter) or test.name == test_filter) {
       test_calls.push_back(test.name);
-      test.test();
+      try {
+        test.test();
+      } catch (...) {
+      }
     }
   }
   template <class Test>
@@ -203,6 +206,16 @@ int main() {
           << "throws runtime_error";
       expect(throws([] { throw 0; })) << "throws any exception";
       expect(nothrow([] {})) << "doesn't throw";
+    };
+
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+
+    "should throw"_test = [] {
+      auto f = [](const auto should_throw) {
+        if (should_throw) throw 42;
+        return 42;
+      };
+      expect(42_i == f(true));
     };
 
     test_assert(3 == std::size(test_cfg.assertion_calls));
