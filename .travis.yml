@@ -52,7 +52,7 @@ matrix:
 
   - os: linux
     dist: xenial
-    env: CXX=g++-9 VARIANT=coverage
+    env: CXX=g++-9 GCOV=gcov-9 VARIANT=coverage
     addons:
       apt:
         sources:
@@ -71,7 +71,7 @@ script:
     ); fi
   - if [ "${VARIANT}" == "coverage" ]; then (
       cmake -Bbuild/debug/coverage -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -H. && cmake --build build/debug/coverage &&
-      bash <(curl -s https://codecov.io/bash)
+      bash <(curl -s https://codecov.io/bash) -x "${GCOV}"
     ); fi
 
 notifications:
