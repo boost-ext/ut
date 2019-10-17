@@ -239,8 +239,6 @@ class default_cfg {
     }
   }
 
-  static inline std::stringstream out_{};
-
   struct {
     std::size_t pass{};
     std::size_t fail{};
@@ -255,6 +253,8 @@ class default_cfg {
   std::size_t fails_{};
   std::size_t level_{};
   bool active_exception_{};
+
+  std::stringstream out_{};
 };
 
 struct override {};
