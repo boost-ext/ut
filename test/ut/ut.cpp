@@ -10,13 +10,27 @@
 #include <cstdlib>
 #include <string>
 #include <string_view>
+#include <sstream>
 #include <vector>
 
 namespace ut = boost::ut;
 
+constexpr auto to_string = [](const auto expr) {
+  std::stringstream str{};
+  str << std::boolalpha << expr;
+  return str.str();
+};
+
+constexpr auto test_assert = [](bool result) {
+  if (not result) {
+    throw;
+  }
+};
+
 struct fake_cfg {
   struct assertion_call {
     std::experimental::source_location location{};
+    std::string str{};
     bool result{};
   };
 
@@ -36,7 +50,7 @@ struct fake_cfg {
   }
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion<TLocation, TExpr> assertion) -> bool {
-    assertion_calls.push_back({assertion.location, assertion.expr});
+    assertion_calls.push_back({assertion.location, to_string(assertion.expr), assertion.expr});
     return assertion.expr;
   }
   auto on(ut::events::fatal_assertion) { ++fatal_assertion_calls; }
@@ -68,8 +82,6 @@ auto ut::cfg<ut::override> = fake_cfg{};
 int main() {
   using namespace ut;
   using namespace std::literals::string_view_literals;
-
-  auto& test_cfg = ut::cfg<ut::override>;
 
   {
     static_assert("void"sv == reflection::type_name<void>());
@@ -110,12 +122,6 @@ int main() {
     static_assert(_ld(42.42) == 42.42_ld);
   }
 
-  constexpr auto test_assert = [](bool result) {
-    if (not result) {
-      throw;
-    }
-  };
-
   {
     test_assert(42_i == 42_i);
     test_assert(42_i == 42);
@@ -141,10 +147,28 @@ int main() {
   }
 
   {
-    test_assert(true_b and 42_c == 42_c);
-    test_assert(false_b or 42_c == 42_c);
-    test_assert(true_b or 42_c != 42_c);
-    test_assert(not(42_c < 0));
+    test_assert(true_b and 42_i == 42_i);
+    test_assert(false_b or 42_i == 42_i);
+    test_assert(true_b or 42_i != 42_i);
+    test_assert(not(42_i < 0));
+  }
+
+  {
+    test_assert("0 == 0" == to_string(0_s == _s(0)));
+    test_assert("0 != 0" == to_string(0_s != _s(0)));
+    test_assert("0 < 0" == to_string(0_s < _s(0)));
+    test_assert("0 > 0" == to_string(0_s > _s(0)));
+    test_assert("0 >= 0" == to_string(0_s >= _s(0)));
+    test_assert("0 <= 0" == to_string(0_s <= _s(0)));
+    test_assert("0 != 0" == to_string(0_s != _s(0)));
+    test_assert("not 0" == to_string(not 0_s));
+    test_assert("42 == 42" == to_string(42_i == 42));
+    test_assert("42 != 42" == to_string(42_i != 42));
+    test_assert("42 > 0" == to_string(42_ul > 0_ul));
+    test_assert("int == float" == to_string(type<int> == type<float>));
+    test_assert("void != double" == to_string(type<void> != type<double>));
+    test_assert("(true or 42.42 == 12.34)" == to_string(true_b or (42.42_d == 12.34)));
+    test_assert("(not 1 == 2 and str == str2)" == to_string(not (1_i == 2) and ("str"sv == "str2"sv)));
   }
 
   {
@@ -152,6 +176,26 @@ int main() {
     static_assert(type<void*> == type<void*>);
     static_assert(type<int> != type<const int>);
     static_assert(type<int> != type<void>);
+  }
+
+  auto& test_cfg = ut::cfg<ut::override>;
+
+  {
+    test_cfg = fake_cfg{};
+
+    expect(1 == 2_i);
+    expect(42 == 42_i);
+    expect(1 != 2_i);
+
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert("1 == 2" == test_cfg.assertion_calls[0].str);
+    test_assert(not test_cfg.assertion_calls[0].result);
+
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("42 == 42" == test_cfg.assertion_calls[1].str);
+
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("1 != 2" == test_cfg.assertion_calls[2].str);
   }
 
   {
@@ -166,6 +210,7 @@ int main() {
     test_assert(0 == test_cfg.fatal_assertion_calls);
     test_assert(1 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].location.line() > 0);
+    test_assert("42 == 42" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[0].result);
   }
 
@@ -221,6 +266,12 @@ int main() {
     };
 
     test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("true" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("true" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("true" == test_cfg.assertion_calls[2].str);
 
     "should throw"_test = [] {
       auto f = [](const auto should_throw) {
@@ -231,6 +282,12 @@ int main() {
     };
 
     test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("true" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("true" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("true" == test_cfg.assertion_calls[2].str);
   }
 
   {
@@ -255,6 +312,14 @@ int main() {
     };
 
     test_assert(4 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("5 == 5" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("10 == 10" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("5 == 5" == test_cfg.assertion_calls[2].str);
+    test_assert(test_cfg.assertion_calls[3].result);
+    test_assert("0 == 0" == test_cfg.assertion_calls[3].str);
   }
 
   {
@@ -265,6 +330,12 @@ int main() {
     } | std::vector{1, 2, 3};
 
     test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("1 > 0" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("2 > 0" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("3 > 0" == test_cfg.assertion_calls[2].str);
   }
 
   {
@@ -276,18 +347,30 @@ int main() {
     | std::tuple<bool, int>{};
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("true" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("true" == test_cfg.assertion_calls[1].str);
   }
 
   {
     test_cfg = fake_cfg{};
 
     "args and types"_test = []<class TArg>(const TArg& arg) {
-      expect(42_i == arg or arg == 42._f);
+      expect(42_i == arg or arg == 42.42_f);
       expect(type<TArg> == type<int> or type<TArg> == type<float>);
     }
-    | std::tuple{42, 42.f};
+    | std::tuple{42, 42.42f};
 
     test_assert(4 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert(test_cfg.assertion_calls[3].result);
+    test_assert("(42 == 42 or 42 == 42.42)" == test_cfg.assertion_calls[0].str);
+    test_assert("(int == int or int == float)" == test_cfg.assertion_calls[1].str);
+    test_assert("(42 == 42.42 or 42.42 == 42.42)" == test_cfg.assertion_calls[2].str);
+    test_assert("(float == int or float == float)" == test_cfg.assertion_calls[3].str);
   }
 
   {
@@ -303,6 +386,10 @@ int main() {
     };
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("1 == 1" == test_cfg.assertion_calls[1].str);
   }
 
   {
@@ -315,6 +402,8 @@ int main() {
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("2 == 2" == test_cfg.assertion_calls[1].str);
   }
 }

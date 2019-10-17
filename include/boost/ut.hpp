@@ -630,7 +630,7 @@ class not_ : op {
   constexpr operator bool() const { return not static_cast<bool>(t_); }
 
   friend auto operator<<(std::ostream& os, const not_& op) -> std::ostream& {
-    return (os << " not " << get(op.t_));
+    return (os << "not " << get(op.t_));
   }
 
  private:
