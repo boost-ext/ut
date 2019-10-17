@@ -50,6 +50,18 @@ struct fake_cfg {
   std::string test_filter{};
 };
 
+namespace custom {
+template <char... Cs>
+constexpr auto operator""_i() -> int {
+  return sizeof...(Cs);
+}
+auto f() -> int { return 0_i; }
+}  // namespace custom
+auto f() -> int {
+  using namespace custom;
+  return 42_i;
+}
+
 template <>
 auto ut::cfg<ut::override> = fake_cfg{};
 
@@ -291,5 +303,18 @@ int main() {
     };
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    "should disambiguate operators"_test = [] {
+      expect(1_i == custom::f());
+      expect(2_i == f());
+    };
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert(test_cfg.assertion_calls[1].result);
   }
 }
