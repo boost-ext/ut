@@ -8,9 +8,9 @@
 #include "boost/ut.hpp"
 
 #include <cstdlib>
+#include <sstream>
 #include <string>
 #include <string_view>
-#include <sstream>
 #include <vector>
 
 namespace ut = boost::ut;
@@ -50,7 +50,8 @@ struct fake_cfg {
   }
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion<TLocation, TExpr> assertion) -> bool {
-    assertion_calls.push_back({assertion.location, to_string(assertion.expr), assertion.expr});
+    assertion_calls.push_back(
+        {assertion.location, to_string(assertion.expr), assertion.expr});
     return assertion.expr;
   }
   auto on(ut::events::fatal_assertion) { ++fatal_assertion_calls; }
@@ -82,6 +83,72 @@ auto ut::cfg<ut::override> = fake_cfg{};
 int main() {
   using namespace ut;
   using namespace std::literals::string_view_literals;
+
+  {
+    struct test_cfg : default_cfg {
+      using default_cfg::active_exception_;
+      using default_cfg::asserts_;
+      using default_cfg::tests_;
+    };
+
+    auto tcfg = test_cfg{};
+    tcfg.on(events::test_run{"test_run", [] {}});
+    test_assert(1 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(0 == tcfg.tests_.skip);
+
+    tcfg.on(events::test_skip{"test_skip", [] {}});
+    test_assert(1 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.filter = "unknown";
+    tcfg.on(events::test_run{"test_filter", [] {}});
+    test_assert(1 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+    tcfg.filter = {};
+
+    tcfg.filter = "test_filter";
+    tcfg.on(events::test_run{"test_filter", [] {}});
+    test_assert(2 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+    tcfg.filter = {};
+
+    tcfg.on(events::test_run{"test_pass", [&tcfg] {
+                               tcfg.on(events::assertion{
+                                   std::experimental::source_location{}, true});
+                             }});
+
+    test_assert(3 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.on(
+        events::test_run{"test_fail", [&tcfg] {
+                           tcfg.on(events::assertion{
+                               std::experimental::source_location{}, false});
+                         }});
+    test_assert(3 == tcfg.tests_.pass);
+    test_assert(1 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.on(events::test_run{"test_exception", [] { throw 42; }});
+    test_assert(3 == tcfg.tests_.pass);
+    test_assert(2 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.on(events::test_run{"test_sub", [&tcfg] {
+                               tcfg.on(events::test_run{"sub", [] {}});
+                             }});
+    test_assert(4 == tcfg.tests_.pass);
+    test_assert(2 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.tests_ = {};
+    tcfg.asserts_ = {};
+  }
 
   {
     static_assert("void"sv == reflection::type_name<void>());
@@ -161,14 +228,16 @@ int main() {
     test_assert("0 >= 0" == to_string(0_s >= _s(0)));
     test_assert("0 <= 0" == to_string(0_s <= _s(0)));
     test_assert("0 != 0" == to_string(0_s != _s(0)));
-    test_assert("not 0" == to_string(not 0_s));
+    test_assert("not 0" == to_string(!0_s));
     test_assert("42 == 42" == to_string(42_i == 42));
     test_assert("42 != 42" == to_string(42_i != 42));
     test_assert("42 > 0" == to_string(42_ul > 0_ul));
     test_assert("int == float" == to_string(type<int> == type<float>));
     test_assert("void != double" == to_string(type<void> != type<double>));
-    test_assert("(true or 42.42 == 12.34)" == to_string(true_b or (42.42_d == 12.34)));
-    test_assert("(not 1 == 2 and str == str2)" == to_string(not (1_i == 2) and ("str"sv == "str2"sv)));
+    test_assert("(true or 42.42 == 12.34)" ==
+                to_string(true_b or (42.42_d == 12.34)));
+    test_assert("(not 1 == 2 and str == str2)" ==
+                to_string(not(1_i == 2) and ("str"sv == "str2"sv)));
   }
 
   {
@@ -368,9 +437,12 @@ int main() {
     test_assert(test_cfg.assertion_calls[2].result);
     test_assert(test_cfg.assertion_calls[3].result);
     test_assert("(42 == 42 or 42 == 42.42)" == test_cfg.assertion_calls[0].str);
-    test_assert("(int == int or int == float)" == test_cfg.assertion_calls[1].str);
-    test_assert("(42 == 42.42 or 42.42 == 42.42)" == test_cfg.assertion_calls[2].str);
-    test_assert("(float == int or float == float)" == test_cfg.assertion_calls[3].str);
+    test_assert("(int == int or int == float)" ==
+                test_cfg.assertion_calls[1].str);
+    test_assert("(42 == 42.42 or 42.42 == 42.42)" ==
+                test_cfg.assertion_calls[2].str);
+    test_assert("(float == int or float == float)" ==
+                test_cfg.assertion_calls[3].str);
   }
 
   {

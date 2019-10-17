@@ -143,11 +143,13 @@ struct fatal_assertion {};
 
 class default_cfg {
  public:
+  std::string filter = std::getenv("BOOST_UT_FILTER")
+                           ? std::getenv("BOOST_UT_FILTER")
+                           : std::string{};
+
   template <class T>
   auto on(events::test_run<T> test) {
-    if (const auto filter = std::getenv("BOOST_UT_FILTER");
-        not filter or
-        (filter and std::string_view{filter} == std::string_view{test.name})) {
+    if (std::empty(filter) or filter == test.name) {
       if (not level_++) {
         test_begin(test.name);
       } else {
@@ -196,7 +198,7 @@ class default_cfg {
   auto on(events::fatal_assertion) {
     ++asserts_.fail;
     test_end();
-    std::exit(-1);
+    std::exit(int(asserts_.fail));
   }
 
   auto on(events::log log) { out_ << ' ' << log.msg; }
@@ -211,6 +213,7 @@ class default_cfg {
            << asserts_.pass << " passed"
            << " | " << asserts_.fail << " failed" << '\n';
       std::cerr << out_.str() << std::endl;
+      std::exit(int(tests_.fail));
     } else if (tests_.pass) {
       std::cout << "All tests passed (" << asserts_.pass << " asserts in "
                 << tests_.pass << " tests)\n";
