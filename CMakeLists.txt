@@ -14,7 +14,7 @@ else()
 endif()
 
 add_custom_target(style)
-add_custom_command(TARGET style COMMAND find ${CMAKE_CURRENT_LIST_DIR}/example
+add_custom_command(TARGET style COMMAND find ${CMAKE_CURRENT_LIST_DIR}/benchmark ${CMAKE_CURRENT_LIST_DIR}/example
   ${CMAKE_CURRENT_LIST_DIR}/include ${CMAKE_CURRENT_LIST_DIR}/test -iname
   "*.hpp" -or -iname "*.cpp" | xargs clang-format -i)
 
@@ -33,5 +33,6 @@ endif()
 
 enable_testing()
 include_directories(include)
+add_subdirectory(benchmark)
 add_subdirectory(example)
 add_subdirectory(test)
