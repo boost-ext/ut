@@ -333,18 +333,27 @@ int main() {
       expect(throws<std::runtime_error>([] { throw std::runtime_error{""}; }))
           << "throws runtime_error";
       expect(throws([] { throw 0; })) << "throws any exception";
+      expect(throws<std::runtime_error>([] { throw 0; })) << "throws wrong exception";
+      expect(throws<std::runtime_error>([] { })) << "doesn't throw";
       expect(nothrow([] {})) << "doesn't throw";
+      expect(nothrow([] { throw 0; })) << "throws";
     };
 
     test_assert(1 == std::size(test_cfg.test_calls));
     test_assert("exceptions"sv == test_cfg.test_calls[0]);
-    test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert(6 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("true" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[1].result);
     test_assert("true" == test_cfg.assertion_calls[1].str);
-    test_assert(test_cfg.assertion_calls[2].result);
-    test_assert("true" == test_cfg.assertion_calls[2].str);
+    test_assert(not test_cfg.assertion_calls[2].result);
+    test_assert("false" == test_cfg.assertion_calls[2].str);
+    test_assert(not test_cfg.assertion_calls[3].result);
+    test_assert("false" == test_cfg.assertion_calls[3].str);
+    test_assert(test_cfg.assertion_calls[4].result);
+    test_assert("true" == test_cfg.assertion_calls[4].str);
+    test_assert(not test_cfg.assertion_calls[5].result);
+    test_assert("false" == test_cfg.assertion_calls[5].str);
 
     "should throw"_test = [] {
       auto f = [](const auto should_throw) {
@@ -356,13 +365,7 @@ int main() {
 
     test_assert(2 == std::size(test_cfg.test_calls));
     test_assert("should throw"sv == test_cfg.test_calls[1]);
-    test_assert(3 == std::size(test_cfg.assertion_calls));
-    test_assert(test_cfg.assertion_calls[0].result);
-    test_assert("true" == test_cfg.assertion_calls[0].str);
-    test_assert(test_cfg.assertion_calls[1].result);
-    test_assert("true" == test_cfg.assertion_calls[1].str);
-    test_assert(test_cfg.assertion_calls[2].result);
-    test_assert("true" == test_cfg.assertion_calls[2].str);
+    test_assert(6 == std::size(test_cfg.assertion_calls));
   }
 
   {
