@@ -7,6 +7,7 @@
 //
 #include "boost/ut.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <sstream>
 #include <string>
@@ -251,40 +252,6 @@ int main() {
 
   {
     test_cfg = fake_cfg{};
-
-    expect(1 == 2_i);
-    expect(42 == 42_i);
-    expect(1 != 2_i);
-
-    test_assert(3 == std::size(test_cfg.assertion_calls));
-    test_assert("1 == 2" == test_cfg.assertion_calls[0].str);
-    test_assert(not test_cfg.assertion_calls[0].result);
-
-    test_assert(test_cfg.assertion_calls[1].result);
-    test_assert("42 == 42" == test_cfg.assertion_calls[1].str);
-
-    test_assert(test_cfg.assertion_calls[2].result);
-    test_assert("1 != 2" == test_cfg.assertion_calls[2].str);
-  }
-
-  {
-    test_cfg = fake_cfg{};
-
-    "test_assertions"_test = [] { expect(42_i == 42); };
-
-    test_assert(1 == std::size(test_cfg.test_calls));
-    test_assert("test_assertions"sv == test_cfg.test_calls[0]);
-    test_assert(0 == std::size(test_cfg.test_skip_calls));
-    test_assert(0 == std::size(test_cfg.log_calls));
-    test_assert(0 == test_cfg.fatal_assertion_calls);
-    test_assert(1 == std::size(test_cfg.assertion_calls));
-    test_assert(test_cfg.assertion_calls[0].location.line() > 0);
-    test_assert("42 == 42" == test_cfg.assertion_calls[0].str);
-    test_assert(test_cfg.assertion_calls[0].result);
-  }
-
-  {
-    test_cfg = fake_cfg{};
     test_cfg.test_filter = "run";
 
     "run"_test = [] {};
@@ -292,8 +259,8 @@ int main() {
 
     test_assert(1 == std::size(test_cfg.test_calls));
     test_assert("run"sv == test_cfg.test_calls[0]);
-    test_assert(0 == std::size(test_cfg.test_skip_calls));
-    test_assert(0 == std::size(test_cfg.log_calls));
+    test_assert(std::empty(test_cfg.test_skip_calls));
+    test_assert(std::empty(test_cfg.log_calls));
     test_assert(0 == test_cfg.fatal_assertion_calls);
   }
 
@@ -307,7 +274,7 @@ int main() {
     test_assert("run"sv == test_cfg.test_calls[0]);
     test_assert(1 == std::size(test_cfg.test_skip_calls));
     test_assert("skip"sv == test_cfg.test_skip_calls[0]);
-    test_assert(0 == std::size(test_cfg.log_calls));
+    test_assert(std::empty(test_cfg.log_calls));
     test_assert(0 == test_cfg.fatal_assertion_calls);
   }
 
@@ -329,12 +296,73 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
+    expect(1 == 2_i);
+    expect(42 == 42_i);
+    expect(1 != 2_i);
+    expect(2_i > 2_i) << "msg";
+
+    test_assert(4 == std::size(test_cfg.assertion_calls));
+    test_assert("1 == 2" == test_cfg.assertion_calls[0].str);
+    test_assert(not test_cfg.assertion_calls[0].result);
+
+    test_assert("42 == 42" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+
+    test_assert("1 != 2" == test_cfg.assertion_calls[2].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+
+    test_assert("2 > 2" == test_cfg.assertion_calls[3].str);
+    test_assert(not test_cfg.assertion_calls[3].result);
+
+    test_assert(1 == std::size(test_cfg.log_calls));
+    test_assert("msg"sv == test_cfg.log_calls[0]);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    "assertions"_test = [] { expect(42_i == 42); };
+
+    test_assert(1 == std::size(test_cfg.test_calls));
+    test_assert("assertions"sv == test_cfg.test_calls[0]);
+    test_assert(std::empty(test_cfg.test_skip_calls));
+    test_assert(std::empty(test_cfg.log_calls));
+    test_assert(0 == test_cfg.fatal_assertion_calls);
+    test_assert(1 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].location.line() > 0);
+    test_assert("42 == 42" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[0].result);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    "fatal assertions"_test = [] {
+      !expect(1_i == 1);
+      !expect(2 != 2_i) << "fatal";
+    };
+
+    test_assert(1 == std::size(test_cfg.test_calls));
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
+    test_assert(not test_cfg.assertion_calls[1].result);
+    test_assert("2 != 2" == test_cfg.assertion_calls[1].str);
+    test_assert(1 == test_cfg.fatal_assertion_calls);
+    test_assert(1 == std::size(test_cfg.log_calls));
+    test_assert("fatal"sv == test_cfg.log_calls[0]);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
     "exceptions"_test = [] {
       expect(throws<std::runtime_error>([] { throw std::runtime_error{""}; }))
           << "throws runtime_error";
       expect(throws([] { throw 0; })) << "throws any exception";
-      expect(throws<std::runtime_error>([] { throw 0; })) << "throws wrong exception";
-      expect(throws<std::runtime_error>([] { })) << "doesn't throw";
+      expect(throws<std::runtime_error>([] { throw 0; }))
+          << "throws wrong exception";
+      expect(throws<std::runtime_error>([] {})) << "doesn't throw";
       expect(nothrow([] {})) << "doesn't throw";
       expect(nothrow([] { throw 0; })) << "throws";
     };
