@@ -319,6 +319,8 @@ int main() {
                      << "msg2";
     };
 
+    test_assert(1 == std::size(test_cfg.test_calls));
+    test_assert("logging"sv == test_cfg.test_calls[0]);
     test_assert(2 == std::size(test_cfg.log_calls));
     test_assert("msg1"sv == test_cfg.log_calls[0]);
     test_assert("msg2"sv == test_cfg.log_calls[1]);
@@ -334,6 +336,8 @@ int main() {
       expect(nothrow([] {})) << "doesn't throw";
     };
 
+    test_assert(1 == std::size(test_cfg.test_calls));
+    test_assert("exceptions"sv == test_cfg.test_calls[0]);
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("true" == test_cfg.assertion_calls[0].str);
@@ -350,6 +354,8 @@ int main() {
       expect(42_i == f(true));
     };
 
+    test_assert(2 == std::size(test_cfg.test_calls));
+    test_assert("should throw"sv == test_cfg.test_calls[1]);
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("true" == test_cfg.assertion_calls[0].str);
@@ -380,6 +386,10 @@ int main() {
       };
     };
 
+    test_assert(3 == std::size(test_cfg.test_calls));
+    test_assert("[vector]"sv == test_cfg.test_calls[0]);
+    test_assert("resize bigger"sv == test_cfg.test_calls[1]);
+    test_assert("resize smaller"sv == test_cfg.test_calls[2]);
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("5 == 5" == test_cfg.assertion_calls[0].str);
@@ -398,6 +408,10 @@ int main() {
       expect(arg > 0_i) << "all values greater than 0";
     } | std::vector{1, 2, 3};
 
+    test_assert(3 == std::size(test_cfg.test_calls));
+    test_assert("args"sv == test_cfg.test_calls[0]);
+    test_assert("args"sv == test_cfg.test_calls[1]);
+    test_assert("args"sv == test_cfg.test_calls[2]);
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 > 0" == test_cfg.assertion_calls[0].str);
@@ -415,6 +429,9 @@ int main() {
     }
     | std::tuple<bool, int>{};
 
+    test_assert(2 == std::size(test_cfg.test_calls));
+    test_assert("types"sv == test_cfg.test_calls[0]);
+    test_assert("types"sv == test_cfg.test_calls[1]);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("true" == test_cfg.assertion_calls[0].str);
@@ -431,6 +448,9 @@ int main() {
     }
     | std::tuple{42, 42.42f};
 
+    test_assert(2 == std::size(test_cfg.test_calls));
+    test_assert("args and types"sv == test_cfg.test_calls[0]);
+    test_assert("args and types"sv == test_cfg.test_calls[1]);
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert(test_cfg.assertion_calls[1].result);
@@ -457,6 +477,12 @@ int main() {
       };
     };
 
+    test_assert(5 == std::size(test_cfg.test_calls));
+    test_assert("scenario"sv == test_cfg.test_calls[0]);
+    test_assert("I have..."sv == test_cfg.test_calls[1]);
+    test_assert("I run..."sv == test_cfg.test_calls[2]);
+    test_assert("I expect..."sv == test_cfg.test_calls[3]);
+    test_assert("I expect..."sv == test_cfg.test_calls[4]);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
@@ -472,6 +498,8 @@ int main() {
       expect(2_i == f());
     };
 
+    test_assert(1 == std::size(test_cfg.test_calls));
+    test_assert("should disambiguate operators"sv == test_cfg.test_calls[0]);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
