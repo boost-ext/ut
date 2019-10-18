@@ -61,12 +61,12 @@ constexpr auto abs(T t) -> T {
 }
 
 template <class T>
-constexpr T pow(const T base, const std::size_t exp) {
+constexpr auto pow(const T base, const std::size_t exp) -> T {
   return exp ? base * pow(base, exp - 1) : T(1);
 }
 
-template <class T, char... Cs>
-constexpr auto num() {
+template <class T, auto... Cs>
+constexpr auto num() -> T {
   constexpr char cs[]{Cs...};
   T result = {};
   auto size = 0u, i = 0u;
@@ -90,10 +90,10 @@ constexpr auto num() {
   return result;
 }
 
-template <char... Cs>
-constexpr auto den() {
+template <auto... Cs>
+constexpr auto den() -> std::size_t {
   constexpr char cs[]{Cs...};
-  auto result = 0;
+  auto result = 0u;
   auto i = 0u;
   while (cs[i++] != '.')
     ;
@@ -103,8 +103,8 @@ constexpr auto den() {
   return result;
 }
 
-template <class T, char... Cs>
-constexpr auto den_size() {
+template <class T, auto... Cs>
+constexpr auto den_size() -> std::size_t {
   constexpr char cs[]{Cs...};
   auto i = 0u;
   while (cs[i++] != '.')
@@ -295,9 +295,13 @@ class test {
   constexpr explicit test(std::string_view name) : name_{name} {}
 
   template <class Test>
-  constexpr decltype(auto) operator=(Test test) {
-    cfg::on<Test>(events::test_run{name_, test});
-    return test;
+  constexpr auto operator=(Test test) {
+    if constexpr (std::is_invocable_v<Test, std::string_view>) {
+      return test(name_);
+    } else {
+      cfg::on<Test>(events::test_run{name_, test});
+      return test;
+    }
   }
 
   constexpr auto name() const { return name_; }
@@ -856,24 +860,27 @@ template <class F, class TContainer,
           std::enable_if_t<
               std::is_invocable_v<F, typename TContainer::value_type>, int> = 0>
 constexpr auto operator|(const F& f, const TContainer& container) {
-  return [=] {
+  return [f, container](auto name) {
     for (const auto& arg : container) {
-      f(arg);
+      detail::cfg::on<F>(events::test_run{name, [f, arg] { f(arg); }});
     }
   };
 }
 
 template <class F, class... Ts>
 constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
-  return [=] {
-    return std::apply(
-        [=](const auto&... args) {
+  return [f, t](auto name) {
+    std::apply(
+        [f, name](const auto&... args) {
           (
-              []<class TArg>(const auto& f, [[maybe_unused]] const TArg& arg) {
+              [name](const auto& f, [[maybe_unused]] const auto& arg) {
+                using TArg = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_invocable_v<F, TArg>) {
-                  f(arg);
+                  detail::cfg::on<F>(
+                      events::test_run{name, [f, arg] { f(arg); }});
                 } else {
-                  f.template operator()<TArg>();
+                  detail::cfg::on<F>(events::test_run{
+                      name, [f] { f.template operator()<TArg>(); }});
                 }
               }(f, args),
               ...);
