@@ -116,25 +116,31 @@ constexpr auto den_size() -> std::size_t {
 namespace events {
 template <class Test>
 struct test_run {
-  constexpr test_run(std::string_view name, Test test)
-      : name{name}, test{test} {}
+  std::string_view desc{};
   std::string_view name{};
+  std::string_view type{};
   Test test{};
 };
 template <class Test>
+test_run(std::string_view, std::string_view, std::string_view, Test)
+    ->test_run<Test>;
+template <class Test>
 struct test_skip {
-  constexpr test_skip(std::string_view name, Test test)
-      : name{name}, test{test} {}
+  std::string_view desc{};
   std::string_view name{};
+  std::string_view type{};
   Test test{};
 };
+template <class Test>
+test_skip(std::string_view, std::string_view, std::string_view, Test)
+    ->test_skip<Test>;
 template <class TLocation, class TExpr>
 struct assertion {
-  constexpr assertion(TLocation location, TExpr expr)
-      : location{location}, expr{expr} {}
   TLocation location{};
   TExpr expr{};
 };
+template <class TLocation, class TExpr>
+assertion(TLocation, TExpr)->assertion<TLocation, TExpr>;
 struct log {
   std::string_view msg{};
 };
@@ -290,24 +296,20 @@ class cfg {
   }
 };
 
-class test {
- public:
-  constexpr explicit test(std::string_view name) : name_{name} {}
+struct test {
+  std::string_view desc{};
+  std::string_view name{};
+  std::string_view type{};
 
   template <class Test>
   constexpr auto operator=(Test test) {
     if constexpr (std::is_invocable_v<Test, std::string_view>) {
-      return test(name_);
+      return test(name);
     } else {
-      cfg::on<Test>(events::test_run{name_, test});
+      cfg::on<Test>(events::test_run{desc, name, type, test});
       return test;
     }
   }
-
-  constexpr auto name() const { return name_; }
-
- private:
-  std::string_view name_{};
 };
 
 template <class T>
@@ -316,8 +318,8 @@ class test_skip {
   constexpr explicit test_skip(T t) : t_{t} {}
 
   template <class Test>
-  constexpr decltype(auto) operator=(Test test) {
-    cfg::on<Test>(events::test_skip{t_.name(), test});
+  constexpr auto operator=(Test test) {
+    cfg::on<Test>(events::test_skip{t_.desc, t_.name, t_.type, test});
     return test;
   }
 
@@ -709,7 +711,7 @@ class nothrow_ : op {
 
 namespace literals {
 constexpr auto operator""_test(const char* name, std::size_t size) {
-  return detail::test{std::string_view{name, size}};
+  return detail::test{"test", std::string_view{name, size}, {}};
 }
 
 template <char... Cs>
@@ -868,7 +870,9 @@ template <class F, class TContainer,
 constexpr auto operator|(const F& f, const TContainer& container) {
   return [f, container](auto name) {
     for (const auto& arg : container) {
-      detail::cfg::on<F>(events::test_run{name, [f, arg] { f(arg); }});
+      detail::cfg::on<F>(events::test_run{
+          "test", name, reflection::type_name<std::decay_t<decltype(arg)>>(),
+          [f, arg] { f(arg); }});
     }
   };
 }
@@ -882,11 +886,13 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
               [name](const auto& f, [[maybe_unused]] const auto& arg) {
                 using TArg = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_invocable_v<F, TArg>) {
-                  detail::cfg::on<F>(
-                      events::test_run{name, [f, arg] { f(arg); }});
+                  detail::cfg::on<F>(events::test_run{
+                      "test", name, reflection::type_name<TArg>(),
+                      [f, arg] { f(arg); }});
                 } else {
                   detail::cfg::on<F>(events::test_run{
-                      name, [f] { f.template operator()<TArg>(); }});
+                      "test", name, reflection::type_name<TArg>(),
+                      [f] { f.template operator()<TArg>(); }});
                 }
               }(f, args),
               ...);
@@ -950,13 +956,13 @@ using _ld = detail::value<long double>;
 [[maybe_unused]] inline auto log = detail::cfg{};
 [[maybe_unused]] constexpr auto skip = detail::skip{};
 [[maybe_unused]] constexpr auto given = [](std::string_view name) {
-  return detail::test{name};
+  return detail::test{"given", name};
 };
 [[maybe_unused]] constexpr auto when = [](std::string_view name) {
-  return detail::test{name};
+  return detail::test{"when", name};
 };
 [[maybe_unused]] constexpr auto then = [](std::string_view name) {
-  return detail::test{name};
+  return detail::test{"then", name};
 };
 template <class T>
 [[maybe_unused]] constexpr auto type = detail::type_<T>{};
