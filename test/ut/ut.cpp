@@ -109,8 +109,8 @@ int main() {
     static_assert(42.42 == 42.42_ld);
     static_assert(0 == 0_i);
     static_assert(10'000 == 10'000_i);
-    static_assert(42'000'000 == 42'000'000_i);
-    static_assert(9'99'9 == 9'99'9_i);
+    static_assert(42000'000 == 42000'000_i);
+    static_assert(9'999 == 9'999_i);
     static_assert(42 == 42_i);
     static_assert(-42 == -42_i);
     static_assert(-42 == -42_i);
@@ -275,8 +275,6 @@ int main() {
     tcfg.asserts_ = {};
   }
 
-
-
   auto& test_cfg = ut::cfg<ut::override>;
 
   {
@@ -328,9 +326,11 @@ int main() {
     expect(1 == 2_i);
     expect(42 == 42_i);
     expect(1 != 2_i);
+    expect(-42 != -42_i);
+    expect(-1.1_d == -1.1);
     expect(2_i > 2_i) << "msg";
 
-    test_assert(4 == std::size(test_cfg.assertion_calls));
+    test_assert(6 == std::size(test_cfg.assertion_calls));
     test_assert("1 == 2" == test_cfg.assertion_calls[0].str);
     test_assert(not test_cfg.assertion_calls[0].result);
 
@@ -340,8 +340,14 @@ int main() {
     test_assert("1 != 2" == test_cfg.assertion_calls[2].str);
     test_assert(test_cfg.assertion_calls[2].result);
 
-    test_assert("2 > 2" == test_cfg.assertion_calls[3].str);
+    test_assert("-42 != -42" == test_cfg.assertion_calls[3].str);
     test_assert(not test_cfg.assertion_calls[3].result);
+
+    test_assert("-1.1 == -1.1" == test_cfg.assertion_calls[4].str);
+    test_assert(test_cfg.assertion_calls[4].result);
+
+    test_assert("2 > 2" == test_cfg.assertion_calls[5].str);
+    test_assert(not test_cfg.assertion_calls[5].result);
 
     test_assert(1 == std::size(test_cfg.log_calls));
     test_assert("msg"sv == test_cfg.log_calls[0]);

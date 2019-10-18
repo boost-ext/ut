@@ -15,11 +15,6 @@ int main() {
    */
   cfg<override>.filter = "filter";
 
-  "filter"_test = [] {
-    expect(42 == 42_i);
-  };
-
-  "don't run"_test = [] {
-    expect(0 == 1_c) << "don't run";
-  };
+  "filter"_test = [] { expect(42 == 42_i); };
+  "don't run"_test = [] { expect(0 == 1_c) << "don't run"; };
 }

@@ -369,6 +369,8 @@ template <auto N>
 class integral_constant : op {
  public:
   static constexpr auto value = N;
+
+  constexpr auto operator-() const { return integral_constant<-N>{}; }
   constexpr operator decltype(N)() const { return N; }
   constexpr auto get() const { return N; }
 };
@@ -377,6 +379,10 @@ template <class T, auto N, auto D, auto Size, auto P = 1>
 struct floating_point_constant : op {
   static constexpr auto epsilon = T(1) / math::pow(10, Size);
   static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
+
+  constexpr auto operator-() const {
+    return floating_point_constant<T, N, D, Size, -1>{};
+  }
   constexpr operator T() const { return value; }
   constexpr auto get() const { return value; }
 };
