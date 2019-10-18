@@ -86,72 +86,6 @@ int main() {
   using namespace std::literals::string_view_literals;
 
   {
-    struct test_cfg : default_cfg {
-      using default_cfg::active_exception_;
-      using default_cfg::asserts_;
-      using default_cfg::tests_;
-    };
-
-    auto tcfg = test_cfg{};
-    tcfg.on(events::test_run{"test_run", [] {}});
-    test_assert(1 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(0 == tcfg.tests_.skip);
-
-    tcfg.on(events::test_skip{"test_skip", [] {}});
-    test_assert(1 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-
-    tcfg.filter = "unknown";
-    tcfg.on(events::test_run{"test_filter", [] {}});
-    test_assert(1 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-    tcfg.filter = {};
-
-    tcfg.filter = "test_filter";
-    tcfg.on(events::test_run{"test_filter", [] {}});
-    test_assert(2 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-    tcfg.filter = {};
-
-    tcfg.on(events::test_run{"test_pass", [&tcfg] {
-                               tcfg.on(events::assertion{
-                                   std::experimental::source_location{}, true});
-                             }});
-
-    test_assert(3 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-
-    tcfg.on(
-        events::test_run{"test_fail", [&tcfg] {
-                           tcfg.on(events::assertion{
-                               std::experimental::source_location{}, false});
-                         }});
-    test_assert(3 == tcfg.tests_.pass);
-    test_assert(1 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-
-    tcfg.on(events::test_run{"test_exception", [] { throw 42; }});
-    test_assert(3 == tcfg.tests_.pass);
-    test_assert(2 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-
-    tcfg.on(events::test_run{"test_sub", [&tcfg] {
-                               tcfg.on(events::test_run{"sub", [] {}});
-                             }});
-    test_assert(4 == tcfg.tests_.pass);
-    test_assert(2 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-
-    tcfg.tests_ = {};
-    tcfg.asserts_ = {};
-  }
-
-  {
     static_assert("void"sv == reflection::type_name<void>());
     static_assert("int"sv == reflection::type_name<int>());
   }
@@ -160,6 +94,8 @@ int main() {
     static_assert(true_b);
     static_assert(not false_b);
     static_assert(42 == 42_i);
+    static_assert(0u == 0_u);
+    static_assert(42u == 42_u);
     static_assert(42 == 42_s);
     static_assert(42 == 42_c);
     static_assert(42 == 42_l);
@@ -171,6 +107,31 @@ int main() {
     static_assert(42.42f == 42.42_f);
     static_assert(42.42 == 42.42_d);
     static_assert(42.42 == 42.42_ld);
+    static_assert(0 == 0_i);
+    static_assert(10'000 == 10'000_i);
+    static_assert(42'000'000 == 42'000'000_i);
+    static_assert(9'99'9 == 9'99'9_i);
+    static_assert(42 == 42_i);
+    static_assert(-42 == -42_i);
+    static_assert(-42 == -42_i);
+    static_assert(0. == 0.0_d);
+    static_assert(0.f == .0_f);
+    static_assert(0.1 == .1_d);
+    static_assert(0.1 == 0.1_d);
+    static_assert(0.1177 == 0.1177_d);
+    static_assert(-0.1177 == -0.1177_d);
+    static_assert(0.01177 == 0.01177_d);
+    static_assert(-0.01177 == -0.01177_d);
+    static_assert(0.001177 == 0.001177_d);
+    static_assert(-0.001177 == -0.001177_d);
+    static_assert(001.001177 == 001.001177_d);
+    static_assert(-001.001177 == -001.001177_d);
+    static_assert(01.001177 == 01.001177_d);
+    static_assert(-01.001177 == -01.001177_d);
+    static_assert(0.42f == 0.42_f);
+    static_assert(2.42f == 2.42_f);
+    static_assert(-2.42 == -2.42_d);
+    static_assert(123.456 == 123.456_d);
   }
 
   {
@@ -247,6 +208,74 @@ int main() {
     static_assert(type<int> != type<const int>);
     static_assert(type<int> != type<void>);
   }
+
+  {
+    struct test_cfg : default_cfg {
+      using default_cfg::active_exception_;
+      using default_cfg::asserts_;
+      using default_cfg::tests_;
+    };
+
+    auto tcfg = test_cfg{};
+    tcfg.on(events::test_run{"test_run", [] {}});
+    test_assert(1 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(0 == tcfg.tests_.skip);
+
+    tcfg.on(events::test_skip{"test_skip", [] {}});
+    test_assert(1 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.filter = "unknown";
+    tcfg.on(events::test_run{"test_filter", [] {}});
+    test_assert(1 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+    tcfg.filter = {};
+
+    tcfg.filter = "test_filter";
+    tcfg.on(events::test_run{"test_filter", [] {}});
+    test_assert(2 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+    tcfg.filter = {};
+
+    tcfg.on(events::test_run{"test_pass", [&tcfg] {
+                               tcfg.on(events::assertion{
+                                   std::experimental::source_location{}, true});
+                             }});
+
+    test_assert(3 == tcfg.tests_.pass);
+    test_assert(0 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.on(
+        events::test_run{"test_fail", [&tcfg] {
+                           tcfg.on(events::assertion{
+                               std::experimental::source_location{}, false});
+                         }});
+    test_assert(3 == tcfg.tests_.pass);
+    test_assert(1 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.on(events::test_run{"test_exception", [] { throw 42; }});
+    test_assert(3 == tcfg.tests_.pass);
+    test_assert(2 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.on(events::test_run{"test_sub", [&tcfg] {
+                               tcfg.on(events::test_run{"sub", [] {}});
+                             }});
+    test_assert(4 == tcfg.tests_.pass);
+    test_assert(2 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.tests_ = {};
+    tcfg.asserts_ = {};
+  }
+
+
 
   auto& test_cfg = ut::cfg<ut::override>;
 
