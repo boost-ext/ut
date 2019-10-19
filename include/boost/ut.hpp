@@ -30,7 +30,6 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
-#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -38,9 +37,6 @@ struct source_location {
 #include <tuple>
 #include <type_traits>
 #include <utility>
-#include <iterator>
-#include <vector>
-#include <algorithm>
 
 namespace boost::ut {
 inline namespace v1 {
@@ -116,18 +112,36 @@ constexpr auto den_size() -> std::size_t {
 }
 }  // namespace math
 
+namespace type_traits {
+template <class T, class TExpr>
+constexpr auto is_valid(TExpr expr)
+    -> decltype(expr(std::declval<T>()), bool()) {
+  return true;
+}
+template <class>
+constexpr auto is_valid(...) -> bool {
+  return false;
+}
+
+template <class T>
+constexpr auto is_container_v =
+    is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
+}  // namespace type_traits
+
 namespace operators {
-template<class T>
-constexpr auto& operator<<(std::ostream& os, const std::vector<T>& v) {
+template <class TOs, class T,
+          std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+constexpr auto& operator<<(TOs& os, const T& t) {
   os << '{';
-	if (not std::empty(v)) {
-		std::copy(std::cbegin(v), std::prev(std::cend(v)), std::ostream_iterator<T>(os, ", "));
-		os << v.back();
-	}
+  auto first = true;
+  for (const auto& arg : t) {
+    os << (first ? "" : ", ") << arg;
+    first = false;
+  }
   os << '}';
   return os;
 }
-} // operators
+}  // namespace operators
 
 struct none {};
 
@@ -420,33 +434,6 @@ struct floating_point_constant : op {
 };
 
 template <class T>
-constexpr auto is_op_v = std::is_base_of_v<op, T> or std::is_class_v<T>;
-
-template <class T>
-constexpr auto is_floating_point_constant_impl(int)
-    -> decltype(T::epsilon, bool()) {
-  return true;
-}
-template <class>
-constexpr auto is_floating_point_constant_impl(...) {
-  return false;
-}
-template <class T>
-constexpr auto is_floating_point_constant_v =
-    is_floating_point_constant_impl<T>(0);
-
-template <class T>
-constexpr auto is_integral_constant_impl(int) -> decltype(T::value, bool()) {
-  return true;
-}
-template <class>
-constexpr auto is_integral_constant_impl(...) {
-  return false;
-}
-template <class T>
-constexpr auto is_integral_constant_v = is_integral_constant_impl<T>(0);
-
-template <class T>
 constexpr auto get_impl(const T& t, int) -> decltype(t.get()) {
   return t.get();
 }
@@ -474,6 +461,7 @@ class bool_ : op {
   constexpr bool_(const T& t) : t_{t} {}
 
   friend auto operator<<(std::ostream& os, const bool_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.t_));
   }
 
@@ -491,12 +479,16 @@ class eq_ : op {
   constexpr operator bool() const {
     using std::operator==;
     using std::operator<;
-    if constexpr (is_integral_constant_v<TLhs> and
-                  is_integral_constant_v<TRhs>) {
+    if constexpr (type_traits::is_valid<TLhs>(
+                      [](auto t) -> decltype(t.value, void()) {}) and
+                  type_traits::is_valid<TRhs>(
+                      [](auto t) -> decltype(t.value, void()) {})) {
       return TLhs::value == TRhs::value;
-    } else if constexpr (is_floating_point_constant_v<TLhs>) {
+    } else if constexpr (type_traits::is_valid<TLhs>(
+                             [](auto t) -> decltype(t.epsilon, void()) {})) {
       return math::abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
-    } else if constexpr (is_floating_point_constant_v<TRhs>) {
+    } else if constexpr (type_traits::is_valid<TRhs>(
+                             [](auto t) -> decltype(t.epsilon, void()) {})) {
       return math::abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
     } else {
       return get(lhs_) == get(rhs_);
@@ -520,8 +512,10 @@ class neq_ : op {
 
   constexpr operator bool() const {
     using std::operator!=;
-    if constexpr (is_integral_constant_v<TLhs> and
-                  is_integral_constant_v<TRhs>) {
+    if constexpr (type_traits::is_valid<TLhs>(
+                      [](auto t) -> decltype(t.value, void()) {}) and
+                  type_traits::is_valid<TRhs>(
+                      [](auto t) -> decltype(t.value, void()) {})) {
       return TLhs::value != TRhs::value;
     } else {
       return get(lhs_) != get(rhs_);
@@ -529,6 +523,7 @@ class neq_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const neq_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.lhs_) << " != " << get(op.rhs_));
   }
 
@@ -544,8 +539,10 @@ class gt_ : op {
 
   constexpr operator bool() const {
     using std::operator>;
-    if constexpr (is_integral_constant_v<TLhs> and
-                  is_integral_constant_v<TRhs>) {
+    if constexpr (type_traits::is_valid<TLhs>(
+                      [](auto t) -> decltype(t.value, void()) {}) and
+                  type_traits::is_valid<TRhs>(
+                      [](auto t) -> decltype(t.value, void()) {})) {
       return TLhs::value > TRhs::value;
     } else {
       return get(lhs_) > get(rhs_);
@@ -553,6 +550,7 @@ class gt_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const gt_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.lhs_) << " > " << get(op.rhs_));
   }
 
@@ -568,8 +566,10 @@ class ge_ : op {
 
   constexpr operator bool() const {
     using std::operator>=;
-    if constexpr (is_integral_constant_v<TLhs> and
-                  is_integral_constant_v<TRhs>) {
+    if constexpr (type_traits::is_valid<TLhs>(
+                      [](auto t) -> decltype(t.value, void()) {}) and
+                  type_traits::is_valid<TRhs>(
+                      [](auto t) -> decltype(t.value, void()) {})) {
       return TLhs::value >= TRhs::value;
     } else {
       return get(lhs_) >= get(rhs_);
@@ -577,6 +577,7 @@ class ge_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const ge_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.lhs_) << " >= " << get(op.rhs_));
   }
 
@@ -592,8 +593,10 @@ class lt_ : op {
 
   constexpr operator bool() const {
     using std::operator<;
-    if constexpr (is_integral_constant_v<TLhs> and
-                  is_integral_constant_v<TRhs>) {
+    if constexpr (type_traits::is_valid<TLhs>(
+                      [](auto t) -> decltype(t.value, void()) {}) and
+                  type_traits::is_valid<TRhs>(
+                      [](auto t) -> decltype(t.value, void()) {})) {
       return TLhs::value < TRhs::value;
     } else {
       return get(lhs_) < get(rhs_);
@@ -601,6 +604,7 @@ class lt_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const lt_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.lhs_) << " < " << get(op.rhs_));
   }
 
@@ -616,8 +620,10 @@ class le_ : op {
 
   constexpr operator bool() const {
     using std::operator<=;
-    if constexpr (is_integral_constant_v<TLhs> and
-                  is_integral_constant_v<TRhs>) {
+    if constexpr (type_traits::is_valid<TLhs>(
+                      [](auto t) -> decltype(t.value, void()) {}) and
+                  type_traits::is_valid<TRhs>(
+                      [](auto t) -> decltype(t.value, void()) {})) {
       return TLhs::value <= TRhs::value;
     } else {
       return get(lhs_) <= get(rhs_);
@@ -625,6 +631,7 @@ class le_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const le_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.lhs_) << " <= " << get(op.rhs_));
   }
 
@@ -643,6 +650,7 @@ class and_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const and_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << '(' << get(op.lhs_) << " and " << get(op.rhs_) << ')');
   }
 
@@ -661,6 +669,7 @@ class or_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const or_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << '(' << get(op.lhs_) << " or " << get(op.rhs_) << ')');
   }
 
@@ -677,6 +686,7 @@ class not_ : op {
   constexpr operator bool() const { return not static_cast<bool>(t_); }
 
   friend auto operator<<(std::ostream& os, const not_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << "not " << get(op.t_));
   }
 
@@ -813,85 +823,95 @@ constexpr auto operator""_ld() {
 }
 }  // namespace literals
 
-namespace operators {
-template <
-    class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
-constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
-  return detail::eq_{lhs, rhs};
-}
+namespace type_traits {
+template <class T>
+constexpr auto is_op_v = std::is_base_of_v<detail::op, T>;
+}  // namespace type_traits
 
+namespace operators {
 constexpr auto operator==(std::string_view lhs, std::string_view rhs) {
   return detail::eq_{lhs, rhs};
 }
 
-template<class T>
-constexpr auto operator==(const std::vector<T>& lhs, const std::vector<T>& rhs) {
-  return detail::eq_{lhs, rhs};
-}
-
-inline auto operator==(const std::string& lhs, const std::string& rhs) {
-  return detail::eq_{lhs, rhs};
-}
-
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
-constexpr auto operator!=(const TLhs& lhs, const TRhs& rhs) {
-  return detail::neq_{lhs, rhs};
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
+constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template <class T, std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+constexpr auto operator==(T&& lhs, T&& rhs) {
+  return detail::eq_{std::forward<T>(lhs), std::forward<T>(rhs)};
 }
 
 inline constexpr auto operator!=(std::string_view lhs, std::string_view rhs) {
   return detail::neq_{lhs, rhs};
 }
 
-inline auto operator!=(const std::string& lhs, const std::string& rhs) {
+template <
+    class TLhs, class TRhs,
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
+constexpr auto operator!=(const TLhs& lhs, const TRhs& rhs) {
   return detail::neq_{lhs, rhs};
+}
+
+template <class T, std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+constexpr auto operator!=(T&& lhs, T&& rhs) {
+  return detail::neq_{std::forward<T>(lhs), std::forward<T>(rhs)};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
 constexpr auto operator>(const TLhs& lhs, const TRhs& rhs) {
   return detail::gt_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
 constexpr auto operator>=(const TLhs& lhs, const TRhs& rhs) {
   return detail::ge_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
 constexpr auto operator<(const TLhs& lhs, const TRhs& rhs) {
   return detail::lt_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> or detail::is_op_v<TRhs>, int> = 0>
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
 constexpr auto operator<=(const TLhs& lhs, const TRhs& rhs) {
   return detail::le_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> and detail::is_op_v<TRhs>, int> = 0>
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
 constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   return detail::and_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<detail::is_op_v<TLhs> and detail::is_op_v<TRhs>, int> = 0>
+    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
+                     int> = 0>
 constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   return detail::or_{lhs, rhs};
 }
 
-template <class T, std::enable_if_t<detail::is_op_v<T>, int> = 0>
+template <class T, std::enable_if_t<type_traits::is_op_v<T>, int> = 0>
 constexpr auto operator not(const T& t) {
   return detail::not_{t};
 }
@@ -901,12 +921,11 @@ constexpr auto operator|(const detail::skip&, const T& t) {
   return detail::test_skip{t};
 }
 
-template <class F, class TContainer,
-          std::enable_if_t<
-              std::is_invocable_v<F, typename TContainer::value_type>, int> = 0>
-constexpr auto operator|(const F& f, const TContainer& container) {
-  return [f, container](auto name) {
-    for (const auto& arg : container) {
+template <class F, class T,
+          std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+constexpr auto operator|(const F& f, const T& t) {
+  return [f, t](auto name) {
+    for (const auto& arg : t) {
       detail::cfg::on<F>(events::test_run{"test", name, arg, f});
     }
   };
@@ -928,7 +947,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
 }
 }  //  namespace operators
 
-template <class TExpr, std::enable_if_t<detail::is_op_v<TExpr>, int> = 0>
+template <class TExpr, std::enable_if_t<type_traits::is_op_v<TExpr>, int> = 0>
 constexpr auto expect(const TExpr& expr,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {

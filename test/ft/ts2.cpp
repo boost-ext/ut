@@ -10,5 +10,5 @@
 auto _ = "test suite 2"_test = [] {
   using namespace boost::ut;
   "should throw"_test = [] { expect(throws<int>([] { throw 42; })); };
-  "complex expression"_test = [] { expect(42_i == 42 and 1 > 0_i); };
+  "compound expression"_test = [] { expect(42_i == 42 and 1 > 0_i); };
 };

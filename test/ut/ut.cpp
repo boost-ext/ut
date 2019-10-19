@@ -89,17 +89,29 @@ struct fake_cfg {
   std::string test_filter{};
 };
 
-namespace custom {
+namespace ns {
 template <char... Cs>
 constexpr auto operator""_i() -> int {
   return sizeof...(Cs);
 }
 auto f() -> int { return 0_i; }
-}  // namespace custom
+}  // namespace ns
 auto f() -> int {
-  using namespace custom;
+  using namespace ns;
   return 42_i;
 }
+
+struct custom {
+  int i{};
+
+  friend auto operator==(const custom& lhs, const custom& rhs) {
+    return lhs.i == rhs.i;
+  }
+
+  friend auto operator<<(std::ostream& os, const custom& c) -> std::ostream& {
+    return (os << "custom{" << c.i << '}');
+  }
+};
 
 template <>
 auto ut::cfg<ut::override> = fake_cfg{};
@@ -385,6 +397,55 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
+    using namespace std::literals::string_view_literals;
+    using namespace std::literals::string_literals;
+
+    expect("str"s == "str"s);
+    expect("str1"s != "str2"s);
+
+    expect("str"sv == "str"sv);
+    expect("str1"sv != "str2"sv);
+
+    expect("str"sv == "str"s);
+    expect("str1"sv != "str2"s);
+    expect("str"s == "str"sv);
+    expect("str1"s != "str2"sv);
+
+    expect("str1"sv == "str2"sv);
+
+    test_assert(9 == std::size(test_cfg.assertion_calls));
+
+    test_assert("str == str" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[0].result);
+
+    test_assert("str1 != str2" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+
+    test_assert("str == str" == test_cfg.assertion_calls[2].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+
+    test_assert("str1 != str2" == test_cfg.assertion_calls[3].str);
+    test_assert(test_cfg.assertion_calls[3].result);
+
+    test_assert("str == str" == test_cfg.assertion_calls[4].str);
+    test_assert(test_cfg.assertion_calls[4].result);
+
+    test_assert("str1 != str2" == test_cfg.assertion_calls[5].str);
+    test_assert(test_cfg.assertion_calls[5].result);
+
+    test_assert("str == str" == test_cfg.assertion_calls[6].str);
+    test_assert(test_cfg.assertion_calls[6].result);
+
+    test_assert("str1 != str2" == test_cfg.assertion_calls[7].str);
+    test_assert(test_cfg.assertion_calls[7].result);
+
+    test_assert("str1 == str2" == test_cfg.assertion_calls[8].str);
+    test_assert(not test_cfg.assertion_calls[8].result);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
     expect(std::vector<int>{} == std::vector<int>{});
     expect(std::vector{'a', 'b'} == std::vector{'a', 'b'});
     expect(std::vector{1, 2, 3} == std::vector{1, 2});
@@ -399,6 +460,32 @@ int main() {
 
     test_assert(not test_cfg.assertion_calls[2].result);
     test_assert("{1, 2, 3} == {1, 2}" == test_cfg.assertion_calls[2].str);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    expect(std::array{1} != std::array{2});
+    expect(std::array{1, 2, 3} == std::array{3, 2, 1});
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("{1} != {2}" == test_cfg.assertion_calls[0].str);
+
+    test_assert(not test_cfg.assertion_calls[1].result);
+    test_assert("{1, 2, 3} == {3, 2, 1}" == test_cfg.assertion_calls[1].str);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    expect(custom{42} == detail::value<custom>{custom{42}});
+
+    test_assert(1 == std::size(test_cfg.assertion_calls));
+
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("custom{42} == custom{42}" == test_cfg.assertion_calls[0].str);
   }
 
   {
@@ -583,7 +670,7 @@ int main() {
                 test_cfg.assertion_calls[2].str);
   }
 
-  {
+  if (false) {
     test_cfg = fake_cfg{};
 
     "args map"_test = [](const auto& arg) {
@@ -699,7 +786,7 @@ int main() {
     test_cfg = fake_cfg{};
 
     "should disambiguate operators"_test = [] {
-      expect(1_i == custom::f());
+      expect(1_i == ns::f());
       expect(2_i == f());
     };
 

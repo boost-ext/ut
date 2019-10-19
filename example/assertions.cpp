@@ -32,7 +32,7 @@ int main() {
   "expressions"_test = [] {
     expect(0_i == sum() and 42_i == sum(40, 2));
     expect(1_i == sum() or 0_i == sum());
-    expect(1_i == sum() or (sum() != 0_i or sum(1) > 0_i)) << "complex";
+    expect(1_i == sum() or (sum() != 0_i or sum(1) > 0_i)) << "compound";
   };
 
   "floating points"_test = [] {
