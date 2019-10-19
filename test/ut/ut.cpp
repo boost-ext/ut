@@ -9,10 +9,12 @@
 
 #include <algorithm>
 #include <any>
+#include <array>
 #include <cstdlib>
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace ut = boost::ut;
@@ -497,16 +499,16 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
-    "args"_test = [](const auto& arg) {
+    "args vector"_test = [](const auto& arg) {
       expect(arg > 0_i) << "all values greater than 0";
     } | std::vector{1, 2, 3};
 
     test_assert(3 == std::size(test_cfg.test_run_calls));
-    test_assert("args"sv == test_cfg.test_run_calls[0].name);
+    test_assert("args vector"sv == test_cfg.test_run_calls[0].name);
     test_assert(1 == std::any_cast<int>(test_cfg.test_run_calls[0].arg));
-    test_assert("args"sv == test_cfg.test_run_calls[1].name);
+    test_assert("args vector"sv == test_cfg.test_run_calls[1].name);
     test_assert(2 == std::any_cast<int>(test_cfg.test_run_calls[1].arg));
-    test_assert("args"sv == test_cfg.test_run_calls[2].name);
+    test_assert("args vector"sv == test_cfg.test_run_calls[2].name);
     test_assert(3 == std::any_cast<int>(test_cfg.test_run_calls[2].arg));
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
@@ -515,6 +517,80 @@ int main() {
     test_assert("2 > 0" == test_cfg.assertion_calls[1].str);
     test_assert(test_cfg.assertion_calls[2].result);
     test_assert("3 > 0" == test_cfg.assertion_calls[2].str);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    "args array"_test = [](const auto& arg) {
+      expect(0_i <= arg) << "all values greater than 0";
+    } | std::array{99, 11};
+
+    test_assert(2 == std::size(test_cfg.test_run_calls));
+    test_assert("args array"sv == test_cfg.test_run_calls[0].name);
+    test_assert(99 == std::any_cast<int>(test_cfg.test_run_calls[0].arg));
+    test_assert("args array"sv == test_cfg.test_run_calls[1].name);
+    test_assert(11 == std::any_cast<int>(test_cfg.test_run_calls[1].arg));
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("0 <= 99" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("0 <= 11" == test_cfg.assertion_calls[1].str);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    "args string"_test = [](const auto& arg) {
+      expect(_c('s') == arg or _c('t') == arg or _c('r') == arg);
+    } | std::string{"str"};
+
+    test_assert(3 == std::size(test_cfg.test_run_calls));
+    test_assert("args string"sv == test_cfg.test_run_calls[0].name);
+    test_assert('s' == std::any_cast<char>(test_cfg.test_run_calls[0].arg));
+    test_assert("args string"sv == test_cfg.test_run_calls[1].name);
+    test_assert('t' == std::any_cast<char>(test_cfg.test_run_calls[1].arg));
+    test_assert("args string"sv == test_cfg.test_run_calls[2].name);
+    test_assert('r' == std::any_cast<char>(test_cfg.test_run_calls[2].arg));
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("((s == s or t == s) or r == s)" ==
+                test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("((s == t or t == t) or r == t)" ==
+                test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("((s == r or t == r) or r == r)" ==
+                test_cfg.assertion_calls[2].str);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    "args map"_test = [](const auto& arg) {
+      const auto [key, value] = arg;
+      expect(_c(key) == 'a' or _c('b') == key);
+      expect(value > 0_i);
+    } | std::unordered_map<char, int>{{'a', 1}, {'b', 2}};
+
+    test_assert(2 == std::size(test_cfg.test_run_calls));
+    test_assert("args map"sv == test_cfg.test_run_calls[0].name);
+    test_assert('b' == std::any_cast<std::pair<const char, int>>(
+                           test_cfg.test_run_calls[0].arg)
+                           .first);
+    test_assert("args map"sv == test_cfg.test_run_calls[1].name);
+    test_assert('a' == std::any_cast<std::pair<const char, int>>(
+                           test_cfg.test_run_calls[1].arg)
+                           .first);
+    test_assert(4 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("(b == a or b == b)" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("2 > 0" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("(a == a or b == a)" == test_cfg.assertion_calls[2].str);
+    test_assert(test_cfg.assertion_calls[3].result);
+    test_assert("1 > 0" == test_cfg.assertion_calls[3].str);
   }
 
   {
