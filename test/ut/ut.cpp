@@ -360,6 +360,7 @@ int main() {
     expect(2_i > 2_i) << "msg";
 
     test_assert(6 == std::size(test_cfg.assertion_calls));
+
     test_assert("1 == 2" == test_cfg.assertion_calls[0].str);
     test_assert(not test_cfg.assertion_calls[0].result);
 
@@ -377,9 +378,27 @@ int main() {
 
     test_assert("2 > 2" == test_cfg.assertion_calls[5].str);
     test_assert(not test_cfg.assertion_calls[5].result);
-
     test_assert(1 == std::size(test_cfg.log_calls));
     test_assert("msg"sv == test_cfg.log_calls[0]);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    expect(std::vector<int>{} == std::vector<int>{});
+    expect(std::vector{'a', 'b'} == std::vector{'a', 'b'});
+    expect(std::vector{1, 2, 3} == std::vector{1, 2});
+
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("{} == {}" == test_cfg.assertion_calls[0].str);
+
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("{a, b} == {a, b}" == test_cfg.assertion_calls[1].str);
+
+    test_assert(not test_cfg.assertion_calls[2].result);
+    test_assert("{1, 2, 3} == {1, 2}" == test_cfg.assertion_calls[2].str);
   }
 
   {

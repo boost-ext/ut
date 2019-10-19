@@ -38,6 +38,9 @@ struct source_location {
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <iterator>
+#include <vector>
+#include <algorithm>
 
 namespace boost::ut {
 inline namespace v1 {
@@ -112,6 +115,19 @@ constexpr auto den_size() -> std::size_t {
   return sizeof...(Cs) - i + 1;
 }
 }  // namespace math
+
+namespace operators {
+template<class T>
+constexpr auto& operator<<(std::ostream& os, const std::vector<T>& v) {
+  os << '{';
+	if (not std::empty(v)) {
+		std::copy(std::cbegin(v), std::prev(std::cend(v)), std::ostream_iterator<T>(os, ", "));
+		os << v.back();
+	}
+  os << '}';
+  return os;
+}
+} // operators
 
 struct none {};
 
@@ -488,6 +504,7 @@ class eq_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const eq_& op) -> std::ostream& {
+    using operators::operator<<;
     return (os << get(op.lhs_) << " == " << get(op.rhs_));
   }
 
@@ -805,6 +822,11 @@ constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
 }
 
 constexpr auto operator==(std::string_view lhs, std::string_view rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template<class T>
+constexpr auto operator==(const std::vector<T>& lhs, const std::vector<T>& rhs) {
   return detail::eq_{lhs, rhs};
 }
 
