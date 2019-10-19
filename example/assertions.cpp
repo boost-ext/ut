@@ -73,4 +73,10 @@ int main() {
     expect(type<const int> == type<decltype(i)>);
     expect(type<decltype(i)> != type<int>);
   };
+
+  "containers"_test = [] {
+    std::vector v1{1, 2, 3};
+    std::vector v2{1, 2, 3};
+    expect(v1 == v2);
+  };
 }
