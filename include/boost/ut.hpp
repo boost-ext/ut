@@ -221,7 +221,7 @@ class default_cfg {
            << " | " << asserts_.fail << " failed" << '\n';
       std::cerr << out_.str() << std::endl;
       std::exit(int(tests_.fail));
-    } else if (tests_.pass) {
+    } else {
       std::cout << "All tests passed (" << asserts_.pass << " asserts in "
                 << tests_.pass << " tests)\n";
 
