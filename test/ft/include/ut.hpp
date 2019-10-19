@@ -12,8 +12,8 @@
 
 namespace ft {
 struct cfg : boost::ut::default_cfg {
-  template <class Test>
-  auto on(boost::ut::events::test_run<Test> test) {
+  template <class... Ts>
+  auto on(boost::ut::events::test_run<Ts...> test) {
     std::cout << test.name << '\n';
     test.test();
   }

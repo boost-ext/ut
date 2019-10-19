@@ -113,27 +113,28 @@ constexpr auto den_size() -> std::size_t {
 }
 }  // namespace math
 
+struct none {};
+
 namespace events {
-template <class Test>
+template <class Test, class TArg = none>
 struct test_run {
-  std::string_view desc{};
-  std::string_view name{};
   std::string_view type{};
+  std::string_view name{};
+  TArg arg{};
   Test test{};
 };
-template <class Test>
-test_run(std::string_view, std::string_view, std::string_view, Test)
-    ->test_run<Test>;
-template <class Test>
+template <class Test, class TArg>
+test_run(std::string_view, std::string_view, TArg, Test)->test_run<Test, TArg>;
+template <class Test, class TArg = none>
 struct test_skip {
-  std::string_view desc{};
-  std::string_view name{};
   std::string_view type{};
+  std::string_view name{};
+  TArg arg{};
   Test test{};
 };
-template <class Test>
-test_skip(std::string_view, std::string_view, std::string_view, Test)
-    ->test_skip<Test>;
+template <class Test, class TArg>
+test_skip(std::string_view, std::string_view, TArg, Test)
+    ->test_skip<Test, TArg>;
 template <class TLocation, class TExpr>
 struct assertion {
   TLocation location{};
@@ -153,8 +154,8 @@ class default_cfg {
                            ? std::getenv("BOOST_UT_FILTER")
                            : std::string{};
 
-  template <class T>
-  auto on(events::test_run<T> test) {
+  template <class... Ts>
+  auto on(events::test_run<Ts...> test) {
     if (std::empty(filter) or filter == test.name) {
       if (not level_++) {
         test_begin(test.name);
@@ -176,8 +177,8 @@ class default_cfg {
     }
   }
 
-  template <class Test>
-  auto on(events::test_skip<Test> test) {
+  template <class... Ts>
+  auto on(events::test_skip<Ts...> test) {
     out_ << test.name << "...SKIPPED\n";
     ++tests_.skip;
   }
@@ -297,16 +298,15 @@ class cfg {
 };
 
 struct test {
-  std::string_view desc{};
-  std::string_view name{};
   std::string_view type{};
+  std::string_view name{};
 
   template <class Test>
   constexpr auto operator=(Test test) {
     if constexpr (std::is_invocable_v<Test, std::string_view>) {
       return test(name);
     } else {
-      cfg::on<Test>(events::test_run{desc, name, type, test});
+      cfg::on<Test>(events::test_run{type, name, none{}, test});
       return test;
     }
   }
@@ -319,7 +319,7 @@ class test_skip {
 
   template <class Test>
   constexpr auto operator=(Test test) {
-    cfg::on<Test>(events::test_skip{t_.desc, t_.name, t_.type, test});
+    cfg::on<Test>(events::test_skip{t_.type, t_.name, none{}, test});
     return test;
   }
 
@@ -431,6 +431,7 @@ constexpr auto get(const T& t) {
 
 template <class T>
 struct type_ : op {
+  using type = T;
   static constexpr auto value = reflection::type_name<T>();
   friend auto operator<<(std::ostream& os, const type_& t) -> std::ostream& {
     return (os << t.value);
@@ -711,7 +712,7 @@ class nothrow_ : op {
 
 namespace literals {
 constexpr auto operator""_test(const char* name, std::size_t size) {
-  return detail::test{"test", std::string_view{name, size}, {}};
+  return detail::test{"test", std::string_view{name, size}};
 }
 
 template <char... Cs>
@@ -870,9 +871,8 @@ template <class F, class TContainer,
 constexpr auto operator|(const F& f, const TContainer& container) {
   return [f, container](auto name) {
     for (const auto& arg : container) {
-      detail::cfg::on<F>(events::test_run{
-          "test", name, reflection::type_name<std::decay_t<decltype(arg)>>(),
-          [f, arg] { f(arg); }});
+      detail::cfg::on<F>(
+          events::test_run{"test", name, arg, [f, arg] { f(arg); }});
     }
   };
 }
@@ -886,13 +886,12 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
               [name](const auto& f, [[maybe_unused]] const auto& arg) {
                 using TArg = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_invocable_v<F, TArg>) {
-                  detail::cfg::on<F>(events::test_run{
-                      "test", name, reflection::type_name<TArg>(),
-                      [f, arg] { f(arg); }});
+                  detail::cfg::on<F>(events::test_run{"test", name, arg,
+                                                      [f, arg] { f(arg); }});
                 } else {
-                  detail::cfg::on<F>(events::test_run{
-                      "test", name, reflection::type_name<TArg>(),
-                      [f] { f.template operator()<TArg>(); }});
+                  detail::cfg::on<F>(
+                      events::test_run{"test", name, detail::type_<TArg>{},
+                                       [f] { f.template operator()<TArg>(); }});
                 }
               }(f, args),
               ...);

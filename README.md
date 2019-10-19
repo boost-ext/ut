@@ -226,21 +226,25 @@ class cfg {
  public:
   /**
    * @example "name"_test = [] {};
+   * @param test.type ["test", "given", "when", "then"]
    * @param test.name "name"
+   * @param test.arg parametrized argument
    * @param test.test function
    */
-  template<class Test>
-  auto on(ut::events::test_run<Test> test) {
+  template<class... Ts>
+  auto on(ut::events::test_run<Ts...> test) {
     test.test(); // execute test
   }
 
   /**
    * @example skip | "don't run"_test = []{};
+   * @param test.type ["test", "given", "when", "then"]
    * @param test.name "don't run"
+   * @param test.arg parametrized argument
    * @param test.test function
    */
-  template<class Test>
-  auto on(ut::events::test_skip<Test> test) { }
+  template<class... Ts>
+  auto on(ut::events::test_skip<Ts...> test) { }
 
   /**
    * @example file.cpp:42: expect(42_i == 42);
