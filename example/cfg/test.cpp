@@ -11,7 +11,7 @@
 
 namespace ut = boost::ut;
 
-class run_cfg : ut::default_cfg {
+class test_cfg : ut::default_cfg {
   using ut::default_cfg::level_;
 
  public:
@@ -53,7 +53,7 @@ class run_cfg : ut::default_cfg {
 };
 
 template <>
-auto ut::cfg<ut::override> = run_cfg{};
+auto ut::cfg<ut::override> = test_cfg{};
 
 using ut::operator""_test;
 

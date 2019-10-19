@@ -9,7 +9,7 @@
 
 namespace ut = boost::ut;
 
-class example_cfg {
+class override_cfg {
  public:
   template <class... Ts>
   auto on(ut::events::test_run<Ts...> test) {
@@ -26,7 +26,7 @@ class example_cfg {
 };
 
 template <>
-auto ut::cfg<ut::override> = example_cfg{};
+auto ut::cfg<ut::override> = override_cfg{};
 
 int main() {
   using namespace ut;
