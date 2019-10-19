@@ -42,12 +42,26 @@ struct fake_cfg {
     std::any arg{};
   };
 
+  template <class Test, class TArg>
+  auto run(Test test, [[maybe_unused]] const TArg& arg) -> void {
+    if constexpr (std::is_invocable_v<Test, TArg>) {
+      test(arg);
+    } else {
+      test.template operator()<TArg>();
+    }
+  }
+
+  template <class Test>
+  auto run(Test test, ut::none) {
+    test();
+  }
+
   template <class... Ts>
   auto on(ut::events::test_run<Ts...> test) {
     if (std::empty(test_filter) or test.name == test_filter) {
       test_run_calls.push_back({test.type, test.name, test.arg});
       try {
-        test.test();
+        run(test.test, test.arg);
       } catch (...) {
       }
     }
@@ -211,6 +225,7 @@ int main() {
 
   {
     static_assert(type<int> == type<int>);
+    static_assert(type<void> == type<void>);
     static_assert(type<void*> == type<void*>);
     static_assert(type<int> != type<const int>);
     static_assert(type<int> != type<void>);
@@ -506,20 +521,26 @@ int main() {
     test_cfg = fake_cfg{};
 
     "types"_test = []<class T>() {
-      expect(std::is_integral_v<T>) << "all types are integrals";
+      expect(std::is_integral<T>{} or
+             type<void> == type<std::remove_pointer_t<T>>)
+          << "all types are integrals or void";
     }
-    | std::tuple<bool, int>{};
+    | std::tuple<bool, int, void*>{};
 
-    test_assert(2 == std::size(test_cfg.test_run_calls));
+    test_assert(3 == std::size(test_cfg.test_run_calls));
     test_assert("types"sv == test_cfg.test_run_calls[0].name);
-    void(std::any_cast<decltype(type<bool>)>(test_cfg.test_run_calls[0].arg));
+    void(std::any_cast<bool>(test_cfg.test_run_calls[0].arg));
     test_assert("types"sv == test_cfg.test_run_calls[1].name);
-    void(std::any_cast<decltype(type<int>)>(test_cfg.test_run_calls[1].arg));
-    test_assert(2 == std::size(test_cfg.assertion_calls));
+    void(std::any_cast<int>(test_cfg.test_run_calls[1].arg));
+    test_assert("types"sv == test_cfg.test_run_calls[2].name);
+    void(std::any_cast<void*>(test_cfg.test_run_calls[2].arg));
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert("(true or void == bool)" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[0].result);
-    test_assert("true" == test_cfg.assertion_calls[0].str);
+    test_assert("(true or void == int)" == test_cfg.assertion_calls[1].str);
     test_assert(test_cfg.assertion_calls[1].result);
-    test_assert("true" == test_cfg.assertion_calls[1].str);
+    test_assert("(false or void == void)" == test_cfg.assertion_calls[2].str);
+    test_assert(test_cfg.assertion_calls[2].result);
   }
 
   {

@@ -165,7 +165,7 @@ class default_cfg {
 
       active_exception_ = false;
       try {
-        test.test();
+        test_run(test.test, test.arg);
       } catch (...) {
         out_ << "\n  Unexpected exception!";
         active_exception_ = true;
@@ -237,6 +237,20 @@ class default_cfg {
   auto test_begin(std::string_view name) -> void {
     out_ << "Running \"" << name << "\"...";
     fails_ = asserts_.fail;
+  }
+
+  template <class Test, class TArg>
+  auto test_run(Test test, [[maybe_unused]] const TArg& arg) -> void {
+    if constexpr (std::is_invocable_v<Test, TArg>) {
+      test(arg);
+    } else {
+      test.template operator()<TArg>();
+    }
+  }
+
+  template <class Test>
+  auto test_run(Test test, none) {
+    test();
   }
 
   auto test_end() -> void {
@@ -431,8 +445,8 @@ constexpr auto get(const T& t) {
 
 template <class T>
 struct type_ : op {
-  using type = T;
   static constexpr auto value = reflection::type_name<T>();
+  constexpr auto get() const { return value; }
   friend auto operator<<(std::ostream& os, const type_& t) -> std::ostream& {
     return (os << t.value);
   }
@@ -871,8 +885,7 @@ template <class F, class TContainer,
 constexpr auto operator|(const F& f, const TContainer& container) {
   return [f, container](auto name) {
     for (const auto& arg : container) {
-      detail::cfg::on<F>(
-          events::test_run{"test", name, arg, [f, arg] { f(arg); }});
+      detail::cfg::on<F>(events::test_run{"test", name, arg, f});
     }
   };
 }
@@ -883,16 +896,8 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
     std::apply(
         [f, name](const auto&... args) {
           (
-              [name](const auto& f, [[maybe_unused]] const auto& arg) {
-                using TArg = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_invocable_v<F, TArg>) {
-                  detail::cfg::on<F>(events::test_run{"test", name, arg,
-                                                      [f, arg] { f(arg); }});
-                } else {
-                  detail::cfg::on<F>(
-                      events::test_run{"test", name, detail::type_<TArg>{},
-                                       [f] { f.template operator()<TArg>(); }});
-                }
+              [name](const auto& f, const auto& arg) {
+                detail::cfg::on<F>(events::test_run{"test", name, arg, f});
               }(f, args),
               ...);
         },
