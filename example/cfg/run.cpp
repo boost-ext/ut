@@ -15,8 +15,8 @@ class run_cfg : ut::default_cfg {
   using ut::default_cfg::level_;
 
  public:
-  template <class Test>
-  auto on(ut::events::test_run<Test> test) {
+  template <class... Ts>
+  auto on(ut::events::test_run<Ts...> test) {
     const auto run = [test, this] {
       if (not level_++) {
         test_begin(test.name);

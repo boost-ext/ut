@@ -11,12 +11,12 @@ namespace ut = boost::ut;
 
 class example_cfg {
  public:
-  template <class Test>
-  auto on(ut::events::test_run<Test> test) {
+  template <class... Ts>
+  auto on(ut::events::test_run<Ts...> test) {
     test.test();
   }
-  template <class Test>
-  auto on(ut::events::test_skip<Test>) {}
+  template <class... Ts>
+  auto on(ut::events::test_skip<Ts...>) {}
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
     return true;
