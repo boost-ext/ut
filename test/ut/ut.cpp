@@ -108,6 +108,10 @@ struct custom {
     return lhs.i == rhs.i;
   }
 
+  friend auto operator!=(const custom& lhs, const custom& rhs) {
+    return lhs.i != rhs.i;
+  }
+
   friend auto operator<<(std::ostream& os, const custom& c) -> std::ostream& {
     return (os << "custom{" << c.i << '}');
   }
@@ -516,12 +520,29 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
-    expect(custom{42} == detail::value<custom>{custom{42}});
+    expect(custom{42} == _t{custom{42}});
+    expect(_t{custom{42}} == _t{custom{42}});
+    expect(_t{custom{42}} == custom{42});
+    expect(_t{custom{42}} != custom{24});
+    expect(_t{custom{1}} == custom{2} or 1_i == 22);
 
-    test_assert(1 == std::size(test_cfg.assertion_calls));
+    test_assert(5 == std::size(test_cfg.assertion_calls));
 
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("custom{42} == custom{42}" == test_cfg.assertion_calls[0].str);
+
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("custom{42} == custom{42}" == test_cfg.assertion_calls[1].str);
+
+    test_assert(test_cfg.assertion_calls[2].result);
+    test_assert("custom{42} == custom{42}" == test_cfg.assertion_calls[2].str);
+
+    test_assert(test_cfg.assertion_calls[3].result);
+    test_assert("custom{42} != custom{24}" == test_cfg.assertion_calls[3].str);
+
+    test_assert(not test_cfg.assertion_calls[4].result);
+    test_assert("(custom{1} == custom{2} or 1 == 22)" ==
+                test_cfg.assertion_calls[4].str);
   }
 
   {

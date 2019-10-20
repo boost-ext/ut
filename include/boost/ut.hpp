@@ -995,6 +995,11 @@ using _f = detail::value<float>;
 using _d = detail::value<double>;
 using _ld = detail::value<long double>;
 
+template <class T>
+struct _t : detail::value<T> {
+  constexpr explicit _t(const T& t) : detail::value<T>{t} {}
+};
+
 [[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
 [[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
 
