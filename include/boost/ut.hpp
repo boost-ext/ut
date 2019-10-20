@@ -126,6 +126,11 @@ constexpr auto is_valid(...) -> bool {
 template <class T>
 constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
+
+template <class T, class...>
+struct identity {
+  using type = T;
+};
 }  // namespace type_traits
 
 namespace operators {
@@ -311,35 +316,20 @@ class default_cfg {
   std::stringstream out_{};
 };
 
-struct override {};
-
 template <class...>
 [[maybe_unused]] inline auto cfg = default_cfg{};
 
+struct override {};
+
 namespace detail {
-template <class T, class...>
-struct identity {
-  using type = T;
-};
 struct op {};
 struct skip {};
 
-class cfg {
-  template <class... Ts>
-  using override_t = typename identity<override, Ts...>::type;
-
- public:
-  template <class T, class TEvent>
-  static constexpr auto on(const TEvent& event) {
-    return ut::cfg<override_t<T>>.on(event);
-  }
-
-  template <class T>
-  auto& operator<<(T&& t) {
-    on<T>(events::log{std::forward<T>(t)});
-    return *this;
-  }
-};
+template <class... Ts, class TEvent>
+constexpr decltype(auto) on(const TEvent& event) {
+  return ut::cfg<typename type_traits::identity<override, Ts...>::type>.on(
+      event);
+}
 
 struct test {
   std::string_view type{};
@@ -350,7 +340,7 @@ struct test {
     if constexpr (std::is_invocable_v<Test, std::string_view>) {
       return test(name);
     } else {
-      cfg::on<Test>(events::test_run{type, name, none{}, test});
+      on<Test>(events::test_run{type, name, none{}, test});
       return test;
     }
   }
@@ -363,12 +353,20 @@ class test_skip {
 
   template <class Test>
   constexpr auto operator=(Test test) {
-    cfg::on<Test>(events::test_skip{t_.type, t_.name, none{}, test});
+    on<Test>(events::test_skip{t_.type, t_.name, none{}, test});
     return test;
   }
 
  private:
   T t_;
+};
+
+struct log {
+  template <class TMsg>
+  auto& operator<<(TMsg&& msg) {
+    on<TMsg>(events::log{std::forward<TMsg>(msg)});
+    return *this;
+  }
 };
 
 template <class T>
@@ -379,7 +377,7 @@ class expect_ {
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {
     if (not result_) {
-      detail::cfg::on<T>(events::log{msg});
+      detail::on<T>(events::log{msg});
     }
     return *this;
   }
@@ -391,7 +389,7 @@ class expect_ {
 
   ~expect_() {
     if (not result_ and fatal_) {
-      detail::cfg::on<T>(events::fatal_assertion{});
+      detail::on<T>(events::fatal_assertion{});
     }
   }
 
@@ -926,7 +924,7 @@ template <class F, class T,
 constexpr auto operator|(const F& f, const T& t) {
   return [f, t](auto name) {
     for (const auto& arg : t) {
-      detail::cfg::on<F>(events::test_run{"test", name, arg, f});
+      detail::on<F>(events::test_run{"test", name, arg, f});
     }
   };
 }
@@ -938,7 +936,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
         [f, name](const auto&... args) {
           (
               [name](const auto& f, const auto& arg) {
-                detail::cfg::on<F>(events::test_run{"test", name, arg, f});
+                detail::on<F>(events::test_run{"test", name, arg, f});
               }(f, args),
               ...);
         },
@@ -952,7 +950,7 @@ constexpr auto expect(const TExpr& expr,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
   return detail::expect_<TExpr>{
-      detail::cfg::on<TExpr>(events::assertion{location, expr})};
+      detail::on<TExpr>(events::assertion{location, expr})};
 }
 
 template <class T, std::enable_if_t<std::is_same_v<bool, T>, int> = 0>
@@ -960,7 +958,7 @@ constexpr auto expect(T result,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
   return detail::expect_<T>{
-      detail::cfg::on<T>(events::assertion{location, detail::bool_{result}})};
+      detail::on<T>(events::assertion{location, detail::bool_{result}})};
 }
 
 template <class TException, class TExpr>
@@ -1003,7 +1001,7 @@ struct _t : detail::value<T> {
 [[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
 [[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
 
-[[maybe_unused]] inline auto log = detail::cfg{};
+[[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] constexpr auto skip = detail::skip{};
 [[maybe_unused]] constexpr auto given = [](std::string_view name) {
   return detail::test{"given", name};
