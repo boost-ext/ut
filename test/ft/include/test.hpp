@@ -10,15 +10,17 @@
 #include <boost/ut.hpp>
 #include <iostream>
 
+namespace test = boost::ut;
+
 namespace ft {
-struct cfg : boost::ut::default_cfg {
+struct cfg : test::default_cfg {
   template <class... Ts>
-  auto on(boost::ut::events::test_run<Ts...> test) {
+  auto on(test::events::test_run<Ts...> test) {
     std::cout << test.name << '\n';
     test.test();
   }
 
-  using boost::ut::default_cfg::on;
+  using test::default_cfg::on;
 };
 }  // namespace ft
 
@@ -26,6 +28,6 @@ template <>
 #if defined(_MSC_VER)
 static
 #endif
-    inline auto boost::ut::cfg<boost::ut::override> = ft::cfg{};
+    inline auto test::cfg<test::override> = ft::cfg{};
 
-using boost::ut::operator""_test;
+using test::operator""_test;

@@ -5,10 +5,10 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#include "ut.hpp"
+#include "test.hpp"
 
 auto _ = "test suite 2"_test = [] {
-  using namespace boost::ut;
+  using namespace test;
   "should throw"_test = [] { expect(throws<int>([] { throw 42; })); };
   "compound expression"_test = [] { expect(42_i == 42 and 1 > 0_i); };
 };
