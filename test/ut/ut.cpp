@@ -11,10 +11,10 @@
 #include <any>
 #include <array>
 #include <cstdlib>
+#include <map>
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 namespace ut = boost::ut;
@@ -670,33 +670,33 @@ int main() {
                 test_cfg.assertion_calls[2].str);
   }
 
-  if (false) {
+  {
     test_cfg = fake_cfg{};
 
     "args map"_test = [](const auto& arg) {
       const auto [key, value] = arg;
       expect(_c(key) == 'a' or _c('b') == key);
       expect(value > 0_i);
-    } | std::unordered_map<char, int>{{'a', 1}, {'b', 2}};
+    } | std::map<char, int>{{'a', 1}, {'b', 2}};
 
     test_assert(2 == std::size(test_cfg.test_run_calls));
     test_assert("args map"sv == test_cfg.test_run_calls[0].name);
-    test_assert('b' == std::any_cast<std::pair<const char, int>>(
-                           test_cfg.test_run_calls[0].arg)
-                           .first);
+    test_assert(std::pair<const char, int>{'a', 1} ==
+                std::any_cast<std::pair<const char, int>>(
+                    test_cfg.test_run_calls[0].arg));
     test_assert("args map"sv == test_cfg.test_run_calls[1].name);
-    test_assert('a' == std::any_cast<std::pair<const char, int>>(
-                           test_cfg.test_run_calls[1].arg)
-                           .first);
+    test_assert(std::pair<const char, int>{'b', 2} ==
+                std::any_cast<std::pair<const char, int>>(
+                    test_cfg.test_run_calls[1].arg));
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
-    test_assert("(b == a or b == b)" == test_cfg.assertion_calls[0].str);
+    test_assert("(a == a or b == a)" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[1].result);
-    test_assert("2 > 0" == test_cfg.assertion_calls[1].str);
+    test_assert("1 > 0" == test_cfg.assertion_calls[1].str);
     test_assert(test_cfg.assertion_calls[2].result);
-    test_assert("(a == a or b == a)" == test_cfg.assertion_calls[2].str);
+    test_assert("(b == a or b == b)" == test_cfg.assertion_calls[2].str);
     test_assert(test_cfg.assertion_calls[3].result);
-    test_assert("1 > 0" == test_cfg.assertion_calls[3].str);
+    test_assert("2 > 0" == test_cfg.assertion_calls[3].str);
   }
 
   {
