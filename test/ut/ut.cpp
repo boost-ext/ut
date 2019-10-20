@@ -121,6 +121,30 @@ int main() {
   using namespace std::literals::string_view_literals;
 
   {
+    struct foo {
+      int value;
+    };
+    struct bar {};
+    constexpr auto value = [](auto t) -> decltype(t.value, void()) {};
+    static_assert(type_traits::is_valid<foo>(value));
+    static_assert(not type_traits::is_valid<bar>(value));
+    static_assert(not type_traits::is_valid<int>(value));
+    static_assert(not type_traits::is_valid<void>(value));
+  }
+
+  {
+    struct foo {};
+    static_assert(type_traits::is_container_v<std::vector<int>>);
+    static_assert(type_traits::is_container_v<std::array<bool, 0>>);
+    static_assert(type_traits::is_container_v<std::string>);
+    static_assert(type_traits::is_container_v<std::string_view>);
+    static_assert(type_traits::is_container_v<std::map<int, int>>);
+    static_assert(not type_traits::is_container_v<int>);
+    static_assert(not type_traits::is_container_v<foo>);
+    static_assert(not type_traits::is_container_v<void>);
+  }
+
+  {
     static_assert("void"sv == reflection::type_name<void>());
     static_assert("int"sv == reflection::type_name<int>());
   }

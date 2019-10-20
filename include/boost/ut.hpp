@@ -113,12 +113,12 @@ constexpr auto den_size() -> std::size_t {
 }  // namespace math
 
 namespace type_traits {
-template <class T, class TExpr>
+template <class... Ts, class TExpr>
 constexpr auto is_valid(TExpr expr)
-    -> decltype(expr(std::declval<T>()), bool()) {
+    -> decltype(expr(std::declval<Ts...>()), bool()) {
   return true;
 }
-template <class>
+template <class...>
 constexpr auto is_valid(...) -> bool {
   return false;
 }
