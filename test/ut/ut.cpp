@@ -326,11 +326,23 @@ int main() {
 
     tcfg.on(events::test_run{
         "test", "section", none{}, [&tcfg] {
-          tcfg.on(events::test_run{"test", "section", none{}, [] {}});
+          tcfg.on(events::test_run{"test", "sub-section", none{}, [] {}});
         }});
     test_assert(4 == tcfg.tests_.pass);
     test_assert(2 == tcfg.tests_.fail);
     test_assert(1 == tcfg.tests_.skip);
+
+    tcfg.filter = "section";
+    tcfg.on(events::test_run{
+        "test", "section", none{}, [&tcfg] {
+          tcfg.on(events::test_run{"test", "sub-section-1", none{}, [] {}});
+          tcfg.on(events::test_run{"test", "sub-section-2", none{},
+                                   [] { throw 0; }});
+        }});
+    test_assert(4 == tcfg.tests_.pass);
+    test_assert(3 == tcfg.tests_.fail);
+    test_assert(1 == tcfg.tests_.skip);
+    tcfg.filter = {};
 
     tcfg.tests_ = {};
     tcfg.asserts_ = {};

@@ -186,7 +186,7 @@ class default_cfg {
 
   template <class... Ts>
   auto on(events::test_run<Ts...> test) {
-    if (std::empty(filter) or filter == test.name) {
+    if (std::empty(filter) or (level_ or filter == test.name)) {
       if (not level_++) {
         test_begin(test.name);
       } else {
