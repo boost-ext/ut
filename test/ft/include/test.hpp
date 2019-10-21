@@ -24,10 +24,7 @@ struct cfg : test::default_cfg {
 };
 }  // namespace ft
 
-template <>
-#if defined(_MSC_VER)
-static
-#endif
-    inline auto test::cfg<test::override> = ft::cfg{};
+template <class... Ts>
+static auto test::cfg<test::override, Ts...> = ft::cfg{};
 
 using test::operator""_test;
