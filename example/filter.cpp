@@ -11,10 +11,10 @@ int main() {
   using namespace boost::ut;
 
   /**
-   * Alternatively set env variable `BOOST_UT_FILTER` to "filter"
+   * Alternatively set env variable `BOOST_UT_FILTER` to "run"
    */
-  cfg<override>.filter = "filter";
+  cfg<override>.filter = "run";
 
-  "filter"_test = [] { expect(42 == 42_i); };
+  "run"_test = [] { expect(42 == 42_i); };
   "don't run"_test = [] { expect(0 == 1_c) << "don't run"; };
 }

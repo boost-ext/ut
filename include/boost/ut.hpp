@@ -844,7 +844,7 @@ constexpr auto operator==(T&& lhs, T&& rhs) {
   return detail::eq_{std::forward<T>(lhs), std::forward<T>(rhs)};
 }
 
-inline constexpr auto operator!=(std::string_view lhs, std::string_view rhs) {
+constexpr auto operator!=(std::string_view lhs, std::string_view rhs) {
   return detail::neq_{lhs, rhs};
 }
 
@@ -1001,7 +1001,7 @@ struct _t : detail::value<T> {
 [[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
 [[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
 
-[[maybe_unused]] inline auto log = detail::log{};
+[[maybe_unused]] static auto log = detail::log{};
 [[maybe_unused]] constexpr auto skip = detail::skip{};
 [[maybe_unused]] constexpr auto given = [](std::string_view name) {
   return detail::test{"given", name};
