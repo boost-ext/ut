@@ -6,7 +6,7 @@
 <a href="https://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a>
 <a href="https://godbolt.org/z/EtmE8-">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 
-# [Boost].UT 
+# [Boost].UT
 
 > C++20 **single header, macro-free** μ(micro)/unit test framework
 
@@ -279,7 +279,7 @@ class cfg {
   auto on(ut::events::log) { }
 };
 
-template<> inline auto ut::cfg<ut::override> = cfg{};
+template<> auto ut::cfg<ut::override> = cfg{};
 
 int main() {
   using namespace ut;
