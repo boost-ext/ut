@@ -76,7 +76,7 @@ constexpr auto num() -> T {
     }
   }
 
-  auto should_skip = 1;
+  auto should_skip = 1u;
   i = 0u;
   while (i < sizeof...(Cs) and cs[i] != '.') {
     if (cs[i] == '\'') {
@@ -124,7 +124,7 @@ constexpr auto is_valid(...) -> bool {
 }
 
 template <class T>
-constexpr auto is_container_v =
+static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T, class...>
@@ -219,7 +219,7 @@ class default_cfg {
   }
 
   template <class TLocation, class TExpr>
-  auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
+  [[nodiscard]] auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
     if (const auto result = static_cast<bool>(assertion.expr); result) {
       ++asserts_.pass;
       return true;
@@ -284,7 +284,7 @@ class default_cfg {
   }
 
   template <class Test>
-  auto test_run(Test test, none) {
+  auto test_run(Test test, none) -> void {
     test();
   }
 
@@ -317,7 +317,7 @@ class default_cfg {
 };
 
 template <class...>
-[[maybe_unused]] inline auto cfg = default_cfg{};
+[[maybe_unused]] static auto cfg = default_cfg{};
 
 struct override {};
 
@@ -326,7 +326,7 @@ struct op {};
 struct skip {};
 
 template <class... Ts, class TEvent>
-constexpr decltype(auto) on(const TEvent& event) {
+[[nodiscard]] constexpr decltype(auto) on(const TEvent& event) {
   return ut::cfg<typename type_traits::identity<override, Ts...>::type>.on(
       event);
 }
@@ -823,7 +823,7 @@ constexpr auto operator""_ld() {
 
 namespace type_traits {
 template <class T>
-constexpr auto is_op_v = std::is_base_of_v<detail::op, T>;
+static constexpr auto is_op_v = std::is_base_of_v<detail::op, T>;
 }  // namespace type_traits
 
 namespace operators {
