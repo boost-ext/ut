@@ -117,8 +117,8 @@ struct custom {
   }
 };
 
-template <>
-auto ut::cfg<ut::override> = fake_cfg{};
+template <class... Ts>
+static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
 
 int main() {
   using namespace ut;
