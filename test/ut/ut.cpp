@@ -94,9 +94,9 @@ template <char... Cs>
 constexpr auto operator""_i() -> int {
   return sizeof...(Cs);
 }
-auto f() -> int { return 0_i; }
+static auto f() -> int { return 0_i; }
 }  // namespace ns
-auto f() -> int {
+static auto f() -> int {
   using namespace ns;
   return 42_i;
 }
@@ -306,7 +306,7 @@ int main() {
     tcfg.filter = {};
 
     tcfg.on(events::test_run{"test", "pass", none{}, [&tcfg] {
-                               tcfg.on(events::assertion{
+                               return tcfg.on(events::assertion{
                                    std::experimental::source_location{}, true});
                              }});
 
@@ -316,7 +316,7 @@ int main() {
 
     tcfg.on(
         events::test_run{"test", "fail", none{}, [&tcfg] {
-                           tcfg.on(events::assertion{
+                           return tcfg.on(events::assertion{
                                std::experimental::source_location{}, false});
                          }});
     test_assert(3 == tcfg.tests_.pass);
