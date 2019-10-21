@@ -32,7 +32,6 @@ struct source_location {
 #endif
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -185,9 +184,9 @@ struct fatal_assertion {};
 
 class default_cfg {
  public:
-  std::string filter = std::getenv("BOOST_UT_FILTER")
-                           ? std::getenv("BOOST_UT_FILTER")
-                           : std::string{};
+  std::string_view filter = std::getenv("BOOST_UT_FILTER")
+                                ? std::getenv("BOOST_UT_FILTER")
+                                : std::string_view{};
 
   template <class... Ts>
   auto on(events::test_run<Ts...> test) {
