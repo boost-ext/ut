@@ -44,11 +44,11 @@ namespace reflection {
 template <class T>
 constexpr auto type_name() -> std::string_view {
 #if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[111], sizeof(__FUNCSIG__) - 119};
+  return {&__FUNCSIG__[115], sizeof(__FUNCSIG__) - 123};
 #elif defined(__clang__)
-  return {&__PRETTY_FUNCTION__[61], sizeof(__PRETTY_FUNCTION__) - 63};
+  return {&__PRETTY_FUNCTION__[65], sizeof(__PRETTY_FUNCTION__) - 67};
 #elif defined(__GNUC__)
-  return {&__PRETTY_FUNCTION__[76], sizeof(__PRETTY_FUNCTION__) - 127};
+  return {&__PRETTY_FUNCTION__[80], sizeof(__PRETTY_FUNCTION__) - 131};
 #endif
 }
 }  // namespace reflection
