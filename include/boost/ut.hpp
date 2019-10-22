@@ -310,25 +310,29 @@ class runner {
   }
 
   auto test_results() -> void {
-    if (tests_.fail) {
-      out_ << "\n=============================================================="
-              "=================\n"
-           << "tests:   " << (tests_.pass + tests_.fail) << " | " << tests_.fail
-           << " failed" << '\n'
-           << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
-           << asserts_.pass << " passed"
-           << " | " << asserts_.fail << " failed" << '\n';
-      std::cerr << out_.str() << std::endl;
-      std::exit(int(tests_.fail));
-    } else {
-      std::cout << "All tests passed (" << asserts_.pass << " asserts in "
-                << tests_.pass << " tests)\n";
+    if (static auto once = true; once) {
+      once = false;
+      if (tests_.fail) {
+        out_ << "\n============================================================"
+                "=="
+                "=================\n"
+             << "tests:   " << (tests_.pass + tests_.fail) << " | "
+             << tests_.fail << " failed" << '\n'
+             << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
+             << asserts_.pass << " passed"
+             << " | " << asserts_.fail << " failed" << '\n';
+        std::cerr << out_.str() << std::endl;
+        std::exit(int(tests_.fail));
+      } else {
+        std::cout << "All tests passed (" << asserts_.pass << " asserts in "
+                  << tests_.pass << " tests)\n";
 
-      if (tests_.skip) {
-        std::cout << tests_.skip << " tests skipped\n";
+        if (tests_.skip) {
+          std::cout << tests_.skip << " tests skipped\n";
+        }
+
+        std::cout.flush();
       }
-
-      std::cout.flush();
     }
   }
 
@@ -352,10 +356,10 @@ class runner {
   bool run_{};
 };
 
-template <class...>
-[[maybe_unused]] static auto cfg = runner{};
-
 struct override {};
+
+template <class = override, class...>
+[[maybe_unused]] static auto cfg = runner{};
 
 namespace detail {
 struct op {};

@@ -21,5 +21,5 @@ int main(int argc, const char** argv) {
 
   "example"_test = [] { expect(42 == 42_i); };
 
-  return cfg<override>.run(argc, argv);
+  return cfg<>.run(argc, argv);
 }
