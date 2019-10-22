@@ -30,12 +30,14 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace boost::ut {
 inline namespace v1_0_0 {
@@ -182,7 +184,7 @@ struct log {
 struct fatal_assertion {};
 }  // namespace events
 
-class default_cfg {
+class runner {
  public:
   std::string_view filter = std::getenv("BOOST_UT_FILTER")
                                 ? std::getenv("BOOST_UT_FILTER")
@@ -190,31 +192,47 @@ class default_cfg {
 
   template <class... Ts>
   auto on(events::test_run<Ts...> test) {
-    if (std::empty(filter) or (level_ or filter == test.name)) {
-      if (not level_++) {
-        test_begin(test.name);
-      } else {
-        out_ << "\n \"" << test.name << "\"...";
-      }
+    const auto run = [test, this] {
+      if (std::empty(filter) or (level_ or filter == test.name)) {
+        if (not level_++) {
+          test_begin(test.name);
+        } else {
+          out_ << "\n \"" << test.name << "\"...";
+        }
 
-      active_exception_ = false;
-      try {
-        test_run(test.test, test.arg);
-      } catch (...) {
-        out_ << "\n  Unexpected exception!";
-        active_exception_ = true;
-      }
+        active_exception_ = false;
+        try {
+          test_run(test.test, test.arg);
+        } catch (...) {
+          out_ << "\n  Unexpected exception!";
+          active_exception_ = true;
+        }
 
-      if (not--level_) {
-        test_end();
+        if (not--level_) {
+          test_end();
+        }
       }
+    };
+
+    if (run_) {
+      run();
+    } else {
+      runs_.push_back(run);
     }
   }
 
   template <class... Ts>
   auto on(events::test_skip<Ts...> test) {
-    out_ << test.name << "...SKIPPED\n";
-    ++tests_.skip;
+    const auto run = [test, this] {
+      out_ << test.name << "...SKIPPED\n";
+      ++tests_.skip;
+    };
+
+    if (run_) {
+      run();
+    } else {
+      runs_.push_back(run);
+    }
   }
 
   template <class TLocation, class TExpr>
@@ -244,27 +262,21 @@ class default_cfg {
 
   auto on(events::log log) { out_ << ' ' << log.msg; }
 
-  ~default_cfg() {
-    if (tests_.fail) {
-      out_ << "\n=============================================================="
-              "=================\n"
-           << "tests:   " << (tests_.pass + tests_.fail) << " | " << tests_.fail
-           << " failed" << '\n'
-           << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
-           << asserts_.pass << " passed"
-           << " | " << asserts_.fail << " failed" << '\n';
-      std::cerr << out_.str() << std::endl;
-      std::exit(int(tests_.fail));
-    } else {
-      std::cout << "All tests passed (" << asserts_.pass << " asserts in "
-                << tests_.pass << " tests)\n";
-
-      if (tests_.skip) {
-        std::cout << tests_.skip << " tests skipped\n";
-      }
-
-      std::cout.flush();
+  [[nodiscard]] auto run(int = {}, const char** = {}) -> int {
+    run_ = true;
+    for (auto& run : runs_) {
+      run();
     }
+    runs_.clear();
+
+    return tests_.fail > 0;
+  }
+
+  ~runner() {
+    if (not run_) {
+      static_cast<void>(run());
+    }
+    test_results();
   }
 
  protected:
@@ -297,6 +309,29 @@ class default_cfg {
     }
   }
 
+  auto test_results() -> void {
+    if (tests_.fail) {
+      out_ << "\n=============================================================="
+              "=================\n"
+           << "tests:   " << (tests_.pass + tests_.fail) << " | " << tests_.fail
+           << " failed" << '\n'
+           << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
+           << asserts_.pass << " passed"
+           << " | " << asserts_.fail << " failed" << '\n';
+      std::cerr << out_.str() << std::endl;
+      std::exit(int(tests_.fail));
+    } else {
+      std::cout << "All tests passed (" << asserts_.pass << " asserts in "
+                << tests_.pass << " tests)\n";
+
+      if (tests_.skip) {
+        std::cout << tests_.skip << " tests skipped\n";
+      }
+
+      std::cout.flush();
+    }
+  }
+
   struct {
     std::size_t pass{};
     std::size_t fail{};
@@ -313,10 +348,12 @@ class default_cfg {
   bool active_exception_{};
 
   std::stringstream out_{};
+  std::vector<std::function<void()>> runs_{};
+  bool run_{};
 };
 
 template <class...>
-[[maybe_unused]] static auto cfg = default_cfg{};
+[[maybe_unused]] static auto cfg = runner{};
 
 struct override {};
 

@@ -9,7 +9,8 @@
 
 namespace ut = boost::ut;
 
-class override_cfg {
+namespace custom {
+class runner {
  public:
   template <class... Ts>
   auto on(ut::events::test_run<Ts...> test) {
@@ -24,9 +25,10 @@ class override_cfg {
   auto on(ut::events::fatal_assertion) {}
   auto on(ut::events::log) {}
 };
+}  // namespace custom
 
 template <>
-auto ut::cfg<ut::override> = override_cfg{};
+auto ut::cfg<ut::override> = custom::runner{};
 
 int main() {
   using namespace ut;

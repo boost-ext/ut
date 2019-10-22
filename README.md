@@ -15,7 +15,7 @@
 * **Macro-free** (Based on modern C++ features)
 * **Easy to use** (Minimal interface)
 * **Fast to compile/execute** (No allocations/no dynamic dispatch)
-* **Extensible** ([Custom configurations](example/cfg))
+* **Extensible** ([Custom configurations](example/cfg.cpp))
 
 ### Testing
 
