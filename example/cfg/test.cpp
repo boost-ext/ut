@@ -38,11 +38,14 @@ class test_cfg : ut::default_cfg {
     }
   }
 
-  void run([[maybe_unused]] int argc, [[maybe_unused]] const char** argv) {
+  [[nodiscard]] auto run([[maybe_unused]] int argc, [[maybe_unused]] const char** argv)
+      -> int {
     run_ = true;
     for (auto& test : tests_) {
       test();
     }
+
+    return ut::default_cfg::tests_.fail > 0;
   }
 
   using ut::default_cfg::on;
@@ -62,4 +65,10 @@ auto _ = "test suite"_test = [] {
   "should be equal"_test = [] { expect(42_i == 42); };
 };
 
-int main(int argc, const char** argv) { ut::cfg<ut::override>.run(argc, argv); }
+int main(int argc, const char** argv) {
+  using namespace ut;
+
+  "example"_test = [] { expect(42 == 42_i); };
+
+  return ut::cfg<ut::override>.run(argc, argv);
+}
