@@ -13,18 +13,18 @@
 namespace test = boost::ut;
 
 namespace ft {
-struct cfg : test::default_cfg {
+struct runner : test::runner {
   template <class... Ts>
   auto on(test::events::test_run<Ts...> test) {
     std::cout << test.name << '\n';
     test.test();
   }
 
-  using test::default_cfg::on;
+  using test::runner::on;
 };
 }  // namespace ft
 
 template <class... Ts>
-static auto test::cfg<test::override, Ts...> = ft::cfg{};
+static auto test::cfg<test::override, Ts...> = ft::runner{};
 
 using test::operator""_test;

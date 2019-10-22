@@ -274,82 +274,84 @@ int main() {
   }
 
   {
-    struct test_cfg : default_cfg {
-      using default_cfg::active_exception_;
-      using default_cfg::asserts_;
-      using default_cfg::tests_;
+    struct test_runner : runner {
+      using runner::active_exception_;
+      using runner::asserts_;
+      using runner::run_;
+      using runner::tests_;
     };
 
-    auto tcfg = test_cfg{};
-    tcfg.on(events::test_run{"test", "run", none{}, [] {}});
-    test_assert(1 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(0 == tcfg.tests_.skip);
+    auto run = test_runner{};
+    run.run_ = true;
 
-    tcfg.on(events::test_skip{"test", "skip", none{}, [] {}});
-    test_assert(1 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
+    run.on(events::test_run{"test", "run", none{}, [] {}});
+    test_assert(1 == run.tests_.pass);
+    test_assert(0 == run.tests_.fail);
+    test_assert(0 == run.tests_.skip);
 
-    tcfg.filter = "unknown";
-    tcfg.on(events::test_run{"test", "filter", none{}, [] {}});
-    test_assert(1 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-    tcfg.filter = {};
+    run.on(events::test_skip{"test", "skip", none{}, [] {}});
+    test_assert(1 == run.tests_.pass);
+    test_assert(0 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
 
-    tcfg.filter = "filter";
-    tcfg.on(events::test_run{"test", "filter", none{}, [] {}});
-    test_assert(2 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-    tcfg.filter = {};
+    run.filter = "unknown";
+    run.on(events::test_run{"test", "filter", none{}, [] {}});
+    test_assert(1 == run.tests_.pass);
+    test_assert(0 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
+    run.filter = {};
 
-    tcfg.on(events::test_run{"test", "pass", none{}, [&tcfg] {
-                               return tcfg.on(events::assertion{
-                                   std::experimental::source_location{}, true});
-                             }});
+    run.filter = "filter";
+    run.on(events::test_run{"test", "filter", none{}, [] {}});
+    test_assert(2 == run.tests_.pass);
+    test_assert(0 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
+    run.filter = {};
 
-    test_assert(3 == tcfg.tests_.pass);
-    test_assert(0 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
+    run.on(events::test_run{"test", "pass", none{}, [&run] {
+                              return run.on(events::assertion{
+                                  std::experimental::source_location{}, true});
+                            }});
 
-    tcfg.on(
-        events::test_run{"test", "fail", none{}, [&tcfg] {
-                           return tcfg.on(events::assertion{
-                               std::experimental::source_location{}, false});
-                         }});
-    test_assert(3 == tcfg.tests_.pass);
-    test_assert(1 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
+    test_assert(3 == run.tests_.pass);
+    test_assert(0 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
 
-    tcfg.on(events::test_run{"test", "exception", none{}, [] { throw 42; }});
-    test_assert(3 == tcfg.tests_.pass);
-    test_assert(2 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
+    run.on(events::test_run{"test", "fail", none{}, [&run] {
+                              return run.on(events::assertion{
+                                  std::experimental::source_location{}, false});
+                            }});
+    test_assert(3 == run.tests_.pass);
+    test_assert(1 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
 
-    tcfg.on(events::test_run{
-        "test", "section", none{}, [&tcfg] {
-          tcfg.on(events::test_run{"test", "sub-section", none{}, [] {}});
+    run.on(events::test_run{"test", "exception", none{}, [] { throw 42; }});
+    test_assert(3 == run.tests_.pass);
+    test_assert(2 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
+
+    run.on(events::test_run{
+        "test", "section", none{}, [&run] {
+          run.on(events::test_run{"test", "sub-section", none{}, [] {}});
         }});
-    test_assert(4 == tcfg.tests_.pass);
-    test_assert(2 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
+    test_assert(4 == run.tests_.pass);
+    test_assert(2 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
 
-    tcfg.filter = "section";
-    tcfg.on(events::test_run{
-        "test", "section", none{}, [&tcfg] {
-          tcfg.on(events::test_run{"test", "sub-section-1", none{}, [] {}});
-          tcfg.on(events::test_run{"test", "sub-section-2", none{},
-                                   [] { throw 0; }});
+    run.filter = "section";
+    run.on(events::test_run{
+        "test", "section", none{}, [&run] {
+          run.on(events::test_run{"test", "sub-section-1", none{}, [] {}});
+          run.on(events::test_run{"test", "sub-section-2", none{},
+                                  [] { throw 0; }});
         }});
-    test_assert(4 == tcfg.tests_.pass);
-    test_assert(3 == tcfg.tests_.fail);
-    test_assert(1 == tcfg.tests_.skip);
-    tcfg.filter = {};
+    test_assert(4 == run.tests_.pass);
+    test_assert(3 == run.tests_.fail);
+    test_assert(1 == run.tests_.skip);
+    run.filter = {};
 
-    tcfg.tests_ = {};
-    tcfg.asserts_ = {};
+    run.tests_ = {};
+    run.asserts_ = {};
   }
 
   auto& test_cfg = ut::cfg<ut::override>;
