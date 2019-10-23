@@ -253,10 +253,11 @@ class runner {
     }
   }
 
-  auto on(events::fatal_assertion) {
+  [[noreturn]] auto on(events::fatal_assertion) {
     ++asserts_.fail;
     test_end();
-    std::exit(int(asserts_.fail));
+    test_results();
+    std::terminate();
   }
 
   auto on(events::log log) { out_ << ' ' << log.msg; }
@@ -272,10 +273,17 @@ class runner {
   }
 
   ~runner() {
-    if (not run_) {
+    const auto should_run = not run_;
+
+    if (should_run) {
       static_cast<void>(run());
     }
+
     test_results();
+
+    if (should_run and tests_.fail) {
+      std::exit(int(tests_.fail));
+    }
   }
 
  protected:
@@ -321,7 +329,6 @@ class runner {
              << asserts_.pass << " passed"
              << " | " << asserts_.fail << " failed" << '\n';
         std::cerr << out_.str() << std::endl;
-        std::exit(int(tests_.fail));
       } else {
         std::cout << "All tests passed (" << asserts_.pass << " asserts in "
                   << tests_.pass << " tests)\n";
