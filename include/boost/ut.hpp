@@ -30,7 +30,6 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
-#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string_view>
@@ -352,7 +351,45 @@ class runner {
   bool active_exception_{};
 
   std::stringstream out_{};
-  std::vector<std::function<void()>> runs_{};
+
+  class test_exe final {
+   public:
+    template <class T>
+    constexpr explicit(false) test_exe(T data)
+        : invoke_{invoke_impl<T>},
+          destroy_{destroy_impl<T>},
+          data_{new T{std::move(data)}} {}
+    constexpr test_exe(test_exe&& other)
+        : invoke_{std::move(other.invoke_)},
+          destroy_{std::move(other.destroy_)},
+          data_{std::move(other.data_)} {
+      other.data_ = {};
+    }
+    constexpr test_exe(const test_exe&) = delete;
+    ~test_exe() { destroy_(data_); }
+
+    constexpr auto& operator=(const test_exe&) = delete;
+    constexpr auto& operator=(test_exe&&) = delete;
+
+    constexpr auto operator()() -> void { invoke_(data_); }
+
+   private:
+    template <class T>
+    static auto invoke_impl(void* data) -> void {
+      (*static_cast<T*>(data))();
+    }
+
+    template <class T>
+    static auto destroy_impl(void* data) -> void {
+      delete static_cast<T*>(data);
+    }
+
+    void (*invoke_)(void*){};
+    void (*destroy_)(void*){};
+    void* data_{};
+  };
+
+  std::vector<test_exe> runs_{};
   bool run_{};
 };
 
