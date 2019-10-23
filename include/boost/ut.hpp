@@ -30,6 +30,7 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string_view>
@@ -151,25 +152,36 @@ constexpr auto& operator<<(TOs& os, const T& t) {
 struct none {};
 
 namespace events {
+struct test_begin {
+  std::string_view type{};
+  std::string_view name{};
+};
 template <class Test, class TArg = none>
+struct run {
+  std::string_view type{};
+  std::string_view name{};
+  TArg arg{};
+  Test test{};
+};
+template <class Test, class TArg>
+run(std::string_view, std::string_view, TArg, Test)->run<Test, TArg>;
 struct test_run {
   std::string_view type{};
   std::string_view name{};
-  TArg arg{};
-  Test test{};
 };
-template <class Test, class TArg>
-test_run(std::string_view, std::string_view, TArg, Test)->test_run<Test, TArg>;
 template <class Test, class TArg = none>
-struct test_skip {
+struct skip {
   std::string_view type{};
   std::string_view name{};
   TArg arg{};
   Test test{};
 };
 template <class Test, class TArg>
-test_skip(std::string_view, std::string_view, TArg, Test)
-    ->test_skip<Test, TArg>;
+skip(std::string_view, std::string_view, TArg, Test)->skip<Test, TArg>;
+struct test_skip {
+  std::string_view type{};
+  std::string_view name{};
+};
 template <class TLocation, class TExpr>
 struct assertion {
   TLocation location{};
@@ -177,137 +189,51 @@ struct assertion {
 };
 template <class TLocation, class TExpr>
 assertion(TLocation, TExpr)->assertion<TLocation, TExpr>;
+template <class TLocation, class TExpr>
+struct assertion_pass {
+  TLocation location{};
+  TExpr expr{};
+};
+template <class TLocation, class TExpr>
+assertion_pass(TLocation, TExpr)->assertion_pass<TLocation, TExpr>;
+template <class TLocation, class TExpr>
+struct assertion_fail {
+  TLocation location{};
+  TExpr expr{};
+};
+template <class TLocation, class TExpr>
+assertion_fail(TLocation, TExpr)->assertion_fail<TLocation, TExpr>;
+struct test_end {
+  std::string_view type{};
+  std::string_view name{};
+};
 struct log {
   std::string_view msg{};
 };
 struct fatal_assertion {};
+struct exception {};
+struct summary {};
 }  // namespace events
 
-class runner {
+class reporter {
  public:
-  std::string_view filter = std::getenv("BOOST_UT_FILTER")
-                                ? std::getenv("BOOST_UT_FILTER")
-                                : std::string_view{};
-
-  template <class... Ts>
-  auto on(events::test_run<Ts...> test) {
-    const auto run = [test, this] {
-      if (std::empty(filter) or (level_ or filter == test.name)) {
-        if (not level_++) {
-          test_begin(test.name);
-        } else {
-          out_ << "\n \"" << test.name << "\"...";
-        }
-
-        active_exception_ = false;
-        try {
-          test_run(test.test, test.arg);
-        } catch (...) {
-          out_ << "\n  Unexpected exception!";
-          active_exception_ = true;
-        }
-
-        if (not--level_) {
-          test_end();
-        }
-      }
-    };
-
-    if (run_) {
-      run();
-    } else {
-      runs_.push_back(run);
-    }
-  }
-
-  template <class... Ts>
-  auto on(events::test_skip<Ts...> test) {
-    const auto run = [test, this] {
-      out_ << test.name << "...SKIPPED\n";
-      ++tests_.skip;
-    };
-
-    if (run_) {
-      run();
-    } else {
-      runs_.push_back(run);
-    }
-  }
-
-  template <class TLocation, class TExpr>
-  [[nodiscard]] auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
-    if (const auto result = static_cast<bool>(assertion.expr); result) {
-      ++asserts_.pass;
-      return true;
-    } else {
-      constexpr auto short_name = [](std::string_view name) {
-        return name.rfind('/') != std::string_view::npos
-                   ? name.substr(name.rfind('/') + 1)
-                   : name;
-      };
-      out_ << "\n  " << short_name(assertion.location.file_name()) << ':'
-           << assertion.location.line() << ":FAILED [" << std::boolalpha
-           << assertion.expr << ']';
-      ++asserts_.fail;
-      return false;
-    }
-  }
-
-  [[noreturn]] auto on(events::fatal_assertion) {
-    ++asserts_.fail;
-    test_end();
-    test_results();
-    std::terminate();
-  }
-
-  auto on(events::log log) { out_ << ' ' << log.msg; }
-
-  [[nodiscard]] auto run(int = {}, const char** = {}) -> int {
-    run_ = true;
-    for (auto& run : runs_) {
-      run();
-    }
-    runs_.clear();
-
-    return tests_.fail > 0;
-  }
-
-  ~runner() {
-    const auto should_run = not run_;
-
-    if (should_run) {
-      static_cast<void>(run());
-    }
-
-    test_results();
-
-    if (should_run and tests_.fail) {
-      std::exit(int(tests_.fail));
-    }
-  }
-
- protected:
-  auto test_begin(std::string_view name) -> void {
-    out_ << "Running \"" << name << "\"...";
+  auto on(events::test_begin test) -> void {
+    out_ << "Running \"" << test.name << "\"...";
     fails_ = asserts_.fail;
+    exception_ = false;
   }
 
-  template <class Test, class TArg>
-  auto test_run(Test test, [[maybe_unused]] const TArg& arg) -> void {
-    if constexpr (std::is_invocable_v<Test, TArg>) {
-      test(arg);
-    } else {
-      test.template operator()<TArg>();
-    }
+  auto on(events::test_run test) -> void {
+    out_ << "\n \"" << test.name << "\"...";
   }
 
-  template <class Test>
-  auto test_run(Test test, none) -> void {
-    test();
+  auto on(events::test_skip test) -> void {
+    out_ << test.name << "...SKIPPED\n";
+    ++tests_.skip;
   }
 
-  auto test_end() -> void {
-    if (asserts_.fail > fails_ or active_exception_) {
+  auto on(events::test_end) -> void {
+    if (asserts_.fail > fails_ or exception_) {
       ++tests_.fail;
       out_ << "\nFAILED\n";
     } else {
@@ -316,7 +242,34 @@ class runner {
     }
   }
 
-  auto test_results() -> void {
+  auto on(events::log l) -> void { out_ << ' ' << l.msg; }
+
+  auto on(events::exception) -> void {
+    exception_ = true;
+    out_ << "\n  Unexpected exception!";
+  }
+
+  template <class TLocation, class TExpr>
+  auto on(events::assertion_pass<TLocation, TExpr>) -> void {
+    ++asserts_.pass;
+  }
+
+  template <class TLocation, class TExpr>
+  auto on(events::assertion_fail<TLocation, TExpr> assertion) -> void {
+    constexpr auto short_name = [](std::string_view name) {
+      return name.rfind('/') != std::string_view::npos
+                 ? name.substr(name.rfind('/') + 1)
+                 : name;
+    };
+    out_ << "\n  " << short_name(assertion.location.file_name()) << ':'
+         << assertion.location.line() << ":FAILED [" << std::boolalpha
+         << assertion.expr << ']';
+    ++asserts_.fail;
+  }
+
+  auto on(events::fatal_assertion) -> void { ++asserts_.fail; }
+
+  auto on(events::summary) -> void {
     if (static auto once = true; once) {
       once = false;
       if (tests_.fail) {
@@ -342,6 +295,7 @@ class runner {
     }
   }
 
+ protected:
   struct {
     std::size_t pass{};
     std::size_t fail{};
@@ -354,10 +308,126 @@ class runner {
   } asserts_{};
 
   std::size_t fails_{};
-  std::size_t level_{};
-  bool active_exception_{};
+  bool exception_{};
 
   std::stringstream out_{};
+};
+
+template <class TReporter = reporter>
+class runner {
+ public:
+  std::string_view filter = std::getenv("BOOST_UT_FILTER")
+                                ? std::getenv("BOOST_UT_FILTER")
+                                : std::string_view{};
+
+  constexpr runner() = default;
+  constexpr explicit runner(TReporter reporter)
+      : reporter_{std::move(reporter)} {}
+
+  template <class... Ts>
+  auto on(events::run<Ts...> test) {
+    const auto run = [test, this] {
+      if (std::empty(filter) or (level_ or filter == test.name)) {
+        if (not level_++) {
+          reporter_.on(events::test_begin{test.type, test.name});
+        } else {
+          reporter_.on(events::test_run{test.type, test.name});
+        }
+
+        active_exception_ = false;
+        try {
+          test_run(test.test, test.arg);
+        } catch (...) {
+          reporter_.on(events::exception{});
+          active_exception_ = true;
+        }
+
+        if (not--level_) {
+          reporter_.on(events::test_end{test.type, test.name});
+        }
+      }
+    };
+
+    if (is_run_) {
+      run();
+    } else {
+      tests_.push_back(run);
+    }
+  }
+
+  template <class... Ts>
+  auto on(events::skip<Ts...> test) {
+    const auto run = [test, this] {
+      reporter_.on(events::test_skip{test.type, test.name});
+    };
+    if (is_run_) {
+      run();
+    } else {
+      tests_.push_back(run);
+    }
+  }
+
+  template <class TLocation, class TExpr>
+  [[nodiscard]] auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
+    if (static_cast<bool>(assertion.expr)) {
+      reporter_.on(events::assertion_pass{assertion.location, assertion.expr});
+      return true;
+    } else {
+      ++fails_;
+      reporter_.on(events::assertion_fail{assertion.location, assertion.expr});
+      return false;
+    }
+  }
+
+  [[noreturn]] auto on(events::fatal_assertion fatal_assertion) {
+    reporter_.on(fatal_assertion);
+    reporter_.on(events::test_end{});
+    reporter_.on(events::summary{});
+    test_abort();
+  }
+
+  auto on(events::log l) { reporter_.on(l); }
+
+  [[nodiscard]] auto run() -> int {
+    is_run_ = true;
+    for (auto& test : tests_) {
+      test();
+    }
+    tests_.clear();
+
+    return fails_;
+  }
+
+  ~runner() {
+    const auto should_run = not is_run_;
+
+    if (should_run) {
+      static_cast<void>(run());
+    }
+
+    reporter_.on(events::summary{});
+
+    if (should_run and fails_) {
+      std::exit(fails_);
+    }
+  }
+
+ protected:
+  template <class Test, class TArg>
+  auto test_run(Test test, [[maybe_unused]] const TArg& arg) -> void {
+    if constexpr (std::is_invocable_v<Test, TArg>) {
+      test(arg);
+    } else {
+      test.template operator()<TArg>();
+    }
+  }
+
+  template <class Test>
+  auto test_run(Test test, none) -> void {
+    test();
+  }
+
+  [[noreturn]] auto test_abort() -> void { std::abort(); }
 
   class test_exe final {
    public:
@@ -375,8 +445,8 @@ class runner {
     constexpr test_exe(const test_exe&) = delete;
     ~test_exe() { destroy_(data_); }
 
-    constexpr auto& operator=(const test_exe&) = delete;
-    constexpr auto& operator=(test_exe&&) = delete;
+    constexpr test_exe& operator=(const test_exe&) = delete;
+    constexpr test_exe& operator=(test_exe&&) = delete;
 
     constexpr auto operator()() -> void { invoke_(data_); }
 
@@ -396,14 +466,18 @@ class runner {
     void* data_{};
   };
 
-  std::vector<test_exe> runs_{};
-  bool run_{};
+  TReporter reporter_{};
+  std::vector<test_exe> tests_{};
+  std::size_t level_{};
+  bool is_run_{};
+  bool active_exception_{};
+  int fails_{};
 };
 
 struct override {};
 
 template <class = override, class...>
-[[maybe_unused]] static auto cfg = runner{};
+[[maybe_unused]] static auto cfg = runner<reporter>{};
 
 namespace detail {
 struct op {};
@@ -424,7 +498,7 @@ struct test {
     if constexpr (std::is_invocable_v<Test, std::string_view>) {
       return test(name);
     } else {
-      on<Test>(events::test_run{type, name, none{}, test});
+      on<Test>(events::run{type, name, none{}, test});
       return test;
     }
   }
@@ -437,7 +511,7 @@ class test_skip {
 
   template <class Test>
   constexpr auto operator=(Test test) {
-    on<Test>(events::test_skip{t_.type, t_.name, none{}, test});
+    on<Test>(events::skip{t_.type, t_.name, none{}, test});
     return test;
   }
 
@@ -447,8 +521,8 @@ class test_skip {
 
 struct log {
   template <class TMsg>
-  auto& operator<<(TMsg&& msg) {
-    on<TMsg>(events::log{std::forward<TMsg>(msg)});
+  auto& operator<<(const TMsg& msg) {
+    on<TMsg>(events::log{msg});
     return *this;
   }
 };
@@ -1008,7 +1082,7 @@ template <class F, class T,
 constexpr auto operator|(const F& f, const T& t) {
   return [f, t](auto name) {
     for (const auto& arg : t) {
-      detail::on<F>(events::test_run{"test", name, arg, f});
+      detail::on<F>(events::run{"test", name, arg, f});
     }
   };
 }
@@ -1020,7 +1094,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
         [f, name](const auto&... args) {
           (
               [name](const auto& f, const auto& arg) {
-                detail::on<F>(events::test_run{"test", name, arg, f});
+                detail::on<F>(events::run{"test", name, arg, f});
               }(f, args),
               ...);
         },

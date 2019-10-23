@@ -59,9 +59,9 @@ struct fake_cfg {
   }
 
   template <class... Ts>
-  auto on(ut::events::test_run<Ts...> test) {
+  auto on(ut::events::run<Ts...> test) {
     if (std::empty(test_filter) or test.name == test_filter) {
-      test_run_calls.push_back({test.type, test.name, test.arg});
+      run_calls.push_back({test.type, test.name, test.arg});
       try {
         run(test.test, test.arg);
       } catch (...) {
@@ -69,8 +69,8 @@ struct fake_cfg {
     }
   }
   template <class... Ts>
-  auto on(ut::events::test_skip<Ts...> test) {
-    test_skip_calls.push_back({test.type, test.name, test.arg});
+  auto on(ut::events::skip<Ts...> test) {
+    skip_calls.push_back({test.type, test.name, test.arg});
   }
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion<TLocation, TExpr> assertion) -> bool {
@@ -81,8 +81,8 @@ struct fake_cfg {
   auto on(ut::events::fatal_assertion) { ++fatal_assertion_calls; }
   auto on(ut::events::log log) { log_calls.push_back(log.msg); }
 
-  std::vector<test_call> test_run_calls{};
-  std::vector<test_call> test_skip_calls{};
+  std::vector<test_call> run_calls{};
+  std::vector<test_call> skip_calls{};
   std::vector<std::string_view> log_calls{};
   std::vector<assertion_call> assertion_calls{};
   std::size_t fatal_assertion_calls{};
@@ -274,84 +274,87 @@ int main() {
   }
 
   {
-    struct test_runner : runner {
+    struct test_reporter : reporter {
+      using reporter::asserts_;
+      using reporter::tests_;
+    };
+
+    struct test_runner : runner<test_reporter> {
       using runner::active_exception_;
-      using runner::asserts_;
-      using runner::run_;
-      using runner::tests_;
+      using runner::is_run_;
+      using runner::reporter_;
     };
 
     auto run = test_runner{};
-    run.run_ = true;
+    auto& reporter = run.reporter_;
+    run.is_run_ = true;
 
-    run.on(events::test_run{"test", "run", none{}, [] {}});
-    test_assert(1 == run.tests_.pass);
-    test_assert(0 == run.tests_.fail);
-    test_assert(0 == run.tests_.skip);
+    run.on(events::run{"test", "run", none{}, [] {}});
+    test_assert(1 == reporter.tests_.pass);
+    test_assert(0 == reporter.tests_.fail);
+    test_assert(0 == reporter.tests_.skip);
 
-    run.on(events::test_skip{"test", "skip", none{}, [] {}});
-    test_assert(1 == run.tests_.pass);
-    test_assert(0 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    run.on(events::skip{"test", "skip", none{}, [] {}});
+    test_assert(1 == reporter.tests_.pass);
+    test_assert(0 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
 
     run.filter = "unknown";
-    run.on(events::test_run{"test", "filter", none{}, [] {}});
-    test_assert(1 == run.tests_.pass);
-    test_assert(0 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    run.on(events::run{"test", "filter", none{}, [] {}});
+    test_assert(1 == reporter.tests_.pass);
+    test_assert(0 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
     run.filter = {};
 
     run.filter = "filter";
-    run.on(events::test_run{"test", "filter", none{}, [] {}});
-    test_assert(2 == run.tests_.pass);
-    test_assert(0 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    run.on(events::run{"test", "filter", none{}, [] {}});
+    test_assert(2 == reporter.tests_.pass);
+    test_assert(0 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
     run.filter = {};
 
-    run.on(events::test_run{"test", "pass", none{}, [&run] {
-                              return run.on(events::assertion{
-                                  std::experimental::source_location{}, true});
-                            }});
+    run.on(events::run{"test", "pass", none{}, [&run] {
+                         return run.on(events::assertion{
+                             std::experimental::source_location{}, true});
+                       }});
 
-    test_assert(3 == run.tests_.pass);
-    test_assert(0 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    test_assert(3 == reporter.tests_.pass);
+    test_assert(0 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::test_run{"test", "fail", none{}, [&run] {
-                              return run.on(events::assertion{
-                                  std::experimental::source_location{}, false});
-                            }});
-    test_assert(3 == run.tests_.pass);
-    test_assert(1 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    run.on(events::run{"test", "fail", none{}, [&run] {
+                         return run.on(events::assertion{
+                             std::experimental::source_location{}, false});
+                       }});
+    test_assert(3 == reporter.tests_.pass);
+    test_assert(1 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::test_run{"test", "exception", none{}, [] { throw 42; }});
-    test_assert(3 == run.tests_.pass);
-    test_assert(2 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    run.on(events::run{"test", "exception", none{}, [] { throw 42; }});
+    test_assert(3 == reporter.tests_.pass);
+    test_assert(2 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::test_run{
-        "test", "section", none{}, [&run] {
-          run.on(events::test_run{"test", "sub-section", none{}, [] {}});
-        }});
-    test_assert(4 == run.tests_.pass);
-    test_assert(2 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    run.on(
+        events::run{"test", "section", none{}, [&run] {
+                      run.on(events::run{"test", "sub-section", none{}, [] {}});
+                    }});
+    test_assert(4 == reporter.tests_.pass);
+    test_assert(2 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
 
     run.filter = "section";
-    run.on(events::test_run{
+    run.on(events::run{
         "test", "section", none{}, [&run] {
-          run.on(events::test_run{"test", "sub-section-1", none{}, [] {}});
-          run.on(events::test_run{"test", "sub-section-2", none{},
-                                  [] { throw 0; }});
+          run.on(events::run{"test", "sub-section-1", none{}, [] {}});
+          run.on(events::run{"test", "sub-section-2", none{}, [] { throw 0; }});
         }});
-    test_assert(4 == run.tests_.pass);
-    test_assert(3 == run.tests_.fail);
-    test_assert(1 == run.tests_.skip);
+    test_assert(4 == reporter.tests_.pass);
+    test_assert(3 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
     run.filter = {};
 
-    run.tests_ = {};
-    run.asserts_ = {};
+    reporter = {};
   }
 
   auto& test_cfg = ut::cfg<ut::override>;
@@ -363,11 +366,11 @@ int main() {
     "run"_test = [] {};
     "ignore"_test = [] {};
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
-    test_assert("test"sv == test_cfg.test_run_calls[0].type);
-    test_assert("run"sv == test_cfg.test_run_calls[0].name);
-    void(std::any_cast<none>(test_cfg.test_run_calls[0].arg));
-    test_assert(std::empty(test_cfg.test_skip_calls));
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("test"sv == test_cfg.run_calls[0].type);
+    test_assert("run"sv == test_cfg.run_calls[0].name);
+    void(std::any_cast<none>(test_cfg.run_calls[0].arg));
+    test_assert(std::empty(test_cfg.skip_calls));
     test_assert(std::empty(test_cfg.log_calls));
     test_assert(0 == test_cfg.fatal_assertion_calls);
   }
@@ -378,12 +381,12 @@ int main() {
     "run"_test = [] {};
     skip | "skip"_test = [] {};
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
-    test_assert("run"sv == test_cfg.test_run_calls[0].name);
-    test_assert(1 == std::size(test_cfg.test_skip_calls));
-    test_assert("test"sv == test_cfg.test_skip_calls[0].type);
-    test_assert("skip"sv == test_cfg.test_skip_calls[0].name);
-    void(std::any_cast<none>(test_cfg.test_skip_calls[0].arg));
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("run"sv == test_cfg.run_calls[0].name);
+    test_assert(1 == std::size(test_cfg.skip_calls));
+    test_assert("test"sv == test_cfg.skip_calls[0].type);
+    test_assert("skip"sv == test_cfg.skip_calls[0].name);
+    void(std::any_cast<none>(test_cfg.skip_calls[0].arg));
     test_assert(std::empty(test_cfg.log_calls));
     test_assert(0 == test_cfg.fatal_assertion_calls);
   }
@@ -396,8 +399,8 @@ int main() {
                      << "msg2";
     };
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
-    test_assert("logging"sv == test_cfg.test_run_calls[0].name);
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("logging"sv == test_cfg.run_calls[0].name);
     test_assert(2 == std::size(test_cfg.log_calls));
     test_assert("msg1"sv == test_cfg.log_calls[0]);
     test_assert("msg2"sv == test_cfg.log_calls[1]);
@@ -552,9 +555,9 @@ int main() {
 
     "assertions"_test = [] { expect(42_i == 42); };
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
-    test_assert("assertions"sv == test_cfg.test_run_calls[0].name);
-    test_assert(std::empty(test_cfg.test_skip_calls));
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("assertions"sv == test_cfg.run_calls[0].name);
+    test_assert(std::empty(test_cfg.skip_calls));
     test_assert(std::empty(test_cfg.log_calls));
     test_assert(0 == test_cfg.fatal_assertion_calls);
     test_assert(1 == std::size(test_cfg.assertion_calls));
@@ -571,7 +574,7 @@ int main() {
       !expect(2 != 2_i) << "fatal";
     };
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
+    test_assert(1 == std::size(test_cfg.run_calls));
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
@@ -596,8 +599,8 @@ int main() {
       expect(nothrow([] { throw 0; })) << "throws";
     };
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
-    test_assert("exceptions"sv == test_cfg.test_run_calls[0].name);
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("exceptions"sv == test_cfg.run_calls[0].name);
     test_assert(6 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("true" == test_cfg.assertion_calls[0].str);
@@ -620,8 +623,8 @@ int main() {
       expect(42_i == f(true));
     };
 
-    test_assert(2 == std::size(test_cfg.test_run_calls));
-    test_assert("should throw"sv == test_cfg.test_run_calls[1].name);
+    test_assert(2 == std::size(test_cfg.run_calls));
+    test_assert("should throw"sv == test_cfg.run_calls[1].name);
     test_assert(6 == std::size(test_cfg.assertion_calls));
   }
 
@@ -646,10 +649,10 @@ int main() {
       };
     };
 
-    test_assert(3 == std::size(test_cfg.test_run_calls));
-    test_assert("[vector]"sv == test_cfg.test_run_calls[0].name);
-    test_assert("resize bigger"sv == test_cfg.test_run_calls[1].name);
-    test_assert("resize smaller"sv == test_cfg.test_run_calls[2].name);
+    test_assert(3 == std::size(test_cfg.run_calls));
+    test_assert("[vector]"sv == test_cfg.run_calls[0].name);
+    test_assert("resize bigger"sv == test_cfg.run_calls[1].name);
+    test_assert("resize smaller"sv == test_cfg.run_calls[2].name);
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("5 == 5" == test_cfg.assertion_calls[0].str);
@@ -668,13 +671,13 @@ int main() {
       expect(arg > 0_i) << "all values greater than 0";
     } | std::vector{1, 2, 3};
 
-    test_assert(3 == std::size(test_cfg.test_run_calls));
-    test_assert("args vector"sv == test_cfg.test_run_calls[0].name);
-    test_assert(1 == std::any_cast<int>(test_cfg.test_run_calls[0].arg));
-    test_assert("args vector"sv == test_cfg.test_run_calls[1].name);
-    test_assert(2 == std::any_cast<int>(test_cfg.test_run_calls[1].arg));
-    test_assert("args vector"sv == test_cfg.test_run_calls[2].name);
-    test_assert(3 == std::any_cast<int>(test_cfg.test_run_calls[2].arg));
+    test_assert(3 == std::size(test_cfg.run_calls));
+    test_assert("args vector"sv == test_cfg.run_calls[0].name);
+    test_assert(1 == std::any_cast<int>(test_cfg.run_calls[0].arg));
+    test_assert("args vector"sv == test_cfg.run_calls[1].name);
+    test_assert(2 == std::any_cast<int>(test_cfg.run_calls[1].arg));
+    test_assert("args vector"sv == test_cfg.run_calls[2].name);
+    test_assert(3 == std::any_cast<int>(test_cfg.run_calls[2].arg));
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 > 0" == test_cfg.assertion_calls[0].str);
@@ -691,11 +694,11 @@ int main() {
       expect(0_i <= arg) << "all values greater than 0";
     } | std::array{99, 11};
 
-    test_assert(2 == std::size(test_cfg.test_run_calls));
-    test_assert("args array"sv == test_cfg.test_run_calls[0].name);
-    test_assert(99 == std::any_cast<int>(test_cfg.test_run_calls[0].arg));
-    test_assert("args array"sv == test_cfg.test_run_calls[1].name);
-    test_assert(11 == std::any_cast<int>(test_cfg.test_run_calls[1].arg));
+    test_assert(2 == std::size(test_cfg.run_calls));
+    test_assert("args array"sv == test_cfg.run_calls[0].name);
+    test_assert(99 == std::any_cast<int>(test_cfg.run_calls[0].arg));
+    test_assert("args array"sv == test_cfg.run_calls[1].name);
+    test_assert(11 == std::any_cast<int>(test_cfg.run_calls[1].arg));
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("0 <= 99" == test_cfg.assertion_calls[0].str);
@@ -710,13 +713,13 @@ int main() {
       expect(_c('s') == arg or _c('t') == arg or _c('r') == arg);
     } | std::string{"str"};
 
-    test_assert(3 == std::size(test_cfg.test_run_calls));
-    test_assert("args string"sv == test_cfg.test_run_calls[0].name);
-    test_assert('s' == std::any_cast<char>(test_cfg.test_run_calls[0].arg));
-    test_assert("args string"sv == test_cfg.test_run_calls[1].name);
-    test_assert('t' == std::any_cast<char>(test_cfg.test_run_calls[1].arg));
-    test_assert("args string"sv == test_cfg.test_run_calls[2].name);
-    test_assert('r' == std::any_cast<char>(test_cfg.test_run_calls[2].arg));
+    test_assert(3 == std::size(test_cfg.run_calls));
+    test_assert("args string"sv == test_cfg.run_calls[0].name);
+    test_assert('s' == std::any_cast<char>(test_cfg.run_calls[0].arg));
+    test_assert("args string"sv == test_cfg.run_calls[1].name);
+    test_assert('t' == std::any_cast<char>(test_cfg.run_calls[1].arg));
+    test_assert("args string"sv == test_cfg.run_calls[2].name);
+    test_assert('r' == std::any_cast<char>(test_cfg.run_calls[2].arg));
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("((s == s or t == s) or r == s)" ==
@@ -738,15 +741,15 @@ int main() {
       expect(value > 0_i);
     } | std::map<char, int>{{'a', 1}, {'b', 2}};
 
-    test_assert(2 == std::size(test_cfg.test_run_calls));
-    test_assert("args map"sv == test_cfg.test_run_calls[0].name);
-    test_assert(std::pair<const char, int>{'a', 1} ==
-                std::any_cast<std::pair<const char, int>>(
-                    test_cfg.test_run_calls[0].arg));
-    test_assert("args map"sv == test_cfg.test_run_calls[1].name);
-    test_assert(std::pair<const char, int>{'b', 2} ==
-                std::any_cast<std::pair<const char, int>>(
-                    test_cfg.test_run_calls[1].arg));
+    test_assert(2 == std::size(test_cfg.run_calls));
+    test_assert("args map"sv == test_cfg.run_calls[0].name);
+    test_assert(
+        std::pair<const char, int>{'a', 1} ==
+        std::any_cast<std::pair<const char, int>>(test_cfg.run_calls[0].arg));
+    test_assert("args map"sv == test_cfg.run_calls[1].name);
+    test_assert(
+        std::pair<const char, int>{'b', 2} ==
+        std::any_cast<std::pair<const char, int>>(test_cfg.run_calls[1].arg));
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("(a == a or b == a)" == test_cfg.assertion_calls[0].str);
@@ -768,13 +771,13 @@ int main() {
     }
     | std::tuple<bool, int, void*>{};
 
-    test_assert(3 == std::size(test_cfg.test_run_calls));
-    test_assert("types"sv == test_cfg.test_run_calls[0].name);
-    void(std::any_cast<bool>(test_cfg.test_run_calls[0].arg));
-    test_assert("types"sv == test_cfg.test_run_calls[1].name);
-    void(std::any_cast<int>(test_cfg.test_run_calls[1].arg));
-    test_assert("types"sv == test_cfg.test_run_calls[2].name);
-    void(std::any_cast<void*>(test_cfg.test_run_calls[2].arg));
+    test_assert(3 == std::size(test_cfg.run_calls));
+    test_assert("types"sv == test_cfg.run_calls[0].name);
+    void(std::any_cast<bool>(test_cfg.run_calls[0].arg));
+    test_assert("types"sv == test_cfg.run_calls[1].name);
+    void(std::any_cast<int>(test_cfg.run_calls[1].arg));
+    test_assert("types"sv == test_cfg.run_calls[2].name);
+    void(std::any_cast<void*>(test_cfg.run_calls[2].arg));
     test_assert(3 == std::size(test_cfg.assertion_calls));
     test_assert("(true or void == bool)" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[0].result);
@@ -793,11 +796,11 @@ int main() {
     }
     | std::tuple{42, 42.42f};
 
-    test_assert(2 == std::size(test_cfg.test_run_calls));
-    test_assert("args and types"sv == test_cfg.test_run_calls[0].name);
-    test_assert(42 == std::any_cast<int>(test_cfg.test_run_calls[0].arg));
-    test_assert("args and types"sv == test_cfg.test_run_calls[1].name);
-    test_assert(42.42f == std::any_cast<float>(test_cfg.test_run_calls[1].arg));
+    test_assert(2 == std::size(test_cfg.run_calls));
+    test_assert("args and types"sv == test_cfg.run_calls[0].name);
+    test_assert(42 == std::any_cast<int>(test_cfg.run_calls[0].arg));
+    test_assert("args and types"sv == test_cfg.run_calls[1].name);
+    test_assert(42.42f == std::any_cast<float>(test_cfg.run_calls[1].arg));
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert(test_cfg.assertion_calls[1].result);
@@ -824,16 +827,16 @@ int main() {
       };
     };
 
-    test_assert(5 == std::size(test_cfg.test_run_calls));
-    test_assert("scenario"sv == test_cfg.test_run_calls[0].name);
-    test_assert("given"sv == test_cfg.test_run_calls[1].type);
-    test_assert("I have..."sv == test_cfg.test_run_calls[1].name);
-    test_assert("when"sv == test_cfg.test_run_calls[2].type);
-    test_assert("I run..."sv == test_cfg.test_run_calls[2].name);
-    test_assert("then"sv == test_cfg.test_run_calls[3].type);
-    test_assert("I expect..."sv == test_cfg.test_run_calls[3].name);
-    test_assert("then"sv == test_cfg.test_run_calls[4].type);
-    test_assert("I expect..."sv == test_cfg.test_run_calls[4].name);
+    test_assert(5 == std::size(test_cfg.run_calls));
+    test_assert("scenario"sv == test_cfg.run_calls[0].name);
+    test_assert("given"sv == test_cfg.run_calls[1].type);
+    test_assert("I have..."sv == test_cfg.run_calls[1].name);
+    test_assert("when"sv == test_cfg.run_calls[2].type);
+    test_assert("I run..."sv == test_cfg.run_calls[2].name);
+    test_assert("then"sv == test_cfg.run_calls[3].type);
+    test_assert("I expect..."sv == test_cfg.run_calls[3].name);
+    test_assert("then"sv == test_cfg.run_calls[4].type);
+    test_assert("I expect..."sv == test_cfg.run_calls[4].name);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 == 1" == test_cfg.assertion_calls[0].str);
@@ -849,9 +852,9 @@ int main() {
       expect(2_i == f());
     };
 
-    test_assert(1 == std::size(test_cfg.test_run_calls));
+    test_assert(1 == std::size(test_cfg.run_calls));
     test_assert("should disambiguate operators"sv ==
-                test_cfg.test_run_calls[0].name);
+                test_cfg.run_calls[0].name);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert("1 == 1" == test_cfg.assertion_calls[0].str);

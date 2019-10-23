@@ -9,15 +9,15 @@
 
 namespace ut = boost::ut;
 
-namespace custom {
+namespace cfg {
 class runner {
  public:
   template <class... Ts>
-  auto on(ut::events::test_run<Ts...> test) {
+  auto on(ut::events::run<Ts...> test) {
     test.test();
   }
   template <class... Ts>
-  auto on(ut::events::test_skip<Ts...>) {}
+  auto on(ut::events::skip<Ts...>) {}
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
     return true;
@@ -25,10 +25,10 @@ class runner {
   auto on(ut::events::fatal_assertion) {}
   auto on(ut::events::log) {}
 };
-}  // namespace custom
+}  // namespace cfg
 
 template <>
-auto ut::cfg<ut::override> = custom::runner{};
+auto ut::cfg<ut::override> = cfg::runner{};
 
 int main() {
   using namespace ut;

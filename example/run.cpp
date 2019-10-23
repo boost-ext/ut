@@ -16,10 +16,10 @@ auto _ = "test suite"_test = [] {
   "should be equal"_test = [] { expect(42_i == 42); };
 };
 
-int main(int argc, const char** argv) {
+int main() {
   using namespace ut;
 
   "example"_test = [] { expect(42 == 42_i); };
 
-  return cfg<>.run(argc, argv);
+  return cfg<>.run();
 }

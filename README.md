@@ -13,9 +13,9 @@
 * **No dependencies** (C++20 / tested: GCC-9+, Clang-9.0+, MSVC-2019+*)
 * **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * **Macro-free** (Based on modern C++ features)
-* **Easy to use** (Minimal interface)
-* **Fast to compile/execute** (No allocations/no dynamic dispatch)
-* **Extensible** ([Custom configurations](example/cfg.cpp))
+* **Easy to use** (Minimal interface - `""_test, expect`)
+* **Fast to compile/execute** ([Benchmarks](benchmark]))
+* **Extensible** ([Runners, Reporters](example/cfg))
 
 ### Testing
 
@@ -225,12 +225,45 @@ skip | "don't run"_test = [] {
 };
 ```
 
-#### Config
+#### Reporter
 
 ```cpp
 namespace ut = boost::ut;
 
-class cfg {
+namespace cfg {
+class reporter {
+ public:
+  auto on(ut::events::test_begin) -> void {}
+  auto on(ut::events::test_run) -> void {}
+  auto on(ut::events::test_skip) -> void {}
+  auto on(ut::events::test_end) -> void {}
+  auto on(ut::events::log) -> void {}
+  template <class TLocation, class TExpr>
+  auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
+  template <class TLocation, class TExpr>
+  auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+  auto on(ut::events::fatal_assertion) -> void {}
+  auto on(ut::events::exception) -> void {}
+  auto on(ut::events::summary) -> void{};
+};
+}  // namespace cfg
+
+template <>
+auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
+
+int main() {
+  using namespace ut;
+  "example"_test = [] { expect(42 == 42_i); };
+}
+```
+
+#### Runner
+
+```cpp
+namespace ut = boost::ut;
+
+namespace cfg {
+class runner {
  public:
   /**
    * @example "name"_test = [] {};
@@ -240,7 +273,7 @@ class cfg {
    * @param test.test function
    */
   template<class... Ts>
-  auto on(ut::events::test_run<Ts...> test) {
+  auto on(ut::events::run<Ts...> test) {
     test.test(); // execute test
   }
 
@@ -252,7 +285,7 @@ class cfg {
    * @param test.test function
    */
   template<class... Ts>
-  auto on(ut::events::test_skip<Ts...> test) { }
+  auto on(ut::events::skip<Ts...> test) { }
 
   /**
    * @example file.cpp:42: expect(42_i == 42);
@@ -278,8 +311,9 @@ class cfg {
    */
   auto on(ut::events::log) { }
 };
+} // namespace cfg
 
-template<> auto ut::cfg<ut::override> = cfg{};
+template<> auto ut::cfg<ut::override> = cfg::runner{};
 
 int main() {
   using namespace ut;
