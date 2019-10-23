@@ -12,10 +12,10 @@
 
 * **No dependencies** (C++20 / tested: GCC-9+, Clang-9.0+, MSVC-2019+*)
 * **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
-* **Macro-free** (Based on modern C++ features)
+* **Macro-free** ([Based on modern C++ features](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
 * **Easy to use** (Minimal interface - `""_test, expect`)
-* **Fast to compile/execute** ([Benchmarks](benchmark]))
-* **Extensible** ([Runners, Reporters](example/cfg))
+* **Fast to compile/execute** ([Benchmarks](benchmark))
+* **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
 ### Testing
 
