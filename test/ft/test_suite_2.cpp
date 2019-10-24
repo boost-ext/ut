@@ -7,8 +7,11 @@
 //
 #include "test.hpp"
 
-static test::suite _{"test suite 2"_test = [] {
+static test::suite _ = [] {
   using namespace test;
-  "should throw"_test = [] { expect(throws<int>([] { throw 42; })); };
-  "compound expression"_test = [] { expect(42_i == 42 and 1 > 0_i); };
-}};
+
+  "test suite 1"_test = [] {
+    "should throw"_test = [] { expect(throws<int>([] { throw 42; })); };
+    "compound expression"_test = [] { expect(42_i == 42 and 1 > 0_i); };
+  };
+};
