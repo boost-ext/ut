@@ -44,26 +44,12 @@ struct fake_cfg {
     std::any arg{};
   };
 
-  template <class Test, class TArg>
-  auto run(Test test, [[maybe_unused]] const TArg& arg) -> void {
-    if constexpr (std::is_invocable_v<Test, TArg>) {
-      test(arg);
-    } else {
-      test.template operator()<TArg>();
-    }
-  }
-
-  template <class Test>
-  auto run(Test test, ut::none) {
-    test();
-  }
-
   template <class... Ts>
-  auto on(ut::events::run<Ts...> test) {
+  auto on(ut::events::test<Ts...> test) {
     if (std::empty(test_filter) or test.name == test_filter) {
       run_calls.push_back({test.type, test.name, test.arg});
       try {
-        run(test.test, test.arg);
+        test();
       } catch (...) {
       }
     }
@@ -281,73 +267,74 @@ int main() {
 
     struct test_runner : runner<test_reporter> {
       using runner::active_exception_;
-      using runner::is_run_;
       using runner::reporter_;
+      using runner::run_;
     };
 
     auto run = test_runner{};
     auto& reporter = run.reporter_;
-    run.is_run_ = true;
+    run.run_ = true;
 
-    run.on(events::run{"test", "run", none{}, [] {}});
+    run.on(events::test{"test", "run", none{}, [] {}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(0 == reporter.tests_.skip);
 
-    run.on(events::skip{"test", "skip", none{}, [] {}});
+    run.on(events::skip{"test", "skip", none{}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
     run.filter = "unknown";
-    run.on(events::run{"test", "filter", none{}, [] {}});
+    run.on(events::test{"test", "filter", none{}, [] {}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
     run.filter = {};
 
     run.filter = "filter";
-    run.on(events::run{"test", "filter", none{}, [] {}});
+    run.on(events::test{"test", "filter", none{}, [] {}});
     test_assert(2 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
     run.filter = {};
 
-    run.on(events::run{"test", "pass", none{}, [&run] {
-                         return run.on(events::assertion{
-                             std::experimental::source_location{}, true});
-                       }});
+    run.on(events::test{"test", "pass", none{}, [&run] {
+                          return run.on(events::assertion{
+                              std::experimental::source_location{}, true});
+                        }});
 
     test_assert(3 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::run{"test", "fail", none{}, [&run] {
-                         return run.on(events::assertion{
-                             std::experimental::source_location{}, false});
-                       }});
+    run.on(events::test{"test", "fail", none{}, [&run] {
+                          return run.on(events::assertion{
+                              std::experimental::source_location{}, false});
+                        }});
     test_assert(3 == reporter.tests_.pass);
     test_assert(1 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::run{"test", "exception", none{}, [] { throw 42; }});
+    run.on(events::test{"test", "exception", none{}, [] { throw 42; }});
     test_assert(3 == reporter.tests_.pass);
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.on(
-        events::run{"test", "section", none{}, [&run] {
-                      run.on(events::run{"test", "sub-section", none{}, [] {}});
-                    }});
+    run.on(events::test{
+        "test", "section", none{}, [&run] {
+          run.on(events::test{"test", "sub-section", none{}, [] {}});
+        }});
     test_assert(4 == reporter.tests_.pass);
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
     run.filter = "section";
-    run.on(events::run{
+    run.on(events::test{
         "test", "section", none{}, [&run] {
-          run.on(events::run{"test", "sub-section-1", none{}, [] {}});
-          run.on(events::run{"test", "sub-section-2", none{}, [] { throw 0; }});
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
+          run.on(
+              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
         }});
     test_assert(4 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);

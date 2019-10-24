@@ -11,7 +11,6 @@ namespace ut = boost::ut;
 
 ut::suite _ = [] {
   using namespace ut;
-
   "test suite"_test = [] {
     "should be equal"_test = [] { expect(42_i == 42); };
     "should not be equal "_test = [] { expect(1_i != 2); };

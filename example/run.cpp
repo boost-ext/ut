@@ -9,20 +9,15 @@
 
 namespace ut = boost::ut;
 
-using ut::operator""_test;
-
-// clang-format off
-ut::suite _ {
+ut::suite _ = [] {
+  using namespace ut;
   "test suite"_test = [] {
-    using namespace ut;
     "should be equal"_test = [] { expect(42_i == 42); };
-  }
+  };
 };
-// clang-format on
 
 int main() {
   using namespace ut;
-
   "example"_test = [] { expect(42 == 42_i); };
 
   return cfg<>.run();

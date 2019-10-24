@@ -9,7 +9,6 @@
 
 static test::suite _ = [] {
   using namespace test;
-
   "test suite 1"_test = [] {
     "should be equal"_test = [] { expect(42_i == 42); };
     "should not be equal"_test = [] { expect(1_i != 2); };
