@@ -251,11 +251,6 @@ class reporter {
 
 template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
-
-int main() {
-  using namespace ut;
-  "example"_test = [] { expect(42 == 42_i); };
-}
 ```
 
 #### Runner
@@ -274,9 +269,7 @@ class runner {
    * @param test() execute test
    */
   template<class... Ts>
-  auto on(ut::events::test<Ts...> test) {
-    test(); // execute test
-  }
+  auto on(ut::events::test<Ts...> test) { }
 
   /**
    * @example skip | "don't run"_test = []{};
@@ -295,7 +288,7 @@ class runner {
    */
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion<TLocation, TExpr> assertion) -> bool {
-    return true; // all assertsions are valid
+    return {};
   }
 
   /**
@@ -314,14 +307,6 @@ class runner {
 } // namespace cfg
 
 template<> auto ut::cfg<ut::override> = cfg::runner{};
-
-int main() {
-  using namespace ut;
-
-  "silent"_test = [] {
-    expect(1_i == 2) << "ignored by the config";
-  };
-}
 ```
 
 ---
