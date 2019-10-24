@@ -16,9 +16,9 @@ namespace ft {
 template <class TReporter>
 struct runner : test::runner<TReporter> {
   template <class... Ts>
-  auto on(test::events::run<Ts...> test) {
+  auto on(test::events::test<Ts...> test) {
     std::cout << test.name << '\n';
-    test.test();
+    test::runner<TReporter>::on(test);
   }
 
   using test::runner<TReporter>::on;
@@ -26,4 +26,4 @@ struct runner : test::runner<TReporter> {
 }  // namespace ft
 
 template <class... Ts>
-static auto test::cfg<test::override, Ts...> = ft::runner<test::reporter>{};
+inline auto test::cfg<test::override, Ts...> = ft::runner<test::reporter>{};

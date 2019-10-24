@@ -13,7 +13,7 @@
 * **No dependencies** (C++20 / tested: GCC-9+, Clang-9.0+, MSVC-2019+*)
 * **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * **Macro-free** ([Based on modern C++ features](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
-* **Easy to use** (Minimal interface - `""_test, suite, expect`)
+* **Easy to use** (Minimal interface - `test, suite, expect`)
 * **Fast to compile/execute** ([Benchmarks](benchmark))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
@@ -270,11 +270,11 @@ class runner {
    * @param test.type ["test", "given", "when", "then"]
    * @param test.name "name"
    * @param test.arg parametrized argument
-   * @param test.test function
+   * @param test() execute test
    */
   template<class... Ts>
-  auto on(ut::events::run<Ts...> test) {
-    test.test(); // execute test
+  auto on(ut::events::test<Ts...> test) {
+    test(); // execute test
   }
 
   /**
@@ -282,7 +282,6 @@ class runner {
    * @param test.type ["test", "given", "when", "then"]
    * @param test.name "don't run"
    * @param test.arg parametrized argument
-   * @param test.test function
    */
   template<class... Ts>
   auto on(ut::events::skip<Ts...> test) { }

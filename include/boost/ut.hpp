@@ -9,11 +9,11 @@
 
 #include <ciso646>  // and, or, not
 
-#if not defined(__cpp_variadic_templates) or                               \
-    not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or \
-    not defined(__cpp_alias_templates) or                                  \
-    not defined(__cpp_generic_lambdas) or not defined(__cpp_constexpr) or  \
-    not defined(__cpp_return_type_deduction) or                            \
+#if not defined(__cpp_variadic_templates) or                                  \
+    not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or    \
+    not defined(__cpp_alias_templates) or not defined(__cpp_static_assert) or \
+    not defined(__cpp_generic_lambdas) or not defined(__cpp_constexpr) or     \
+    not defined(__cpp_return_type_deduction) or                               \
     not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
 #error "[Boost].UT requires C++20 support"
 #else
@@ -157,27 +157,48 @@ struct test_begin {
   std::string_view name{};
 };
 template <class Test, class TArg = none>
-struct run {
+struct test {
   std::string_view type{};
   std::string_view name{};
   TArg arg{};
-  Test test{};
+  Test run{};
+
+  constexpr auto operator()() { return run_impl(run, arg); }
+  constexpr auto operator()() const { return run_impl(run, arg); }
+
+ private:
+  static auto run_impl(Test test, [[maybe_unused]] const TArg& arg) -> void {
+    if constexpr (std::is_same_v<none, TArg>) {
+      test();
+    } else if constexpr (std::is_invocable_v<Test, TArg>) {
+      test(arg);
+    } else {
+      test.template operator()<TArg>();
+    }
+  }
 };
 template <class Test, class TArg>
-run(std::string_view, std::string_view, TArg, Test)->run<Test, TArg>;
+test(std::string_view, std::string_view, TArg, Test)->test<Test, TArg>;
+template <class TSuite>
+struct suite {
+  TSuite run{};
+  constexpr auto operator()() { return run(); }
+  constexpr auto operator()() const { return run(); }
+};
+template <class TSuite>
+suite(TSuite)->suite<TSuite>;
 struct test_run {
   std::string_view type{};
   std::string_view name{};
 };
-template <class Test, class TArg = none>
+template <class TArg = none>
 struct skip {
   std::string_view type{};
   std::string_view name{};
   TArg arg{};
-  Test test{};
 };
-template <class Test, class TArg>
-skip(std::string_view, std::string_view, TArg, Test)->skip<Test, TArg>;
+template <class TArg>
+skip(std::string_view, std::string_view, TArg)->skip<TArg>;
 struct test_skip {
   std::string_view type{};
   std::string_view name{};
@@ -324,47 +345,37 @@ class runner {
   constexpr explicit runner(TReporter reporter)
       : reporter_{std::move(reporter)} {}
 
+  template <class TSuite>
+  auto on(events::suite<TSuite> suite) {
+    suites_.push_back(suite.run);
+  }
+
   template <class... Ts>
-  auto on(events::run<Ts...> test) {
-    const auto run = [test, this] {
-      if (std::empty(filter) or (level_ or filter == test.name)) {
-        if (not level_++) {
-          reporter_.on(events::test_begin{test.type, test.name});
-        } else {
-          reporter_.on(events::test_run{test.type, test.name});
-        }
-
-        active_exception_ = false;
-        try {
-          test_run(test.test, test.arg);
-        } catch (...) {
-          reporter_.on(events::exception{});
-          active_exception_ = true;
-        }
-
-        if (not--level_) {
-          reporter_.on(events::test_end{test.type, test.name});
-        }
+  auto on(events::test<Ts...> test) {
+    if (std::empty(filter) or (level_ or filter == test.name)) {
+      if (not level_++) {
+        reporter_.on(events::test_begin{test.type, test.name});
+      } else {
+        reporter_.on(events::test_run{test.type, test.name});
       }
-    };
 
-    if (is_run_) {
-      run();
-    } else {
-      tests_.push_back(run);
+      active_exception_ = false;
+      try {
+        test();
+      } catch (...) {
+        reporter_.on(events::exception{});
+        active_exception_ = true;
+      }
+
+      if (not--level_) {
+        reporter_.on(events::test_end{test.type, test.name});
+      }
     }
   }
 
   template <class... Ts>
   auto on(events::skip<Ts...> test) {
-    const auto run = [test, this] {
-      reporter_.on(events::test_skip{test.type, test.name});
-    };
-    if (is_run_) {
-      run();
-    } else {
-      tests_.push_back(run);
-    }
+    reporter_.on(events::test_skip{test.type, test.name});
   }
 
   template <class TLocation, class TExpr>
@@ -389,17 +400,17 @@ class runner {
   auto on(events::log l) { reporter_.on(l); }
 
   [[nodiscard]] auto run() -> int {
-    is_run_ = true;
-    for (auto& test : tests_) {
-      test();
+    run_ = true;
+    for (auto& suite : suites_) {
+      suite();
     }
-    tests_.clear();
+    suites_.clear();
 
     return fails_;
   }
 
   ~runner() {
-    const auto should_run = not is_run_;
+    const auto should_run = not run_;
 
     if (should_run) {
       static_cast<void>(run());
@@ -413,63 +424,12 @@ class runner {
   }
 
  protected:
-  template <class Test, class TArg>
-  auto test_run(Test test, [[maybe_unused]] const TArg& arg) -> void {
-    if constexpr (std::is_invocable_v<Test, TArg>) {
-      test(arg);
-    } else {
-      test.template operator()<TArg>();
-    }
-  }
-
-  template <class Test>
-  auto test_run(Test test, none) -> void {
-    test();
-  }
-
   [[noreturn]] auto test_abort() -> void { std::abort(); }
 
-  class test_exe final {
-   public:
-    template <class T>
-    constexpr explicit(false) test_exe(T data)
-        : invoke_{invoke_impl<T>},
-          destroy_{destroy_impl<T>},
-          data_{new T{std::move(data)}} {}
-    constexpr test_exe(test_exe&& other)
-        : invoke_{std::move(other.invoke_)},
-          destroy_{std::move(other.destroy_)},
-          data_{std::move(other.data_)} {
-      other.data_ = {};
-    }
-    constexpr test_exe(const test_exe&) = delete;
-    ~test_exe() { destroy_(data_); }
-
-    constexpr test_exe& operator=(const test_exe&) = delete;
-    constexpr test_exe& operator=(test_exe&&) = delete;
-
-    constexpr auto operator()() -> void { invoke_(data_); }
-
-   private:
-    template <class T>
-    static auto invoke_impl(void* data) -> void {
-      (*static_cast<T*>(data))();
-    }
-
-    template <class T>
-    static auto destroy_impl(void* data) -> void {
-      delete static_cast<T*>(data);
-    }
-
-    void (*invoke_)(void*){};
-    void (*destroy_)(void*){};
-    void* data_{};
-  };
-
   TReporter reporter_{};
-  std::vector<test_exe> tests_{};
+  std::vector<void (*)()> suites_{};
   std::size_t level_{};
-  bool is_run_{};
+  bool run_{};
   bool active_exception_{};
   int fails_{};
 };
@@ -498,7 +458,7 @@ struct test {
     if constexpr (std::is_invocable_v<Test, std::string_view>) {
       return test(name);
     } else {
-      on<Test>(events::run{type, name, none{}, test});
+      on<Test>(events::test{type, name, none{}, test});
       return test;
     }
   }
@@ -511,7 +471,7 @@ class test_skip {
 
   template <class Test>
   constexpr auto operator=(Test test) {
-    on<Test>(events::skip{t_.type, t_.name, none{}, test});
+    on<Test>(events::skip{t_.type, t_.name, none{}});
     return test;
   }
 
@@ -1082,7 +1042,7 @@ template <class F, class T,
 constexpr auto operator|(const F& f, const T& t) {
   return [f, t](auto name) {
     for (const auto& arg : t) {
-      detail::on<F>(events::run{"test", name, arg, f});
+      detail::on<F>(events::test{"test", name, arg, f});
     }
   };
 }
@@ -1094,7 +1054,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
         [f, name](const auto&... args) {
           (
               [name](const auto& f, const auto& arg) {
-                detail::on<F>(events::run{"test", name, arg, f});
+                detail::on<F>(events::test{"test", name, arg, f});
               }(f, args),
               ...);
         },
@@ -1159,7 +1119,8 @@ struct _t : detail::value<T> {
 struct suite {
   template <class TSuite>
   constexpr explicit(false) suite(TSuite suite) {
-    suite();
+    static_assert(std::is_empty_v<TSuite>);
+    detail::on<TSuite>(events::suite{suite});
   }
 };
 

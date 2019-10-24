@@ -13,8 +13,8 @@ namespace cfg {
 class runner {
  public:
   template <class... Ts>
-  auto on(ut::events::run<Ts...> test) {
-    test.test();
+  auto on(ut::events::test<Ts...> test) {
+    test();
   }
   template <class... Ts>
   auto on(ut::events::skip<Ts...>) {}
