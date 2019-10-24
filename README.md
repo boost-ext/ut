@@ -234,17 +234,71 @@ namespace ut = boost::ut;
 namespace cfg {
 class reporter {
  public:
+  /**
+   * @example "name"_test = [] {};
+   * @param test_begin.type ["test", "given", "when", "then"]
+   * @param test_begin.name "name"
+   */
   auto on(ut::events::test_begin) -> void {}
+
+  /**
+   * @example "name"_test = [] {};
+   * @param test_run.type ["test", "given", "when", "then"]
+   * @param test_run.name "name"
+   */
   auto on(ut::events::test_run) -> void {}
+
+  /**
+   * @example "name"_test = [] {};
+   * @param test_skip.type ["test", "given", "when", "then"]
+   * @param test_skip.name "name"
+   */
   auto on(ut::events::test_skip) -> void {}
+
+  /**
+   * @example "name"_test = [] {};
+   * @param test_end.type ["test", "given", "when", "then"]
+   * @param test_end.name "name"
+   */
   auto on(ut::events::test_end) -> void {}
+
+  /**
+   * @example log << "message"
+   * @param log.msg "message"
+   */
   auto on(ut::events::log) -> void {}
+
+  /**
+   * @example file.cpp:42: expect(42_i == 42);
+   * @param assertion_pass.location { "file.cpp", 42 }
+   * @param assertion_pass.expr 42_i == 42
+   */
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
+
+  /**
+   * @example file.cpp:42: expect(42_i != 42);
+   * @param assertion_fail.location { "file.cpp", 42 }
+   * @param assertion_fail.expr 42_i != 42
+   */
   template <class TLocation, class TExpr>
   auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+
+  /**
+   * @example !expect(2_i == 1)
+   * @note triggered by `!expect`
+   *       should std::exit
+   */
   auto on(ut::events::fatal_assertion) -> void {}
+
+  /**
+   * @example "exception"_test = [] { throw std::runtime_error{""}; };
+   */
   auto on(ut::events::exception) -> void {}
+
+  /**
+   * @note triggered on destruction of runner
+   */
   auto on(ut::events::summary) -> void{};
 };
 }  // namespace cfg
@@ -269,25 +323,25 @@ class runner {
    * @param test() execute test
    */
   template<class... Ts>
-  auto on(ut::events::test<Ts...> test) { }
+  auto on(ut::events::test<Ts...>) { }
 
   /**
    * @example skip | "don't run"_test = []{};
-   * @param test.type ["test", "given", "when", "then"]
-   * @param test.name "don't run"
-   * @param test.arg parametrized argument
+   * @param skip.type ["test", "given", "when", "then"]
+   * @param skip.name "don't run"
+   * @param skip.arg parametrized argument
    */
   template<class... Ts>
-  auto on(ut::events::skip<Ts...> test) { }
+  auto on(ut::events::skip<Ts...>) { }
 
   /**
    * @example file.cpp:42: expect(42_i == 42);
-   * @param assertion.location { file.cpp, 42 }
+   * @param assertion.location { "file.cpp", 42 }
    * @param assertion.expr 42_i == 42
-   * @return expression evaluation
+   * @return true if expr passes, false otherwise
    */
   template <class TLocation, class TExpr>
-  auto on(ut::events::assertion<TLocation, TExpr> assertion) -> bool {
+  auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
     return {};
   }
 
