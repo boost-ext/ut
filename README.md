@@ -202,16 +202,18 @@ namespace ut = boost::ut;
 
 using ut::operator""_test;
 
-auto _ = "test suite"_test = [] {
-  using namespace ut;
+ut::suite _ {
+  "test suite"_test = [] {
+    using namespace ut;
 
-  "should equal"_test = [] {
-    expect(42_i == 42);
-  };
+    "should equal"_test = [] {
+      expect(42_i == 42);
+    };
 
-  "should throw"_test = [] {
-    expect(throws([]{throw 0;}));
-  };
+    "should throw"_test = [] {
+      expect(throws([]{throw 0;}));
+    }
+  }
 };
 
 int main() { }
