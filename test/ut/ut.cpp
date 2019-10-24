@@ -259,12 +259,47 @@ int main() {
     static_assert(type<int> != type<void>);
   }
 
-  {
-    struct test_reporter : reporter {
-      using reporter::asserts_;
-      using reporter::tests_;
-    };
+  struct test_reporter : reporter {
+    using reporter::asserts_;
+    using reporter::tests_;
+  };
 
+  {
+    struct fake_source_location {
+      constexpr auto file_name() const noexcept { return "file/name"; }
+      constexpr auto line() const noexcept { return 42; }
+    };
+    std::stringstream out{};
+    std::stringstream err{};
+    auto old_cout = std::cout.rdbuf(out.rdbuf());
+    auto old_cerr = std::cerr.rdbuf(err.rdbuf());
+
+    auto reporter = test_reporter{};
+
+    reporter.on(events::test_begin{});
+    reporter.on(events::test_run{});
+    reporter.on(events::assertion_pass{fake_source_location{}, true});
+    reporter.on(events::assertion_fail{fake_source_location{}, false});
+    reporter.on(events::fatal_assertion{});
+    reporter.on(events::test_end{});
+
+    reporter.on(events::summary{});
+    test_assert(std::empty(out.str()));
+    test_assert(not std::empty(err.str()));
+    test_assert(1 == reporter.asserts_.pass);
+    test_assert(2 == reporter.asserts_.fail);
+    test_assert(0 == reporter.tests_.skip);
+    test_assert(1 == reporter.tests_.fail);
+    test_assert(0 == reporter.tests_.pass);
+
+    reporter.on(events::test_skip{});
+    test_assert(1 == reporter.tests_.skip);
+
+    std::cout.rdbuf(old_cout);
+    std::cerr.rdbuf(old_cerr);
+  }
+
+  {
     struct test_runner : runner<test_reporter> {
       using runner::active_exception_;
       using runner::reporter_;
@@ -401,9 +436,10 @@ int main() {
     expect(1 != 2_i);
     expect(-42 != -42_i);
     expect(-1.1_d == -1.1);
+    expect((not _b(true)) == false_b);
     expect(2_i > 2_i) << "msg";
 
-    test_assert(6 == std::size(test_cfg.assertion_calls));
+    test_assert(7 == std::size(test_cfg.assertion_calls));
 
     test_assert("1 == 2" == test_cfg.assertion_calls[0].str);
     test_assert(not test_cfg.assertion_calls[0].result);
@@ -420,8 +456,11 @@ int main() {
     test_assert("-1.1 == -1.1" == test_cfg.assertion_calls[4].str);
     test_assert(test_cfg.assertion_calls[4].result);
 
-    test_assert("2 > 2" == test_cfg.assertion_calls[5].str);
-    test_assert(not test_cfg.assertion_calls[5].result);
+    test_assert("not true == false" == test_cfg.assertion_calls[5].str);
+    test_assert(test_cfg.assertion_calls[5].result);
+
+    test_assert("2 > 2" == test_cfg.assertion_calls[6].str);
+    test_assert(not test_cfg.assertion_calls[6].result);
     test_assert(1 == std::size(test_cfg.log_calls));
     test_assert("msg"sv == test_cfg.log_calls[0]);
   }
