@@ -342,8 +342,8 @@ class runner {
                                 : std::string_view{};
 
   constexpr runner() = default;
-  constexpr explicit runner(TReporter reporter)
-      : reporter_{std::move(reporter)} {}
+  constexpr runner(TReporter reporter, std::size_t suites_size)
+      : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
   template <class TSuite>
   auto on(events::suite<TSuite> suite) {
