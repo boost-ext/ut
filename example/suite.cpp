@@ -9,16 +9,13 @@
 
 namespace ut = boost::ut;
 
-using ut::operator""_test;
+ut::suite _ = [] {
+  using namespace ut;
 
-// clang-format off
-ut::suite _ {
   "test suite"_test = [] {
-    using namespace ut;
     "should be equal"_test = [] { expect(42_i == 42); };
     "should not be equal "_test = [] { expect(1_i != 2); };
-  }
+  };
 };
-// clang-format on
 
 int main() {}

@@ -7,8 +7,11 @@
 //
 #include "test.hpp"
 
-static test::suite _{"test suite 1"_test = [] {
+static test::suite _ = [] {
   using namespace test;
-  "should be equal"_test = [] { expect(42_i == 42); };
-  "should not be equal"_test = [] { expect(1_i != 2); };
-}};
+
+  "test suite 1"_test = [] {
+    "should be equal"_test = [] { expect(42_i == 42); };
+    "should not be equal"_test = [] { expect(1_i != 2); };
+  };
+};

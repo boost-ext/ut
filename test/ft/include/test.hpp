@@ -27,5 +27,3 @@ struct runner : test::runner<TReporter> {
 
 template <class... Ts>
 static auto test::cfg<test::override, Ts...> = ft::runner<test::reporter>{};
-
-using test::operator""_test;

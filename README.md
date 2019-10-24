@@ -13,7 +13,7 @@
 * **No dependencies** (C++20 / tested: GCC-9+, Clang-9.0+, MSVC-2019+*)
 * **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * **Macro-free** ([Based on modern C++ features](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
-* **Easy to use** (Minimal interface - `""_test, expect`)
+* **Easy to use** (Minimal interface - `""_test, suite, expect`)
 * **Fast to compile/execute** ([Benchmarks](benchmark))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
@@ -200,12 +200,10 @@ asserts: 13 | 12 passed | 1 failed
 ```cpp
 namespace ut = boost::ut;
 
-using ut::operator""_test;
+ut::suite _ = [] {
+  using namespace ut;
 
-ut::suite _ {
   "test suite"_test = [] {
-    using namespace ut;
-
     "should equal"_test = [] {
       expect(42_i == 42);
     };
@@ -213,7 +211,7 @@ ut::suite _ {
     "should throw"_test = [] {
       expect(throws([]{throw 0;}));
     }
-  }
+  };
 };
 
 int main() { }

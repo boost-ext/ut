@@ -1158,7 +1158,9 @@ struct _t : detail::value<T> {
 
 struct suite {
   template <class TSuite>
-  constexpr explicit(false) suite(TSuite) {}
+  constexpr explicit(false) suite(TSuite suite) {
+    suite();
+  }
 };
 
 [[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
