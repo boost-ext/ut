@@ -11,7 +11,7 @@
 
 > C++20 **single header, macro-free** μ(micro)/unit test framework
 
-* **No dependencies** (C++20 / tested: GCC-9+, Clang-9.0+, MSVC-2019+*)
+* **No dependencies** (C++20 / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * **Macro-free** ([Based on modern C++ features](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
 * **Easy to use** (Minimal interface - `test, suite, expect`)
@@ -30,7 +30,7 @@
 #include <boost/ut.hpp>
 ```
 
-#### Hello World
+#### Hello World - https://godbolt.org/z/ZLCQ2n
 
 ```cpp
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
@@ -48,15 +48,11 @@ int main() {
 }
 ```
 
-```sh
-BOOST_UT_FILTER="hello world" ./hello_world
-```
-
 ```
 All tests passed (3 asserts in 1 tests)
 ```
 
-#### Assertions
+#### Assertions - https://godbolt.org/z/-C-yh2
 
 ```cpp
 "operators"_test = [] {
@@ -72,7 +68,7 @@ All tests passed (3 asserts in 1 tests)
 
 "expressions"_test = [] {
   expect(0_i == sum() and 42_i == sum(40, 2));
-  expect(0_i == sum() or 1_i == sum()) << "complex";
+  expect(0_i == sum() or 1_i == sum()) << "compund";
 };
 
 "floating points"_test = [] {
@@ -95,28 +91,24 @@ All tests passed (3 asserts in 1 tests)
 };
 ```
 
-```sh
-./assertions
 ```
-
-```
-Running "static"...OK
 Running "operators"...OK
-Running "expressions"...OK
 Running "message"...OK
+Running "expressions"...OK
 Running "floating points"...OK
 Running "fatal"...OK
 Running "failure"...
-  assertions.cpp:46:FAILED [1 == 2] should fail
-  assertions.cpp:47:FAILED [0 == 1 or 2 == 0] sum?
+  assertions.cpp:42:FAILED [1 == 2] should fail
+  assertions.cpp:43:FAILED [(0 == 1 or 2 == 0)] sum?
 FAILED
 
 ===============================================================================
-tests:   7  | 1 failed
-asserts: 13 | 12 passed | 1 failed
+
+tests:   6 | 1 failed
+asserts: 16 | 14 passed | 2 failed
 ```
 
-#### Sections
+#### Sections - https://godbolt.org/z/Q4iXBE
 
 ```cpp
 "[vector]"_test = [] {
@@ -138,7 +130,11 @@ asserts: 13 | 12 passed | 1 failed
 };
 ```
 
-#### Exceptions
+```
+All tests passed (4 asserts in 1 tests)
+```
+
+#### Exceptions - https://godbolt.org/z/3BdTtA
 
 ```cpp
 "exceptions"_test = [] {
@@ -149,7 +145,11 @@ asserts: 13 | 12 passed | 1 failed
 };
 ```
 
-#### Parameterized
+```
+All tests passed (3 asserts in 1 tests)
+```
+
+#### Parameterized - https://godbolt.org/z/N_4CIF
 
 ```cpp
 "args"_test =
@@ -173,30 +173,49 @@ asserts: 13 | 12 passed | 1 failed
   | std::tuple{true, 42};
 ```
 
-#### Logging
+```
+All tests passed (11 asserts in 7 tests)
+```
+
+#### Logging - https://godbolt.org/z/WLVmwd
 
 ```cpp
 "logging"_test = [] {
   log << "pre";
-  expect(42_i == 42) << "message on failure";
+  expect(42_i == 43) << "message on failure";
   log << "post";
 };
 ```
 
-#### Behavior Driven Development
+```
+Running "logging"... pre
+  logging.cpp:8:FAILED [42 == 43] message on failure post
+FAILED
+
+===============================================================================
+
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+#### Behavior Driven Development - https://godbolt.org/z/A1Lkec
 
 ```cpp
 "scenario"_test = [] {
   given("I have...") = [] {
     when("I run...") = [] {
-      then("I expect...") = [] { expect(1_u == 1u); };
-      then("I expect...") = [] { expect(1u == 1_u); };
+      then("I expect...") = [] { expect(1_i == 1); };
+      then("I expect...") = [] { expect(1 == 1_i); };
     };
   };
 };
 ```
 
-#### Test Suites
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+#### Test Suites - https://godbolt.org/z/1pPYlN
 
 ```cpp
 namespace ut = boost::ut;
@@ -211,14 +230,18 @@ ut::suite _ = [] {
 
     "should throw"_test = [] {
       expect(throws([]{throw 0;}));
-    }
+    };
   };
 };
 
 int main() { }
 ```
 
-#### Skipping tests
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+#### Skipping tests - https://godbolt.org/z/FeWVjB
 
 ```cpp
 skip | "don't run"_test = [] {
@@ -226,7 +249,68 @@ skip | "don't run"_test = [] {
 };
 ```
 
-#### Reporter
+```
+All tests passed (0 asserts in 0 tests)
+1 tests skipped
+```
+
+#### Runner - https://godbolt.org/z/0uaFlH
+
+```cpp
+namespace ut = boost::ut;
+
+namespace cfg {
+class runner {
+ public:
+  /**
+   * @example "name"_test = [] {};
+   * @param test.type ["test", "given", "when", "then"]
+   * @param test.name "name"
+   * @param test.arg parametrized argument
+   * @param test() execute test
+   */
+  template<class... Ts>
+  auto on(ut::events::test<Ts...>) { }
+
+  /**
+   * @example skip | "don't run"_test = []{};
+   * @param skip.type ["test", "given", "when", "then"]
+   * @param skip.name "don't run"
+   * @param skip.arg parametrized argument
+   */
+  template<class... Ts>
+  auto on(ut::events::skip<Ts...>) { }
+
+  /**
+   * @example file.cpp:42: expect(42_i == 42);
+   * @param assertion.location { "file.cpp", 42 }
+   * @param assertion.expr 42_i == 42
+   * @return true if expr passes, false otherwise
+   */
+  template <class TLocation, class TExpr>
+  auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
+    return {};
+  }
+
+  /**
+   * @example !expect(2_i == 1)
+   * @note triggered by `!expect`
+   *       should std::exit
+   */
+  auto on(ut::events::fatal_assertion) { }
+
+  /**
+   * @example log << "message"
+   * @param log.msg "message"
+   */
+  auto on(ut::events::log) { }
+};
+} // namespace cfg
+
+template<> auto ut::cfg<ut::override> = cfg::runner{};
+```
+
+#### Reporter - https://godbolt.org/z/COV5xu
 
 ```cpp
 namespace ut = boost::ut;
@@ -305,62 +389,6 @@ class reporter {
 
 template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
-```
-
-#### Runner
-
-```cpp
-namespace ut = boost::ut;
-
-namespace cfg {
-class runner {
- public:
-  /**
-   * @example "name"_test = [] {};
-   * @param test.type ["test", "given", "when", "then"]
-   * @param test.name "name"
-   * @param test.arg parametrized argument
-   * @param test() execute test
-   */
-  template<class... Ts>
-  auto on(ut::events::test<Ts...>) { }
-
-  /**
-   * @example skip | "don't run"_test = []{};
-   * @param skip.type ["test", "given", "when", "then"]
-   * @param skip.name "don't run"
-   * @param skip.arg parametrized argument
-   */
-  template<class... Ts>
-  auto on(ut::events::skip<Ts...>) { }
-
-  /**
-   * @example file.cpp:42: expect(42_i == 42);
-   * @param assertion.location { "file.cpp", 42 }
-   * @param assertion.expr 42_i == 42
-   * @return true if expr passes, false otherwise
-   */
-  template <class TLocation, class TExpr>
-  auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
-    return {};
-  }
-
-  /**
-   * @example !expect(2_i == 1)
-   * @note triggered by `!expect`
-   *       should std::exit
-   */
-  auto on(ut::events::fatal_assertion) { }
-
-  /**
-   * @example log << "message"
-   * @param log.msg "message"
-   */
-  auto on(ut::events::log) { }
-};
-} // namespace cfg
-
-template<> auto ut::cfg<ut::override> = cfg::runner{};
 ```
 
 ---
