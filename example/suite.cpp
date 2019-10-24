@@ -7,12 +7,18 @@
 //
 #include <boost/ut.hpp>
 
-using boost::ut::operator""_test;
+namespace ut = boost::ut;
 
-auto _ = "test suite"_test = [] {
-  using namespace boost::ut;
-  "should be equal"_test = [] { expect(42_i == 42); };
-  "should not be equal "_test = [] { expect(1_i != 2); };
+using ut::operator""_test;
+
+// clang-format off
+ut::suite _ {
+  "test suite"_test = [] {
+    using namespace ut;
+    "should be equal"_test = [] { expect(42_i == 42); };
+    "should not be equal "_test = [] { expect(1_i != 2); };
+  }
 };
+// clang-format on
 
 int main() {}

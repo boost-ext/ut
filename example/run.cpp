@@ -11,10 +11,14 @@ namespace ut = boost::ut;
 
 using ut::operator""_test;
 
-auto _ = "test suite"_test = [] {
-  using namespace ut;
-  "should be equal"_test = [] { expect(42_i == 42); };
+// clang-format off
+ut::suite _ {
+  "test suite"_test = [] {
+    using namespace ut;
+    "should be equal"_test = [] { expect(42_i == 42); };
+  }
 };
+// clang-format on
 
 int main() {
   using namespace ut;
