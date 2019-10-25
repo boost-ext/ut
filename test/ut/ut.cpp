@@ -328,6 +328,7 @@ int main() {
       using runner::active_exception_;
       using runner::reporter_;
       using runner::run_;
+      using runner::operator=;
     };
 
     auto run = test_runner{};
@@ -344,19 +345,19 @@ int main() {
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.filter("unknown");
+    run = {"unknown"};
     run.on(events::test{"test", "filter", none{}, [] {}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter({});
+    run = options{};
 
-    run.filter("filter");
+    run = {"filter"};
     run.on(events::test{"test", "filter", none{}, [] {}});
     test_assert(2 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter({});
+    run = options{};
 
     run.on(events::test{"test", "pass", none{}, [&run] {
                           return run.on(events::assertion{
@@ -388,7 +389,7 @@ int main() {
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.filter("section");
+    run = {"section"};
     run.on(events::test{
         "test", "section", none{}, [&run] {
           run.on(events::test{"test", "sub-section-1", none{}, [] {}});
@@ -398,9 +399,9 @@ int main() {
     test_assert(4 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter({});
+    run = options{};
 
-    run.filter("section.sub-section-1");
+    run = {"section.sub-section-1"};
     run.on(events::test{
         "test", "section", none{}, [&run] {
           run.on(events::test{"test", "sub-section-1", none{}, [] {}});
@@ -410,9 +411,9 @@ int main() {
     test_assert(5 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter({});
+    run = options{};
 
-    run.filter("section.sub-section-2");
+    run = {"section.sub-section-2"};
     run.on(events::test{
         "test", "section", none{}, [&run] {
           run.on(events::test{"test", "sub-section-1", none{}, [] {}});
@@ -422,9 +423,9 @@ int main() {
     test_assert(5 == reporter.tests_.pass);
     test_assert(4 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter({});
+    run = options{};
 
-    run.filter("section.sub-section-*");
+    run = {"section.sub-section-*"};
     run.on(events::test{
         "test", "section", none{}, [&run] {
           run.on(events::test{"test", "sub-section-1", none{}, [] {}});
@@ -434,7 +435,7 @@ int main() {
     test_assert(5 == reporter.tests_.pass);
     test_assert(5 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter({});
+    run = options{};
 
     reporter = {};
   }
