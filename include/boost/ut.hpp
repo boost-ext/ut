@@ -381,6 +381,10 @@ class reporter {
   std::stringstream out_{};
 };
 
+struct options {
+  std::string_view filter{};
+};
+
 template <class TReporter = reporter, auto MaxPathSize = 16>
 class runner {
  public:
@@ -388,8 +392,8 @@ class runner {
   constexpr runner(TReporter reporter, std::size_t suites_size)
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
-  auto filter(std::string_view filter) -> void {
-    filter_path_ = utility::split(filter, ".");
+  constexpr auto operator=(options options) {
+    filter_path_ = utility::split(options.filter, ".");
   }
 
   template <class TSuite>

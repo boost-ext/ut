@@ -17,8 +17,5 @@ ut::suite _ = [] {
 };
 
 int main() {
-  using namespace ut;
-  "example"_test = [] { expect(42 == 42_i); };
-
-  return cfg<>.run();
+  return ut::cfg<>.run();  // explicitly run registered test suites
 }

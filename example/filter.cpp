@@ -10,21 +10,11 @@
 int main() {
   using namespace boost::ut;
 
-  /**
-   * cfg<override>.filter({});
-   * cfg<override>.filter("*");
-   * cfg<override>.filter("run");
-   * cfg<override>.filter("run.*");
-   * cfg<override>.filter("run.sub*");
-   * cfg<override>.filter("run.sub?");
-   * cfg<override>.filter("run.sub1");
-   * cfg<override>.filter("run.sub2");
-   */
-  cfg<override>.filter("run.sub2");
+  cfg<override> = {/*.filter =*/"run.sub1"};
 
   "run"_test = [] {
-    "sub1"_test = [] { expect(43 == 42_i); };
-    "sub2"_test = [] { expect(42 == 42_i); };
+    "sub1"_test = [] { expect(42 == 42_i); };
+    "sub2"_test = [] { expect(43 == 42_i); };
   };
 
   "don't run"_test = [] { expect(0 == 1_i) << "don't run"; };
