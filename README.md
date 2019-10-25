@@ -188,8 +188,10 @@ All tests passed (11 asserts in 7 tests)
 ```
 
 ```
-Running "logging"... pre
-  logging.cpp:8:FAILED [42 == 43] message on failure post
+Running "logging"...
+pre
+  logging.cpp:8:FAILED [42 == 43] message on failure
+post
 FAILED
 
 ===============================================================================

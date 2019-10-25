@@ -11,7 +11,6 @@ int main() {
   using namespace boost::ut;
 
   /**
-   * @example
    * cfg<override>.filter({});
    * cfg<override>.filter("*");
    * cfg<override>.filter("run");

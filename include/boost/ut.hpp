@@ -310,7 +310,7 @@ class reporter {
     }
   }
 
-  auto on(events::log l) -> void { out_ << ' ' << l.msg; }
+  auto on(events::log l) -> void { out_ << l.msg; }
 
   auto on(events::exception) -> void {
     exception_ = true;
@@ -543,6 +543,7 @@ class test_skip {
 struct log {
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {
+    on<TMsg>(events::log{"\n"});
     on<TMsg>(events::log{msg});
     return *this;
   }
@@ -556,6 +557,7 @@ class expect_ {
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {
     if (not result_) {
+      detail::on<T>(events::log{" "});
       detail::on<T>(events::log{msg});
     }
     return *this;
