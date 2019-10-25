@@ -483,9 +483,11 @@ int main() {
 
     test_assert(1 == std::size(test_cfg.run_calls));
     test_assert("logging"sv == test_cfg.run_calls[0].name);
-    test_assert(2 == std::size(test_cfg.log_calls));
-    test_assert("msg1"sv == test_cfg.log_calls[0]);
-    test_assert("msg2"sv == test_cfg.log_calls[1]);
+    test_assert(4 == std::size(test_cfg.log_calls));
+    test_assert("\n"sv == test_cfg.log_calls[0]);
+    test_assert("msg1"sv == test_cfg.log_calls[1]);
+    test_assert("\n"sv == test_cfg.log_calls[2]);
+    test_assert("msg2"sv == test_cfg.log_calls[3]);
   }
 
   {
@@ -521,8 +523,9 @@ int main() {
 
     test_assert("2 > 2" == test_cfg.assertion_calls[6].str);
     test_assert(not test_cfg.assertion_calls[6].result);
-    test_assert(1 == std::size(test_cfg.log_calls));
-    test_assert("msg"sv == test_cfg.log_calls[0]);
+    test_assert(2 == std::size(test_cfg.log_calls));
+    test_assert(" "sv == test_cfg.log_calls[0]);
+    test_assert("msg"sv == test_cfg.log_calls[1]);
   }
 
   {
@@ -667,8 +670,9 @@ int main() {
     test_assert(not test_cfg.assertion_calls[1].result);
     test_assert("2 != 2" == test_cfg.assertion_calls[1].str);
     test_assert(1 == test_cfg.fatal_assertion_calls);
-    test_assert(1 == std::size(test_cfg.log_calls));
-    test_assert("fatal"sv == test_cfg.log_calls[0]);
+    test_assert(2 == std::size(test_cfg.log_calls));
+    test_assert(" "sv == test_cfg.log_calls[0]);
+    test_assert("fatal"sv == test_cfg.log_calls[1]);
   }
 
   {
