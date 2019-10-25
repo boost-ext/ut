@@ -30,7 +30,8 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
-#include <cstdlib>
+#include <algorithm>
+#include <array>
 #include <iostream>
 #include <sstream>
 #include <string_view>
@@ -133,6 +134,52 @@ struct identity {
   using type = T;
 };
 }  // namespace type_traits
+
+namespace utility {
+inline auto is_match(std::string_view input, std::string_view pattern) -> bool {
+  if (std::empty(pattern)) {
+    return std::empty(input);
+  }
+
+  if (std::empty(input)) {
+    return std::empty(pattern) or pattern[0] == '*'
+               ? is_match(input, pattern.substr(1))
+               : false;
+  }
+
+  if (pattern[0] != '?' and pattern[0] != '*' and pattern[0] != input[0]) {
+    return false;
+  }
+
+  if (pattern[0] == '*') {
+    for (auto i = 0u; i <= std::size(input); ++i) {
+      if (is_match(input.substr(i), pattern.substr(1))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  return is_match(input.substr(1), pattern.substr(1));
+}
+
+inline auto split(std::string_view input, std::string_view delim)
+    -> std::vector<std::string_view> {
+  std::vector<std::string_view> output;
+  std::size_t first{};
+  while (first < std::size(input)) {
+    const auto second = input.find_first_of(delim, first);
+    if (first != second) {
+      output.emplace_back(input.substr(first, second - first));
+    }
+    if (second == std::string_view::npos) {
+      break;
+    }
+    first = second + 1;
+  }
+  return output;
+}
+}  // namespace utility
 
 namespace operators {
 template <class TOs, class T,
@@ -334,16 +381,16 @@ class reporter {
   std::stringstream out_{};
 };
 
-template <class TReporter = reporter>
+template <class TReporter = reporter, auto MaxPathSize = 16>
 class runner {
  public:
-  std::string_view filter = std::getenv("BOOST_UT_FILTER")
-                                ? std::getenv("BOOST_UT_FILTER")
-                                : std::string_view{};
-
   constexpr runner() = default;
   constexpr runner(TReporter reporter, std::size_t suites_size)
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
+
+  auto filter(std::string_view filter) -> void {
+    filter_path_ = utility::split(filter, ".");
+  }
 
   template <class TSuite>
   auto on(events::suite<TSuite> suite) {
@@ -352,7 +399,19 @@ class runner {
 
   template <class... Ts>
   auto on(events::test<Ts...> test) {
-    if (std::empty(filter) or (level_ or filter == test.name)) {
+    path_[level_] = test.name;
+
+    const auto should_run = [this] {
+      for (auto i = 0u; i < std::min(level_ + 1, std::size(filter_path_));
+           ++i) {
+        if (not utility::is_match(path_[i], filter_path_[i])) {
+          return false;
+        }
+      }
+      return true;
+    }();
+
+    if (should_run) {
       if (not level_++) {
         reporter_.on(events::test_begin{test.type, test.name});
       } else {
@@ -432,6 +491,8 @@ class runner {
   bool run_{};
   bool active_exception_{};
   int fails_{};
+  std::array<std::string_view, MaxPathSize> path_{};
+  std::vector<std::string_view> filter_path_{};
 };
 
 struct override {};

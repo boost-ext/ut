@@ -140,6 +140,30 @@ int main() {
   }
 
   {
+    test_assert(utility::is_match("", ""));
+    test_assert(utility::is_match("", "*"));
+    test_assert(utility::is_match("abc", "abc"));
+    test_assert(utility::is_match("abc", "a?c"));
+    test_assert(utility::is_match("abc", "a*"));
+    test_assert(utility::is_match("abc", "a*c"));
+
+    test_assert(not utility::is_match("", "abc"));
+    test_assert(not utility::is_match("abc", "b??"));
+    test_assert(not utility::is_match("abc", "a*d"));
+    test_assert(not utility::is_match("abc", "*C"));
+  }
+
+  {
+    test_assert(std::vector<std::string_view>{} == utility::split("", "."));
+    test_assert(std::vector<std::string_view>{"a"} ==
+                utility::split("a.", "."));
+    test_assert(std::vector<std::string_view>{"a", "b"} ==
+                utility::split("a.b", "."));
+    test_assert(std::vector<std::string_view>{"a", "b", "cde"} ==
+                utility::split("a.b.cde", "."));
+  }
+
+  {
     static_assert(true_b);
     static_assert(not false_b);
     static_assert(42 == 42_i);
@@ -320,19 +344,19 @@ int main() {
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.filter = "unknown";
+    run.filter("unknown");
     run.on(events::test{"test", "filter", none{}, [] {}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter = {};
+    run.filter({});
 
-    run.filter = "filter";
+    run.filter("filter");
     run.on(events::test{"test", "filter", none{}, [] {}});
     test_assert(2 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter = {};
+    run.filter({});
 
     run.on(events::test{"test", "pass", none{}, [&run] {
                           return run.on(events::assertion{
@@ -364,7 +388,7 @@ int main() {
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.filter = "section";
+    run.filter("section");
     run.on(events::test{
         "test", "section", none{}, [&run] {
           run.on(events::test{"test", "sub-section-1", none{}, [] {}});
@@ -374,7 +398,43 @@ int main() {
     test_assert(4 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    run.filter = {};
+    run.filter({});
+
+    run.filter("section.sub-section-1");
+    run.on(events::test{
+        "test", "section", none{}, [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
+          run.on(
+              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
+        }});
+    test_assert(5 == reporter.tests_.pass);
+    test_assert(3 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
+    run.filter({});
+
+    run.filter("section.sub-section-2");
+    run.on(events::test{
+        "test", "section", none{}, [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
+          run.on(
+              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
+        }});
+    test_assert(5 == reporter.tests_.pass);
+    test_assert(4 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
+    run.filter({});
+
+    run.filter("section.sub-section-*");
+    run.on(events::test{
+        "test", "section", none{}, [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
+          run.on(
+              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
+        }});
+    test_assert(5 == reporter.tests_.pass);
+    test_assert(5 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
+    run.filter({});
 
     reporter = {};
   }
