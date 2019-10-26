@@ -23,7 +23,7 @@ class reporter {
   auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
   auto on(ut::events::fatal_assertion) -> void {}
   auto on(ut::events::exception) -> void {}
-  auto on(ut::events::summary) -> void{};
+  auto on(ut::events::summary) -> void {}
 };
 }  // namespace cfg
 

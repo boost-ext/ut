@@ -23,9 +23,9 @@ int main() {
   | std::tuple<bool, int>{};
 
   "args and types"_test = []<class TArg>(const TArg& arg) {
-    !expect(std::is_integral_v<TArg> or std::is_floating_point_v<TArg>);
-    expect(42_i == arg or arg == 42._f);
-    expect(type<TArg> == type<int> or type<TArg> == type<float>);
+    !expect(std::is_integral_v<TArg>);
+    expect(42_i == static_cast<int>(arg) or arg);
+    expect(type<TArg> == type<int> or type<TArg> == type<bool>);
   }
-  | std::tuple{42, 42.f};
+  | std::tuple{42, true};
 }
