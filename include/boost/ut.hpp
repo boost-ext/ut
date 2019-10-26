@@ -594,7 +594,7 @@ class expect_ {
 template <class T>
 class value : op {
  public:
-  constexpr value(const T& value) : value_{value} {}
+  constexpr explicit value(const T& value) : value_(value) {}
   constexpr operator T() const { return value_; }
   constexpr decltype(auto) get() const { return value_; }
 
@@ -1127,11 +1127,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
   return [f, t](auto name) {
     std::apply(
         [f, name](const auto&... args) {
-          (
-              [name](const auto& f, const auto& arg) {
-                detail::on<F>(events::test{"test", name, arg, f});
-              }(f, args),
-              ...);
+          (detail::on<F>(events::test{"test", name, args, f}), ...);
         },
         t);
   };
@@ -1214,7 +1210,7 @@ struct suite {
   return detail::test{"then", name};
 };
 template <class T>
-[[maybe_unused]] constexpr auto type = detail::type_<T>{};
+[[maybe_unused]] static constexpr auto type = detail::type_<T>{};
 
 using namespace literals;
 using namespace operators;

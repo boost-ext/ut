@@ -7,22 +7,32 @@
 cmake_minimum_required(VERSION 3.0)
 project(Boost.UT CXX)
 set(CMAKE_CXX_STANDARD 20)
-if (MSVC)
-  add_compile_options(/W4
-                      /WX)
-elseif(Clang)
-  add_compile_options(-Wall
-                      -Wextra
-                      -pedantic
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  add_compile_options(-Weverything
                       -Werror
+                      -pedantic
                       -pedantic-errors
-                      -Wno-c99-extensions)
-elseif(GNU)
+                      -Wno-c++98-compat
+                      -Wno-c++98-compat-pedantic
+                      -Wno-c99-extensions
+                      -Wno-global-constructors
+                      -Wno-exit-time-destructors
+                      -Wno-missing-variable-declarations
+                      -Wno-class-varargs
+                      -Wno-padded
+                      -Wno-sign-conversion
+                      -Wno-ctad-maybe-unsupported
+)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options(-Wall
                       -Wextra
-                      -pedantic
                       -Werror
+                      -pedantic
                       -pedantic-errors)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  add_compile_options(/W4
+                      /Wall
+                      /WX)
 endif()
 
 add_custom_target(style)

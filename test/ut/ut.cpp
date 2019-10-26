@@ -179,7 +179,7 @@ int main() {
     static_assert(42u == 42_ul);
     static_assert(42.42f == 42.42_f);
     static_assert(42.42 == 42.42_d);
-    static_assert(42.42 == 42.42_ld);
+    static_assert(static_cast<long double>(42.42) == 42.42_ld);
     static_assert(0 == 0_i);
     static_assert(10'000 == 10'000_i);
     static_assert(42000'000 == 42000'000_i);
@@ -221,7 +221,7 @@ int main() {
     static_assert(_ul(42u) == 42_ul);
     static_assert(_f(42.42f) == 42.42_f);
     static_assert(_d(42.42) == 42.42_d);
-    static_assert(_ld(42.42) == 42.42_ld);
+    static_assert(_ld{static_cast<long double>(42.42)} == 42.42_ld);
   }
 
   {
@@ -882,27 +882,26 @@ int main() {
     test_cfg = fake_cfg{};
 
     "args and types"_test = []<class TArg>(const TArg& arg) {
-      expect(42_i == arg or arg == 42.42_f);
-      expect(type<TArg> == type<int> or type<TArg> == type<float>);
+      expect(42_i == arg or arg == _c('x'));
+      expect(type<TArg> == type<int> or type<TArg> == type<char>);
     }
-    | std::tuple{42, 42.42f};
+    | std::tuple{42, 'x'};
 
     test_assert(2 == std::size(test_cfg.run_calls));
     test_assert("args and types"sv == test_cfg.run_calls[0].name);
     test_assert(42 == std::any_cast<int>(test_cfg.run_calls[0].arg));
     test_assert("args and types"sv == test_cfg.run_calls[1].name);
-    test_assert(42.42f == std::any_cast<float>(test_cfg.run_calls[1].arg));
+    test_assert('x' == std::any_cast<char>(test_cfg.run_calls[1].arg));
     test_assert(4 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
     test_assert(test_cfg.assertion_calls[1].result);
     test_assert(test_cfg.assertion_calls[2].result);
     test_assert(test_cfg.assertion_calls[3].result);
-    test_assert("(42 == 42 or 42 == 42.42)" == test_cfg.assertion_calls[0].str);
-    test_assert("(int == int or int == float)" ==
+    test_assert("(42 == 42 or 42 == x)" == test_cfg.assertion_calls[0].str);
+    test_assert("(int == int or int == char)" ==
                 test_cfg.assertion_calls[1].str);
-    test_assert("(42 == 42.42 or 42.42 == 42.42)" ==
-                test_cfg.assertion_calls[2].str);
-    test_assert("(float == int or float == float)" ==
+    test_assert("(42 == x or x == x)" == test_cfg.assertion_calls[2].str);
+    test_assert("(char == int or char == char)" ==
                 test_cfg.assertion_calls[3].str);
   }
 
