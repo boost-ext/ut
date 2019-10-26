@@ -245,7 +245,7 @@ int main() { }
 All tests passed (2 asserts in 1 tests)
 ```
 
-*Skipping tests** (https://godbolt.org/z/FeWVjB)
+**Skipping tests** (https://godbolt.org/z/FeWVjB)
 
 ```cpp
 skip | "don't run"_test = [] {

@@ -32,5 +32,9 @@ auto ut::cfg<ut::override> = cfg::runner{};
 
 int main() {
   using namespace ut;
-  "should be ignored"_test = [] { expect(1_i == 2) << "doesn't fire"; };
+
+  "should be ignored"_test = [] {
+    expect(throws([] { throw std::runtime_error{{}}; }));
+    expect(1_i == 2) << "doesn't fire";
+  };
 }
