@@ -10,7 +10,7 @@
 int main() {
   using namespace boost::ut;
 
-  cfg<override> = {/*.filter =*/"run.sub1"};
+  cfg<override> = {.filter = "run.sub1"};
 
   "run"_test = [] {
     "sub1"_test = [] { expect(42 == 42_i); };
