@@ -9,5 +9,9 @@
 
 int main() {
   using namespace boost::ut;
-  skip | "don't run"_test = [] { expect(42_i == 43) << "should not fire!"; };
+
+  skip | "don't run"_test = [] {
+    expect(42_i == 43) << "should not fire!";
+    expect(false) << "should fail!";
+  };
 }
