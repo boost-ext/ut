@@ -6,6 +6,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <string_view>
 
 namespace ut = boost::ut;
 
@@ -32,5 +33,10 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 int main() {
   using namespace ut;
-  "example"_test = [] { expect(42 == 42_i); };
+  using namespace std::literals::string_view_literals;
+
+  "example"_test = [] {
+    expect(42 == 42_i);
+    expect("ut"sv != "tu"sv);
+  };
 }
