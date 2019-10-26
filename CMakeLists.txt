@@ -20,7 +20,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
                       -Wno-missing-variable-declarations
                       -Wno-class-varargs
                       -Wno-padded
-                      -Wno-sign-conversion
                       -Wno-ctad-maybe-unsupported)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options(-Wall
