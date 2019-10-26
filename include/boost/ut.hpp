@@ -387,14 +387,34 @@ struct options {
 
 template <class TReporter = reporter, auto MaxPathSize = 16>
 class runner {
+  class filter {
+    static constexpr auto delim = ".";
+
+   public:
+    constexpr explicit(false) filter(std::string_view filter = {})
+        : path_{utility::split(filter, delim)} {}
+
+    template <class TPath>
+    constexpr auto operator()(const std::size_t level, const TPath& path) const
+        -> bool {
+      for (auto i = 0u; i < std::min(level + 1, std::size(path_)); ++i) {
+        if (not utility::is_match(path[i], path_[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+   private:
+    std::vector<std::string_view> path_{};
+  };
+
  public:
   constexpr runner() = default;
   constexpr runner(TReporter reporter, std::size_t suites_size)
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
-  constexpr auto operator=(options options) {
-    filter_path_ = utility::split(options.filter, ".");
-  }
+  constexpr auto operator=(options options) { filter_ = options.filter; }
 
   template <class TSuite>
   auto on(events::suite<TSuite> suite) {
@@ -405,17 +425,7 @@ class runner {
   auto on(events::test<Ts...> test) {
     path_[level_] = test.name;
 
-    const auto should_run = [this] {
-      for (auto i = 0u; i < std::min(level_ + 1, std::size(filter_path_));
-           ++i) {
-        if (not utility::is_match(path_[i], filter_path_[i])) {
-          return false;
-        }
-      }
-      return true;
-    }();
-
-    if (should_run) {
+    if (filter_(level_, path_)) {
       if (not level_++) {
         reporter_.on(events::test_begin{test.type, test.name});
       } else {
@@ -457,19 +467,19 @@ class runner {
     reporter_.on(fatal_assertion);
     reporter_.on(events::test_end{});
     reporter_.on(events::summary{});
-    test_abort();
+    std::abort();
   }
 
   auto on(events::log l) { reporter_.on(l); }
 
-  [[nodiscard]] auto run() -> int {
+  [[nodiscard]] auto run() -> bool {
     run_ = true;
     for (auto& suite : suites_) {
       suite();
     }
     suites_.clear();
 
-    return fails_;
+    return fails_ > 0;
   }
 
   ~runner() {
@@ -482,21 +492,19 @@ class runner {
     reporter_.on(events::summary{});
 
     if (should_run and fails_) {
-      std::exit(fails_);
+      std::exit(-1);
     }
   }
 
  protected:
-  [[noreturn]] auto test_abort() -> void { std::abort(); }
-
   TReporter reporter_{};
   std::vector<void (*)()> suites_{};
   std::size_t level_{};
   bool run_{};
   bool active_exception_{};
-  int fails_{};
+  std::size_t fails_{};
   std::array<std::string_view, MaxPathSize> path_{};
-  std::vector<std::string_view> filter_path_{};
+  filter filter_{};
 };
 
 struct override {};

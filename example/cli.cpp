@@ -7,15 +7,11 @@
 //
 #include <boost/ut.hpp>
 
-namespace ut = boost::ut;
+int main(int argc, const char** argv) {
+  using namespace boost::ut;
 
-ut::suite _ = [] {
-  using namespace ut;
+  cfg<override> = {/*.filter =*/argc > 1 ? argv[1] : ""};
 
-  "test suite"_test = [] {
-    "should be equal"_test = [] { expect(42_i == 42); };
-    "should not be equal "_test = [] { expect(1_i != 2); };
-  };
-};
-
-int main() {}
+  "pass"_test = [] { expect(42 == 42_i); };
+  "fail"_test = [] { expect(0 == 42_i); };
+}
