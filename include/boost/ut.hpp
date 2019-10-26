@@ -57,20 +57,20 @@ constexpr auto type_name() -> std::string_view {
 
 namespace math {
 template <class T>
-constexpr auto abs(T t) -> T {
+constexpr auto abs(const T t) -> T {
   return t < T{} ? -t : t;
 }
 
-template <class T>
-constexpr auto pow(const T base, const std::size_t exp) -> T {
-  return exp ? base * pow(base, exp - 1) : T(1);
+template <class T, class TExp>
+constexpr auto pow(const T base, const TExp exp) -> T {
+  return exp ? base * pow(base, exp - TExp(1)) : T(1);
 }
 
-template <class T, auto... Cs>
+template <class T, char... Cs>
 constexpr auto num() -> T {
-  constexpr char cs[]{Cs...};
-  T result = {};
-  auto size = 0u, i = 0u;
+  constexpr const char cs[]{Cs...};
+  T result{};
+  auto size = 0u, i = 0u, tmp = 1u;
 
   while (i < sizeof...(Cs) and cs[i] != '.') {
     if (cs[i++] != '\'') {
@@ -78,39 +78,38 @@ constexpr auto num() -> T {
     }
   }
 
-  auto should_skip = 1u;
-  i = 0u;
+  i = {};
   while (i < sizeof...(Cs) and cs[i] != '.') {
     if (cs[i] == '\'') {
-      --should_skip;
+      --tmp;
     } else {
-      result += pow(T(10), size - i - should_skip) * (cs[i] - '0');
+      result += pow(T(10), size - i - tmp) * T(cs[i] - '0');
     }
     ++i;
   }
   return result;
 }
 
-template <auto... Cs>
-constexpr auto den() -> std::size_t {
-  constexpr char cs[]{Cs...};
-  auto result = 0u;
+template <class T, char... Cs>
+constexpr auto den() -> T {
+  constexpr const char cs[]{Cs...};
+  T result{};
   auto i = 0u;
   while (cs[i++] != '.')
     ;
   for (auto j = i; j < sizeof...(Cs); ++j) {
-    result += pow(10, sizeof...(Cs) - j) * (cs[j] - '0');
+    result += pow(T(10), sizeof...(Cs) - j) * T(cs[j] - '0');
   }
   return result;
 }
 
-template <class T, auto... Cs>
-constexpr auto den_size() -> std::size_t {
-  constexpr char cs[]{Cs...};
-  auto i = 0u;
+template <class T, char... Cs>
+constexpr auto den_size() -> T {
+  constexpr const char cs[]{Cs...};
+  T i{};
   while (cs[i++] != '.')
     ;
-  return sizeof...(Cs) - i + 1;
+  return T(sizeof...(Cs)) - i + T(1);
 }
 }  // namespace math
 
@@ -995,21 +994,21 @@ constexpr auto operator""_ul() {
 template <char... Cs>
 constexpr auto operator""_f() {
   return detail::floating_point_constant<float, math::num<int, Cs...>(),
-                                         math::den<Cs...>(),
+                                         math::den<int, Cs...>(),
                                          math::den_size<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_d() {
   return detail::floating_point_constant<double, math::num<int, Cs...>(),
-                                         math::den<Cs...>(),
+                                         math::den<int, Cs...>(),
                                          math::den_size<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_ld() {
   return detail::floating_point_constant<long double, math::num<int, Cs...>(),
-                                         math::den<Cs...>(),
+                                         math::den<int, Cs...>(),
                                          math::den_size<int, Cs...>()>{};
 }
 }  // namespace literals
