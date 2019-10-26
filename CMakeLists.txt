@@ -8,9 +8,21 @@ cmake_minimum_required(VERSION 3.0)
 project(Boost.UT CXX)
 set(CMAKE_CXX_STANDARD 20)
 if (MSVC)
-  add_compile_options(/W4 /WX)
-else()
-  add_compile_options(-Wall -Wextra -pedantic -Werror -pedantic-errors)
+  add_compile_options(/W4
+                      /WX)
+elseif(Clang)
+  add_compile_options(-Wall
+                      -Wextra
+                      -pedantic
+                      -Werror
+                      -pedantic-errors
+                      -Wno-c99-extensions)
+elseif(GNU)
+  add_compile_options(-Wall
+                      -Wextra
+                      -pedantic
+                      -Werror
+                      -pedantic-errors)
 endif()
 
 add_custom_target(style)
