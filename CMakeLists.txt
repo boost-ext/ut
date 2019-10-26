@@ -26,7 +26,29 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
                       -Wextra
                       -Werror
                       -pedantic
-                      -pedantic-errors)
+                      -pedantic-errors
+                      -Wfloat-equal
+                      -Wlogical-op
+                      -Wundef
+                      -Wredundant-decls
+                      -Wpointer-arith
+                      -Wcast-qual
+                      -Wcast-align
+                      -Wuseless-cast
+                      -Wold-style-cast
+                      -Wswitch-enum
+                      -Wsign-conversion
+                      -Wmissing-declarations
+                      -Wunused-but-set-variable
+                      -Wunused-result
+                      -Wdouble-promotion
+                      -Wtrampolines
+                      -Wzero-as-null-pointer-constant
+                      -Wnull-dereference
+                      -Wduplicated-cond
+                      -Wduplicated-branches
+                      -Wcast-align=strict
+                      -Wmissing-include-dirs)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   add_compile_options(/W4
                       /Wall

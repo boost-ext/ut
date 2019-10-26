@@ -63,7 +63,7 @@ constexpr auto abs(const T t) -> T {
 
 template <class T, class TExp>
 constexpr auto pow(const T base, const TExp exp) -> T {
-  return exp ? base * pow(base, exp - TExp(1)) : T(1);
+  return exp ? T(base * pow(base, exp - TExp(1))) : T(1);
 }
 
 template <class T, char... Cs>
@@ -413,6 +413,20 @@ class runner {
   constexpr runner(TReporter reporter, std::size_t suites_size)
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
+  ~runner() {
+    const auto should_run = not run_;
+
+    if (should_run) {
+      static_cast<void>(run());
+    }
+
+    reporter_.on(events::summary{});
+
+    if (should_run and fails_) {
+      std::exit(-1);
+    }
+  }
+
   constexpr auto operator=(options options) { filter_ = options.filter; }
 
   template <class TSuite>
@@ -479,20 +493,6 @@ class runner {
     suites_.clear();
 
     return fails_ > 0;
-  }
-
-  ~runner() {
-    const auto should_run = not run_;
-
-    if (should_run) {
-      static_cast<void>(run());
-    }
-
-    reporter_.on(events::summary{});
-
-    if (should_run and fails_) {
-      std::exit(-1);
-    }
   }
 
  protected:
