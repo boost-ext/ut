@@ -209,8 +209,8 @@ struct test {
   TArg arg{};
   Test run{};
 
-  constexpr auto operator()() { return run_impl(run, arg); }
-  constexpr auto operator()() const { return run_impl(run, arg); }
+  constexpr auto operator()() { run_impl(run, arg); }
+  constexpr auto operator()() const { run_impl(run, arg); }
 
  private:
   static auto run_impl(Test test, [[maybe_unused]] const TArg& arg) -> void {
@@ -228,8 +228,8 @@ test(std::string_view, std::string_view, TArg, Test)->test<Test, TArg>;
 template <class TSuite>
 struct suite {
   TSuite run{};
-  constexpr auto operator()() { return run(); }
-  constexpr auto operator()() const { return run(); }
+  constexpr auto operator()() { run(); }
+  constexpr auto operator()() const { run(); }
 };
 template <class TSuite>
 suite(TSuite)->suite<TSuite>;

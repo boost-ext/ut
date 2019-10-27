@@ -227,7 +227,7 @@ namespace ut = boost::ut;
 ut::suite _ = [] {
   using namespace ut;
 
-  "test suite"_test = [] {
+  "equality/exceptions"_test = [] {
     "should equal"_test = [] {
       expect(42_i == 42);
     };
