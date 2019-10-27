@@ -70,7 +70,7 @@ All tests passed (3 asserts in 1 tests)
 
 "expressions"_test = [] {
   expect(0_i == sum() and 42_i == sum(40, 2));
-  expect(0_i == sum() or 1_i == sum()) << "compund";
+  expect(0_i == sum() or 1_i == sum()) << "compound";
 };
 
 "floating points"_test = [] {

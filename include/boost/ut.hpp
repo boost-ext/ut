@@ -339,7 +339,7 @@ class reporter {
   auto on(events::summary) -> void {
     if (static auto once = true; once) {
       once = false;
-      if (tests_.fail) {
+      if (tests_.fail or asserts_.fail) {
         out_ << "\n============================================================"
                 "=="
                 "=================\n"
