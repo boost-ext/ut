@@ -239,8 +239,8 @@ int main() {
     test_assert(1234._f == 1234.f);
     test_assert(1234.56_f == 1234.56f);
     test_assert(12345678.9f == 12345678.9_f);
-    test_assert(1111111111111111.42f == 1111111111111111.42_f);
-    test_assert(1111111111111111.42 == 1111111111111111.42_d);
+    test_assert(111111.42f == 111111.42_f);
+    test_assert(1111111111.42 == 1111111111.42_d);
     test_assert(42_i == 42);
     test_assert(42 == 42_i);
     test_assert(not(1_i == 2));
