@@ -22,11 +22,9 @@
 #else
 namespace std::experimental {
 struct source_location {
-  const char* file_{__FILE__};
-  decltype(__LINE__) line_{__LINE__};
   static constexpr auto current() noexcept { return source_location{}; }
-  constexpr auto file_name() const noexcept { return file_; }
-  constexpr auto line() const noexcept { return line_; }
+  constexpr auto file_name() const noexcept { return __FILE__; }
+  constexpr auto line() const noexcept { return __LINE__; }
 };
 }  // namespace std::experimental
 #endif
@@ -111,9 +109,29 @@ constexpr auto den_size() -> T {
     ;
   return T(sizeof...(Cs)) - i + T(1);
 }
+
+template <class T, class TValue>
+constexpr auto den_size(TValue value) -> T {
+  constexpr auto precision = TValue(1e-7);
+  T result{};
+  TValue tmp{};
+  do {
+    value *= 10;
+    tmp = value - T(value);
+    ++result;
+  } while (tmp > precision and result < std::numeric_limits<TValue>::digits10);
+
+  return result;
+}
+
 }  // namespace math
 
 namespace type_traits {
+template <class T, class...>
+struct identity {
+  using type = T;
+};
+
 template <class... Ts, class TExpr>
 constexpr auto is_valid(TExpr expr)
     -> decltype(expr(std::declval<Ts...>()), bool()) {
@@ -128,10 +146,13 @@ template <class T>
 static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
-template <class T, class...>
-struct identity {
-  using type = T;
-};
+template <class T>
+static constexpr auto has_value_v =
+    is_valid<T>([](auto t) -> decltype(t.value, void()) {});
+
+template <class T>
+static constexpr auto has_epsilon_v =
+    is_valid<T>([](auto t) -> decltype(t.epsilon, void()) {});
 }  // namespace type_traits
 
 namespace utility {
@@ -213,7 +234,8 @@ struct test {
   constexpr auto operator()() const { run_impl(run, arg); }
 
  private:
-  static auto run_impl(Test test, [[maybe_unused]] const TArg& arg) -> void {
+  static constexpr auto run_impl(Test test, [[maybe_unused]] const TArg& arg)
+      -> void {
     if constexpr (std::is_same_v<none, TArg>) {
       test();
     } else if constexpr (std::is_invocable_v<Test, TArg>) {
@@ -574,7 +596,7 @@ class expect_ {
     return *this;
   }
 
-  auto& operator!() {
+  constexpr auto& operator!() {
     fatal_ = true;
     return *this;
   }
@@ -586,14 +608,31 @@ class expect_ {
   }
 
  private:
-  bool result_{};
-  bool fatal_{};
+  bool result_{}, fatal_{};
 };
 
-template <class T>
+template <class T, class = void>
 class value : op {
  public:
   constexpr explicit value(const T& value) : value_(value) {}
+  constexpr operator T() const { return value_; }
+  constexpr decltype(auto) get() const { return value_; }
+
+ private:
+  T value_{};
+};
+
+template <class T>
+class value<T, std::enable_if_t<std::is_floating_point_v<T>>> : op {
+ public:
+  static inline auto epsilon = T{};
+
+  constexpr value(const T& value, const T precision) : value_{value} {
+    epsilon = precision;
+  }
+
+  constexpr explicit value(const T& val)
+      : value{val, T(1) / math::pow(10, math::den_size<std::size_t>(val))} {}
   constexpr operator T() const { return value_; }
   constexpr decltype(auto) get() const { return value_; }
 
@@ -613,7 +652,7 @@ class integral_constant : op {
 
 template <class T, auto N, auto D, auto Size, auto P = 1>
 struct floating_point_constant : op {
-  static constexpr auto epsilon = T(1) / math::pow(10, Size);
+  static constexpr auto epsilon = T(1) / math::pow(10, Size - 1);
   static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
 
   constexpr auto operator-() const {
@@ -648,7 +687,7 @@ struct type_ : op {
 template <class T>
 class bool_ : op {
  public:
-  constexpr bool_(const T& t) : t_{t} {}
+  constexpr bool_(const T& t = {}) : t_{t} {}
 
   friend auto operator<<(std::ostream& os, const bool_& op) -> std::ostream& {
     using operators::operator<<;
@@ -664,21 +703,22 @@ class bool_ : op {
 template <class TLhs, class TRhs>
 class eq_ : op {
  public:
-  constexpr eq_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     using std::operator==;
     using std::operator<;
-    if constexpr (type_traits::is_valid<TLhs>(
-                      [](auto t) -> decltype(t.value, void()) {}) and
-                  type_traits::is_valid<TRhs>(
-                      [](auto t) -> decltype(t.value, void()) {})) {
+    if constexpr (type_traits::has_value_v<TLhs> and
+                  type_traits::has_value_v<TRhs>) {
       return TLhs::value == TRhs::value;
-    } else if constexpr (type_traits::is_valid<TLhs>(
-                             [](auto t) -> decltype(t.epsilon, void()) {})) {
+    } else if constexpr (type_traits::has_epsilon_v<TLhs> and
+                         type_traits::has_epsilon_v<TRhs>) {
+      return math::abs(get(lhs_) - get(rhs_)) <
+             std::min(TLhs::epsilon, TRhs::epsilon);
+    } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
       return math::abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
-    } else if constexpr (type_traits::is_valid<TRhs>(
-                             [](auto t) -> decltype(t.epsilon, void()) {})) {
+    } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
       return math::abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
     } else {
       return get(lhs_) == get(rhs_);
@@ -698,15 +738,23 @@ class eq_ : op {
 template <class TLhs, class TRhs>
 class neq_ : op {
  public:
-  constexpr neq_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     using std::operator!=;
-    if constexpr (type_traits::is_valid<TLhs>(
-                      [](auto t) -> decltype(t.value, void()) {}) and
-                  type_traits::is_valid<TRhs>(
-                      [](auto t) -> decltype(t.value, void()) {})) {
+    using std::operator>;
+    if constexpr (type_traits::has_value_v<TLhs> and
+                  type_traits::has_value_v<TRhs>) {
       return TLhs::value != TRhs::value;
+    } else if constexpr (type_traits::has_epsilon_v<TLhs> and
+                         type_traits::has_epsilon_v<TRhs>) {
+      return math::abs(get(lhs_) - get(rhs_)) >
+             std::min(TLhs::epsilon, TRhs::epsilon);
+    } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+      return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
+    } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+      return math::abs(get(lhs_) - get(rhs_)) > TRhs::epsilon;
     } else {
       return get(lhs_) != get(rhs_);
     }
@@ -725,14 +773,13 @@ class neq_ : op {
 template <class TLhs, class TRhs>
 class gt_ : op {
  public:
-  constexpr gt_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     using std::operator>;
-    if constexpr (type_traits::is_valid<TLhs>(
-                      [](auto t) -> decltype(t.value, void()) {}) and
-                  type_traits::is_valid<TRhs>(
-                      [](auto t) -> decltype(t.value, void()) {})) {
+    if constexpr (type_traits::has_value_v<TLhs> and
+                  type_traits::has_value_v<TRhs>) {
       return TLhs::value > TRhs::value;
     } else {
       return get(lhs_) > get(rhs_);
@@ -752,14 +799,13 @@ class gt_ : op {
 template <class TLhs, class TRhs>
 class ge_ : op {
  public:
-  constexpr ge_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     using std::operator>=;
-    if constexpr (type_traits::is_valid<TLhs>(
-                      [](auto t) -> decltype(t.value, void()) {}) and
-                  type_traits::is_valid<TRhs>(
-                      [](auto t) -> decltype(t.value, void()) {})) {
+    if constexpr (type_traits::has_value_v<TLhs> and
+                  type_traits::has_value_v<TRhs>) {
       return TLhs::value >= TRhs::value;
     } else {
       return get(lhs_) >= get(rhs_);
@@ -779,14 +825,13 @@ class ge_ : op {
 template <class TLhs, class TRhs>
 class lt_ : op {
  public:
-  constexpr lt_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     using std::operator<;
-    if constexpr (type_traits::is_valid<TLhs>(
-                      [](auto t) -> decltype(t.value, void()) {}) and
-                  type_traits::is_valid<TRhs>(
-                      [](auto t) -> decltype(t.value, void()) {})) {
+    if constexpr (type_traits::has_value_v<TLhs> and
+                  type_traits::has_value_v<TRhs>) {
       return TLhs::value < TRhs::value;
     } else {
       return get(lhs_) < get(rhs_);
@@ -806,14 +851,13 @@ class lt_ : op {
 template <class TLhs, class TRhs>
 class le_ : op {
  public:
-  constexpr le_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     using std::operator<=;
-    if constexpr (type_traits::is_valid<TLhs>(
-                      [](auto t) -> decltype(t.value, void()) {}) and
-                  type_traits::is_valid<TRhs>(
-                      [](auto t) -> decltype(t.value, void()) {})) {
+    if constexpr (type_traits::has_value_v<TLhs> and
+                  type_traits::has_value_v<TRhs>) {
       return TLhs::value <= TRhs::value;
     } else {
       return get(lhs_) <= get(rhs_);
@@ -833,7 +877,8 @@ class le_ : op {
 template <class TLhs, class TRhs>
 class and_ : op {
  public:
-  constexpr and_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr and_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     return static_cast<bool>(lhs_) and static_cast<bool>(rhs_);
@@ -852,7 +897,8 @@ class and_ : op {
 template <class TLhs, class TRhs>
 class or_ : op {
  public:
-  constexpr or_(const TLhs& lhs, const TRhs& rhs) : lhs_{lhs}, rhs_{rhs} {}
+  constexpr or_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs} {}
 
   constexpr operator bool() const {
     return static_cast<bool>(lhs_) or static_cast<bool>(rhs_);
@@ -871,7 +917,7 @@ class or_ : op {
 template <class T>
 class not_ : op {
  public:
-  explicit constexpr not_(const T& t) : t_{t} {}
+  explicit constexpr not_(const T& t = {}) : t_{t} {}
 
   constexpr operator bool() const { return not static_cast<bool>(t_); }
 
@@ -993,23 +1039,23 @@ constexpr auto operator""_ul() {
 
 template <char... Cs>
 constexpr auto operator""_f() {
-  return detail::floating_point_constant<float, math::num<int, Cs...>(),
-                                         math::den<int, Cs...>(),
-                                         math::den_size<int, Cs...>()>{};
+  return detail::floating_point_constant<
+      float, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
+      math::den_size<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_d() {
-  return detail::floating_point_constant<double, math::num<int, Cs...>(),
-                                         math::den<int, Cs...>(),
-                                         math::den_size<int, Cs...>()>{};
+  return detail::floating_point_constant<
+      double, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
+      math::den_size<int, Cs...>()>{};
 }
 
 template <char... Cs>
 constexpr auto operator""_ld() {
-  return detail::floating_point_constant<long double, math::num<int, Cs...>(),
-                                         math::den<int, Cs...>(),
-                                         math::den_size<int, Cs...>()>{};
+  return detail::floating_point_constant<
+      long double, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
+      math::den_size<int, Cs...>()>{};
 }
 }  // namespace literals
 

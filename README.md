@@ -395,6 +395,8 @@ template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
 
+More examples [here!](example)
+
 ---
 
 **Disclaimer** `[Boost].UT` is not an official Boost library.

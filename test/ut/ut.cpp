@@ -219,13 +219,28 @@ int main() {
     static_assert(_us(42u) == 42_us);
     static_assert(_us(42u) == 42_us);
     static_assert(_ul(42u) == 42_ul);
-    static_assert(_f(42.42f) == 42.42_f);
-    static_assert(_d(42.42) == 42.42_d);
-    static_assert(_ld{static_cast<long double>(42.42)} == 42.42_ld);
   }
 
   {
+    test_assert(_f(42.101f) == 42.101_f);
+    test_assert(_f(42.101f, 0.01f) == 42.10_f);
+    test_assert(_f(42.101f, 0.1f) != 42.1000_f);
+    test_assert(_f(42.1010001f, 0.1f) == 42.1_f);
+    test_assert(_f(42.101f) != 42.10_f);
+    test_assert(_f(42.101f) != 42.100_f);
+    test_assert(_f(42.10f) == 42.1_f);
+    test_assert(_f(42.42f) == 42.42_f);
+    test_assert(_d(42.42) == 42.420_d);
+    test_assert(_d(42.0) == 42.0_d);
+    test_assert(_d(42.) == 42._d);
+    test_assert(_ld{static_cast<long double>(42.42)} == 42.42_ld);
+
     test_assert(42_i == 42_i);
+    test_assert(1234._f == 1234.f);
+    test_assert(1234.56_f == 1234.56f);
+    test_assert(12345678.9f == 12345678.9_f);
+    test_assert(1111111111111111.42f == 1111111111111111.42_f);
+    test_assert(1111111111111111.42 == 1111111111111111.42_d);
     test_assert(42_i == 42);
     test_assert(42 == 42_i);
     test_assert(not(1_i == 2));
