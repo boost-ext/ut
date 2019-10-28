@@ -153,6 +153,9 @@ static constexpr auto has_value_v =
 template <class T>
 static constexpr auto has_epsilon_v =
     is_valid<T>([](auto t) -> decltype(t.epsilon, void()) {});
+
+template <bool Cond, class T = int>
+using requires_t = std::enable_if_t<Cond, T>;
 }  // namespace type_traits
 
 namespace utility {
@@ -203,7 +206,7 @@ inline auto split(std::string_view input, std::string_view delim)
 
 namespace operators {
 template <class TOs, class T,
-          std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+          type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 constexpr auto& operator<<(TOs& os, const T& t) {
   os << '{';
   auto first = true;
@@ -611,7 +614,7 @@ class expect_ {
   bool result_{}, fatal_{};
 };
 
-template <class T, class = void>
+template <class T, class = int>
 class value : op {
  public:
   constexpr explicit value(const T& value) : value_(value) {}
@@ -623,7 +626,7 @@ class value : op {
 };
 
 template <class T>
-class value<T, std::enable_if_t<std::is_floating_point_v<T>>> : op {
+class value<T, type_traits::requires_t<std::is_floating_point_v<T>>> : op {
  public:
   static inline auto epsilon = T{};
 
@@ -632,7 +635,7 @@ class value<T, std::enable_if_t<std::is_floating_point_v<T>>> : op {
   }
 
   constexpr explicit value(const T& val)
-      : value{val, T(1) / math::pow(10, math::den_size<std::size_t>(val))} {}
+      : value{val, T(1) / math::pow(10, math::den_size<int>(val))} {}
   constexpr operator T() const { return value_; }
   constexpr decltype(auto) get() const { return value_; }
 
@@ -1069,15 +1072,14 @@ constexpr auto operator==(std::string_view lhs, std::string_view rhs) {
   return detail::eq_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
   return detail::eq_{lhs, rhs};
 }
 
-template <class T, std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 constexpr auto operator==(T&& lhs, T&& rhs) {
   return detail::eq_{std::forward<T>(lhs), std::forward<T>(rhs)};
 }
@@ -1086,68 +1088,67 @@ constexpr auto operator!=(std::string_view lhs, std::string_view rhs) {
   return detail::neq_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator!=(const TLhs& lhs, const TRhs& rhs) {
   return detail::neq_{lhs, rhs};
 }
 
-template <class T, std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 constexpr auto operator!=(T&& lhs, T&& rhs) {
   return detail::neq_{std::forward<T>(lhs), std::forward<T>(rhs)};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+    type_traits::requires_t<
+        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
 constexpr auto operator>(const TLhs& lhs, const TRhs& rhs) {
   return detail::gt_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+    type_traits::requires_t<
+        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
 constexpr auto operator>=(const TLhs& lhs, const TRhs& rhs) {
   return detail::ge_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+    type_traits::requires_t<
+        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
 constexpr auto operator<(const TLhs& lhs, const TRhs& rhs) {
   return detail::lt_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+    type_traits::requires_t<
+        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
 constexpr auto operator<=(const TLhs& lhs, const TRhs& rhs) {
   return detail::le_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+    type_traits::requires_t<
+        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
 constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   return detail::and_{lhs, rhs};
 }
 
 template <
     class TLhs, class TRhs,
-    std::enable_if_t<type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>,
-                     int> = 0>
+    type_traits::requires_t<
+        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
 constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   return detail::or_{lhs, rhs};
 }
 
-template <class T, std::enable_if_t<type_traits::is_op_v<T>, int> = 0>
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
 constexpr auto operator not(const T& t) {
   return detail::not_{t};
 }
@@ -1158,7 +1159,7 @@ constexpr auto operator|(const detail::skip&, const T& t) {
 }
 
 template <class F, class T,
-          std::enable_if_t<type_traits::is_container_v<T>, int> = 0>
+          type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 constexpr auto operator|(const F& f, const T& t) {
   return [f, t](auto name) {
     for (const auto& arg : t) {
@@ -1179,7 +1180,7 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
 }
 }  //  namespace operators
 
-template <class TExpr, std::enable_if_t<type_traits::is_op_v<TExpr>, int> = 0>
+template <class TExpr, type_traits::requires_t<type_traits::is_op_v<TExpr>> = 0>
 constexpr auto expect(const TExpr& expr,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
@@ -1187,7 +1188,7 @@ constexpr auto expect(const TExpr& expr,
       detail::on<TExpr>(events::assertion{location, expr})};
 }
 
-template <class T, std::enable_if_t<std::is_same_v<bool, T>, int> = 0>
+template <class T, type_traits::requires_t<std::is_same_v<bool, T>> = 0>
 constexpr auto expect(T result,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
