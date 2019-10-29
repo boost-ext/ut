@@ -407,6 +407,7 @@ class reporter {
 
 struct options {
   std::string_view filter{};
+  bool dry_run{};
 };
 
 template <class TReporter = reporter, auto MaxPathSize = 16>
@@ -445,14 +446,19 @@ class runner {
       static_cast<void>(run());
     }
 
-    reporter_.on(events::summary{});
+    if (not dry_run_) {
+      reporter_.on(events::summary{});
+    }
 
     if (should_run and fails_) {
       std::exit(-1);
     }
   }
 
-  constexpr auto operator=(options options) { filter_ = options.filter; }
+  constexpr auto operator=(options options) {
+    filter_ = options.filter;
+    dry_run_ = options.dry_run;
+  }
 
   template <class TSuite>
   auto on(events::suite<TSuite> suite) {
@@ -468,6 +474,13 @@ class runner {
         reporter_.on(events::test_begin{test.type, test.name});
       } else {
         reporter_.on(events::test_run{test.type, test.name});
+      }
+
+      if (dry_run_) {
+        for (auto i = 0u; i < level_; ++i) {
+          std::cout << (i ? "." : "") << path_[i];
+        }
+        std::cout << '\n';
       }
 
       active_exception_ = false;
@@ -491,6 +504,10 @@ class runner {
 
   template <class TLocation, class TExpr>
   [[nodiscard]] auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
+    if (dry_run_) {
+      return true;
+    }
+
     if (static_cast<bool>(assertion.expr)) {
       reporter_.on(events::assertion_pass{assertion.location, assertion.expr});
       return true;
@@ -529,6 +546,7 @@ class runner {
   std::size_t fails_{};
   std::array<std::string_view, MaxPathSize> path_{};
   filter filter_{};
+  bool dry_run_{};
 };
 
 struct override {};
