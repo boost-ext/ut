@@ -508,6 +508,73 @@ int main() {
 
   {
     test_cfg = fake_cfg{};
+    expect(true) << "true msg";
+    expect(false) << "false msg";
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert("true" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[0].result);
+
+    test_assert("false" == test_cfg.assertion_calls[1].str);
+    test_assert(not test_cfg.assertion_calls[1].result);
+    test_assert(2 == std::size(test_cfg.log_calls));
+    test_assert(" "sv == test_cfg.log_calls[0]);
+    test_assert("false msg"sv == test_cfg.log_calls[1]);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    {
+      constexpr auto c = 4;
+      auto r = 2;
+      expect(constant<4_i == c> and r == 2_i);
+    }
+
+    {
+      constexpr auto c = 5;
+      auto r = 2;
+      expect(constant<4_i == c> and r == 2_i) << "fail compile-time";
+    }
+
+    {
+      constexpr auto c = 4;
+      auto r = 3;
+      expect(constant<4_i == c> and r == 2_i) << "fail run-time";
+    }
+
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+
+#if defined(__cpp_nontype_template_parameter_class)
+    test_assert("(4 == 4 and 2 == 2)" == test_cfg.assertion_calls[0].str);
+#else
+    test_assert("(true and 2 == 2)" == test_cfg.assertion_calls[0].str);
+#endif
+    test_assert(test_cfg.assertion_calls[0].result);
+
+    test_assert(4 == std::size(test_cfg.log_calls));
+
+#if defined(__cpp_nontype_template_parameter_class)
+    test_assert("(4 == 5 and 2 == 2)" == test_cfg.assertion_calls[1].str);
+#else
+    test_assert("(false and 2 == 2)" == test_cfg.assertion_calls[1].str);
+#endif
+    test_assert(not test_cfg.assertion_calls[1].result);
+    test_assert(" "sv == test_cfg.log_calls[0]);
+    test_assert("fail compile-time"sv == test_cfg.log_calls[1]);
+
+#if defined(__cpp_nontype_template_parameter_class)
+    test_assert("(4 == 4 and 3 == 2)" == test_cfg.assertion_calls[2].str);
+#else
+    test_assert("(true and 3 == 2)" == test_cfg.assertion_calls[2].str);
+#endif
+    test_assert(not test_cfg.assertion_calls[2].result);
+    test_assert(" "sv == test_cfg.log_calls[2]);
+    test_assert("fail run-time"sv == test_cfg.log_calls[3]);
+  }
+
+  {
+    test_cfg = fake_cfg{};
 
     expect(1 == 2_i);
     expect(42 == 42_i);

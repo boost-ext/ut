@@ -54,7 +54,7 @@ int main() {
 All tests passed (3 asserts in 1 tests)
 ```
 
-**Assertions** (https://godbolt.org/z/-C-yh2)
+**Assertions** (https://godbolt.org/z/6oo_E4)
 
 ```cpp
 "message"_test = [] {
@@ -79,6 +79,12 @@ All tests passed (3 asserts in 1 tests)
   expect(42.10000001 == 42.1_d) << "epsilon=0.1";
 };
 
+"constant"_test = [] {
+	constexpr auto compile_time = 42;
+	auto run_time = 99;
+	expect(constant<42_i == compile_time> and run_time == 99_i);
+};
+
 "fatal"_test = [] {
   std::vector v{1, 2, 3};
   !expect(std::size(v) == 3_ul) << "fatal assertion";
@@ -98,10 +104,11 @@ Running "message"...OK
 Running "operators"...OK
 Running "expressions"...OK
 Running "floating points"...OK
+Running "constant"...OK
 Running "fatal"...OK
 Running "failure"...
-  assertions.cpp:42:FAILED [1 == 2] should fail
-  assertions.cpp:43:FAILED [(0 == 1 or 2 == 0)] sum?
+  assertions.cpp:48:FAILED [1 == 2] should fail
+  assertions.cpp:49:FAILED [(0 == 1 or 2 == 0)] sum?
 FAILED
 
 ===============================================================================
