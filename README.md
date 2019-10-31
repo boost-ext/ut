@@ -18,7 +18,7 @@
 * **Fast to compile/execute** ([Benchmarks](benchmark))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
-<a href="https://godbolt.org/z/8llYrg"><img src="doc/images/ut.png"></a>
+<a href="https://godbolt.org/z/izlLC-"><img src="doc/images/ut.png"></a>
 
 ### Testing
 
@@ -44,7 +44,7 @@ int main() {
 
   "hello world"_test = [] {
     expect(0_i == sum());
-    expect(1_i == sum(1));
+    expect(sum(1) == 1_i);
     expect(3_i == sum(1, 2));
   };
 }
@@ -57,15 +57,15 @@ All tests passed (3 asserts in 1 tests)
 **Assertions** (https://godbolt.org/z/-C-yh2)
 
 ```cpp
+"message"_test = [] {
+  expect(3_i == sum(1, 2)) << "wrong sum";
+};
+
 "operators"_test = [] {
   expect(0_i == sum());
   expect(2_i != sum(1, 2));
   expect(sum(1) >= 0_i);
   expect(sum(1) <= 1_i);
-};
-
-"message"_test = [] {
-  expect(3_i == sum(1, 2)) << "wrong sum";
 };
 
 "expressions"_test = [] {
@@ -94,8 +94,8 @@ All tests passed (3 asserts in 1 tests)
 ```
 
 ```
-Running "operators"...OK
 Running "message"...OK
+Running "operators"...OK
 Running "expressions"...OK
 Running "floating points"...OK
 Running "fatal"...OK

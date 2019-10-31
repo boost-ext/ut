@@ -27,13 +27,13 @@ int main() {
     expect(sum(1) <= 1_i);
   };
 
-  "message"_test = [] { expect(3_i == sum(1, 2)) << "wrong sum"; };
-
   "expressions"_test = [] {
     expect(0_i == sum() and 42_i == sum(40, 2));
     expect(1_i == sum() or 0_i == sum());
     expect(1_i == sum() or (sum() != 0_i or sum(1) > 0_i)) << "compound";
   };
+
+  "message"_test = [] { expect(3_i == sum(1, 2)) << "wrong sum"; };
 
   "floating points"_test = [] {
     expect(42.1_d == 42.101) << "epsilon=0.1";
