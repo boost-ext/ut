@@ -705,22 +705,6 @@ struct type_ : op {
   }
 };
 
-template <class T>
-class bool_ : op {
- public:
-  constexpr bool_(const T& t = {}) : t_{t} {}
-
-  friend auto operator<<(std::ostream& os, const bool_& op) -> std::ostream& {
-    using operators::operator<<;
-    return (os << get(op.t_));
-  }
-
-  constexpr operator bool() const { return t_; }
-
- private:
-  T t_{};
-};
-
 template <class TLhs, class TRhs>
 class eq_ : op {
  public:
@@ -1198,7 +1182,8 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
 }
 }  //  namespace operators
 
-template <class TExpr, type_traits::requires_t<type_traits::is_op_v<TExpr>> = 0>
+template <class TExpr, type_traits::requires_t<type_traits::is_op_v<TExpr> or
+                                               std::is_same_v<bool, TExpr>> = 0>
 constexpr auto expect(const TExpr& expr,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
@@ -1206,13 +1191,12 @@ constexpr auto expect(const TExpr& expr,
       detail::on<TExpr>(events::assertion{location, expr})};
 }
 
-template <class T, type_traits::requires_t<std::is_same_v<bool, T>> = 0>
-constexpr auto expect(T result,
-                      const std::experimental::source_location& location =
-                          std::experimental::source_location::current()) {
-  return detail::expect_<T>{
-      detail::on<T>(events::assertion{location, detail::bool_{result}})};
-}
+#if defined(__cpp_nontype_template_parameter_class)
+template <auto Constant>
+#else
+template <bool Constant>
+#endif
+constexpr auto constant = Constant;
 
 template <class TException, class TExpr>
 constexpr auto throws(const TExpr& expr) {

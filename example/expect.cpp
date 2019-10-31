@@ -15,11 +15,6 @@ constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 int main() {
   using namespace boost::ut;
 
-  "const"_test = [] {
-    expect(42_l == 42_l);
-    static_assert(42_l == 42_l);
-  };
-
   "operators"_test = [] {
     expect(0_i == sum());
     expect(2_i != sum(1, 2));
@@ -78,5 +73,11 @@ int main() {
     std::vector v1{1, 2, 3};
     std::vector v2{1, 2, 3};
     expect(v1 == v2);
+  };
+
+  "constant"_test = [] {
+    constexpr auto compile_time = 42;
+    auto run_time = 99;
+    expect(constant<42_i == compile_time> and run_time == 99_i);
   };
 }
