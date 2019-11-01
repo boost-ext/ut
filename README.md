@@ -9,7 +9,7 @@
 
 # [Boost].UT / μt
 
-> C++20 **single header, macro-free** μ(micro)/unit test framework
+> C++20 **single header, macro-free** μ(micro)/Unit Testing Framework
 
 * **No dependencies** (C++20 / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
