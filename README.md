@@ -402,33 +402,20 @@ template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
 
-More examples [here!](example)
-
 ---
 
-### (Benchmarks](benchmark)
+**Benchmarks** (https://github.com/cpp-testing/ut-benchmark)
 
-**CXX=clang++9 CXXFLAGS="-std=c++2a"**
-
-* include:doctest *1.29s*
-* include:ut *0.42s*
-
-* assert:doctest *1.30s*
-* assert:ut *0.48s*
-
-* test:doctest *2.33s*
-* test:ut *0.93s*
-
-**CXX=g++9 CXXFLAGS="-std=c++2a"**
-
-* include:doctest *1.77s*
-* include:ut *0.50s*
-
-* assert:doctest *1.73s*
-* assert:ut *0.59s*
-
-* test:doctest *2.41s*
-* test:ut *1.49s*
+| **Clang-9** | [doctest-2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | [μt-1.0.0](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) |
+| ------- | ----- | ----- |
+| [include](https://github.com/cpp-testing/ut-benchmark) | 1.29s | 0.42s |
+| [assert](https://github.com/cpp-testing/ut-benchmark)  | 1.30s | 0.48s |
+| [test](https://github.com/cpp-testing/ut-benchmark)    | 2.33s | 0.93s |
+|                                                        |       |       |
+| **GCC-9**   |                                              |       |       |
+| [include](https://github.com/cpp-testing/ut-benchmark) | 1.77s | 0.50s |
+| [assert](https://github.com/cpp-testing/ut-benchmark)  | 1.73s | 0.59s |
+| [test](https://github.com/cpp-testing/ut-benchmark)    | 2.41s | 1.49s |
 
 ---
 
