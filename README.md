@@ -54,7 +54,7 @@ int main() {
 All tests passed (3 asserts in 1 tests)
 ```
 
-**Assertions** (https://godbolt.org/z/6oo_E4)
+**Assertions** (https://godbolt.org/z/A-BGn2)
 
 ```cpp
 "message"_test = [] {
@@ -80,9 +80,9 @@ All tests passed (3 asserts in 1 tests)
 };
 
 "constant"_test = [] {
-	constexpr auto compile_time = 42;
-	auto run_time = 99;
-	expect(constant<42_i == compile_time> and run_time == 99_i);
+  constexpr auto compile_time_v = 42;
+  auto run_time_v = 99;
+  expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
 };
 
 "fatal"_test = [] {
