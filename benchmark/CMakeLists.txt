@@ -9,6 +9,6 @@ function(benchmark name)
   add_custom_command(TARGET b${name} COMMAND b${name})
 endfunction()
 
-benchmark(expect)
+benchmark(assert)
 benchmark(include)
 benchmark(test)
