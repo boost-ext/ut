@@ -568,7 +568,17 @@ struct test {
   std::string_view type{};
   std::string_view name{};
 
-  template <class Test>
+  template <class... Ts>
+  constexpr auto operator=(void (*test)()) {
+    on<Ts...>(events::test{type, name, none{}, test});
+    return test;
+  }
+
+  constexpr auto operator=(void (*test)(std::string_view)) {
+    return test(name);
+  }
+
+  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
   constexpr auto operator=(Test test) {
     if constexpr (std::is_invocable_v<Test, std::string_view>) {
       return test(name);
