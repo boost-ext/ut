@@ -25,7 +25,7 @@ constexpr auto to_string = [](const auto expr) {
   return str.str();
 };
 
-constexpr auto test_assert = [](bool result) {
+constexpr auto test_assert = [](const bool result) {
   if (not result) {
     throw;
   }
@@ -520,6 +520,29 @@ int main() {
     test_assert(2 == std::size(test_cfg.log_calls));
     test_assert(" "sv == test_cfg.log_calls[0]);
     test_assert("false msg"sv == test_cfg.log_calls[1]);
+  }
+
+  {
+    struct convertible_to_bool {
+      constexpr operator bool() const { return false; }
+    };
+
+    struct explicit_convertible_to_bool {
+      constexpr explicit operator bool() const { return true; }
+    };
+
+    test_cfg = fake_cfg{};
+
+    expect(convertible_to_bool{});
+    expect(static_cast<bool>(explicit_convertible_to_bool{}));
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+
+    test_assert("false" == test_cfg.assertion_calls[0].str);
+    test_assert(not test_cfg.assertion_calls[0].result);
+
+    test_assert("true" == test_cfg.assertion_calls[1].str);
+    test_assert(test_cfg.assertion_calls[1].result);
   }
 
   {

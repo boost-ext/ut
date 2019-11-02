@@ -1197,8 +1197,9 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
 }
 }  //  namespace operators
 
-template <class TExpr, type_traits::requires_t<type_traits::is_op_v<TExpr> or
-                                               std::is_same_v<bool, TExpr>> = 0>
+template <class TExpr,
+          type_traits::requires_t<type_traits::is_op_v<TExpr> or
+                                  std::is_convertible_v<TExpr, bool>> = 0>
 constexpr auto expect(const TExpr& expr,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
