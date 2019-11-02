@@ -617,6 +617,15 @@ int main() {
     using namespace std::literals::string_view_literals;
     using namespace std::literals::string_literals;
 
+    {
+      using boost::ut::detail::operators::operator<<;
+      std::stringstream str{};
+      str << "should print" << ' ' << "string"s
+          << " and "
+          << "string_view"sv;
+      test_assert("should print string and string_view" == str.str());
+    }
+
     expect("str"s == "str"s);
     expect("str1"s != "str2"s);
 

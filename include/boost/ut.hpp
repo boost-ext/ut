@@ -147,12 +147,16 @@ static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
+static constexpr auto has_npos_v =
+    is_valid<T>([](auto t) -> decltype(void(t.npos)) {});
+
+template <class T>
 static constexpr auto has_value_v =
-    is_valid<T>([](auto t) -> decltype(t.value, void()) {});
+    is_valid<T>([](auto t) -> decltype(void(t.value)) {});
 
 template <class T>
 static constexpr auto has_epsilon_v =
-    is_valid<T>([](auto t) -> decltype(t.epsilon, void()) {});
+    is_valid<T>([](auto t) -> decltype(void(t.epsilon)) {});
 
 template <bool Cond, class T = int>
 using requires_t = std::enable_if_t<Cond, T>;
@@ -204,9 +208,10 @@ inline auto split(std::string_view input, std::string_view delim)
 }
 }  // namespace utility
 
-namespace operators {
+namespace detail::operators {
 template <class TOs, class T,
-          type_traits::requires_t<type_traits::is_container_v<T>> = 0>
+          type_traits::requires_t<type_traits::is_container_v<T> and
+                                  not type_traits::has_npos_v<T>> = 0>
 constexpr auto& operator<<(TOs& os, const T& t) {
   os << '{';
   auto first = true;
@@ -217,7 +222,7 @@ constexpr auto& operator<<(TOs& os, const T& t) {
   os << '}';
   return os;
 }
-}  // namespace operators
+}  // namespace detail::operators
 
 struct none {};
 
@@ -741,7 +746,7 @@ class eq_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const eq_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << get(op.lhs_) << " == " << get(op.rhs_));
   }
 
@@ -776,7 +781,7 @@ class neq_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const neq_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << get(op.lhs_) << " != " << get(op.rhs_));
   }
 
@@ -802,7 +807,7 @@ class gt_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const gt_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << get(op.lhs_) << " > " << get(op.rhs_));
   }
 
@@ -828,7 +833,7 @@ class ge_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const ge_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << get(op.lhs_) << " >= " << get(op.rhs_));
   }
 
@@ -854,7 +859,7 @@ class lt_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const lt_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << get(op.lhs_) << " < " << get(op.rhs_));
   }
 
@@ -880,7 +885,7 @@ class le_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const le_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << get(op.lhs_) << " <= " << get(op.rhs_));
   }
 
@@ -900,7 +905,7 @@ class and_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const and_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << '(' << get(op.lhs_) << " and " << get(op.rhs_) << ')');
   }
 
@@ -920,7 +925,7 @@ class or_ : op {
   }
 
   friend auto operator<<(std::ostream& os, const or_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << '(' << get(op.lhs_) << " or " << get(op.rhs_) << ')');
   }
 
@@ -937,7 +942,7 @@ class not_ : op {
   constexpr operator bool() const { return not static_cast<bool>(t_); }
 
   friend auto operator<<(std::ostream& os, const not_& op) -> std::ostream& {
-    using operators::operator<<;
+    using detail::operators::operator<<;
     return (os << "not " << get(op.t_));
   }
 
