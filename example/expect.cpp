@@ -6,6 +6,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -79,5 +80,10 @@ int main() {
     constexpr auto compile_time_v = 42;
     auto run_time_v = 99;
     expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
+  };
+
+  "convertible"_test = [] {
+    expect(bool(std::make_unique<int>()));
+    expect(not bool(std::unique_ptr<int>{}));
   };
 }
