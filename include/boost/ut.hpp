@@ -341,7 +341,7 @@ class reporter {
       out_ << '\n' << colors::red << "FAILED" << colors::none << '\n';
     } else {
       ++tests_.pass;
-      out_ << "OK" << '\n';
+      out_ << "✔️" << '\n';
     }
   }
 
