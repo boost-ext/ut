@@ -208,6 +208,12 @@ inline auto split(std::string_view input, std::string_view delim)
 }
 }  // namespace utility
 
+namespace colors {
+static inline auto& none(std::ostream& os) { return os << "\033[0m"; }
+static inline auto& red(std::ostream& os) { return os << "\033[31m"; }
+static inline auto& green(std::ostream& os) { return os << "\033[32m"; }
+}  // namespace colors
+
 namespace detail::operators {
 template <class TOs, class T,
           type_traits::requires_t<type_traits::is_container_v<T> and
@@ -332,10 +338,10 @@ class reporter {
   auto on(events::test_end) -> void {
     if (asserts_.fail > fails_ or exception_) {
       ++tests_.fail;
-      out_ << "\nFAILED\n";
+      out_ << '\n' << colors::red << "FAILED" << colors::none << '\n';
     } else {
       ++tests_.pass;
-      out_ << "OK\n";
+      out_ << "OK" << '\n';
     }
   }
 
@@ -343,7 +349,7 @@ class reporter {
 
   auto on(events::exception) -> void {
     exception_ = true;
-    out_ << "\n  Unexpected exception!";
+    out_ << "\n  " << colors::red << "Unexpected exception!" << colors::none;
   }
 
   template <class TLocation, class TExpr>
@@ -359,8 +365,9 @@ class reporter {
                  : name;
     };
     out_ << "\n  " << short_name(assertion.location.file_name()) << ':'
-         << assertion.location.line() << ":FAILED [" << std::boolalpha
-         << assertion.expr << ']';
+         << assertion.location.line() << ':' << colors::red << "FAILED"
+         << colors::none << " [" << std::boolalpha << colors::red
+         << assertion.expr << colors::none << ']';
     ++asserts_.fail;
   }
 
@@ -374,14 +381,16 @@ class reporter {
                 "=="
                 "=================\n"
              << "tests:   " << (tests_.pass + tests_.fail) << " | "
-             << tests_.fail << " failed" << '\n'
+             << colors::red << tests_.fail << " failed" << colors::none << '\n'
              << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
              << asserts_.pass << " passed"
-             << " | " << asserts_.fail << " failed" << '\n';
+             << " | " << colors::red << asserts_.fail << " failed"
+             << colors::none << '\n';
         std::cerr << out_.str() << std::endl;
       } else {
-        std::cout << "All tests passed (" << asserts_.pass << " asserts in "
-                  << tests_.pass << " tests)\n";
+        std::cout << colors::green << "All tests passed" << colors::none << " ("
+                  << asserts_.pass << " asserts in " << tests_.pass
+                  << " tests)\n";
 
         if (tests_.skip) {
           std::cout << tests_.skip << " tests skipped\n";
