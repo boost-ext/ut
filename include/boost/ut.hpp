@@ -5,10 +5,6 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#pragma once
-
-#include <ciso646>  // and, or, not
-
 #if not defined(__cpp_variadic_templates) or                                  \
     not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or    \
     not defined(__cpp_alias_templates) or not defined(__cpp_static_assert) or \
@@ -16,7 +12,24 @@
     not defined(__cpp_return_type_deduction) or                               \
     not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
 #error "[Boost].UT requires C++20 support"
+#endif
+
+#if defined(__cpp_modules)
+export module boost.ut;
+export import std;
+
+namespace std::experimental {
+struct source_location {
+  static constexpr auto current() noexcept { return source_location{}; }
+  constexpr auto file_name() const noexcept { return __FILE__; }
+  constexpr auto line() const noexcept { return __LINE__; }
+};
+}  // namespace std::experimental
 #else
+#pragma once
+
+#include <ciso646>  // and, or, not
+
 #if __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 #else
@@ -37,8 +50,13 @@ struct source_location {
 #include <type_traits>
 #include <utility>
 #include <vector>
+#endif
 
-namespace boost::ut {
+#if defined(__cpp_modules)
+export
+#endif
+
+    namespace boost::ut {
 inline namespace v1_0_1 {
 namespace reflection {
 template <class T>
@@ -1309,6 +1327,5 @@ using operators::operator or;
 using operators::operator not;
 using operators::operator|;
 
-}  // namespace v1_0_0
+}  // namespace v1_0_1
 }  // namespace boost::ut
-#endif

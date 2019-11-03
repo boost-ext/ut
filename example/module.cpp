@@ -5,11 +5,13 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-import std;
 import boost.ut;
 
 int main() {
   using namespace boost::ut;
 
-  "module"_test = [] { expect(42_i == 42 and constant<3 == 3>); };
+  "module"_test = [] {
+    expect(42_i == 42 and constant<3 == 3>);
+    expect(std::vector{1, 2, 3} == std::vector{1, 2, 3});
+  };
 }
