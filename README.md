@@ -18,7 +18,7 @@
 * **Fast to compile/execute** ([Benchmarks](benchmark))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
-<a href="https://godbolt.org/z/izlLC-"><img src="doc/images/ut.hpp.png"></a>
+<a href="https://godbolt.org/z/izlLC-"><img src="doc/images/ut.png"></a>
 
 ### Testing
 
