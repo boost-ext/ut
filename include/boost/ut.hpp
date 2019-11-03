@@ -39,7 +39,7 @@ struct source_location {
 #include <vector>
 
 namespace boost::ut {
-inline namespace v1_0_0 {
+inline namespace v1_0_1 {
 namespace reflection {
 template <class T>
 constexpr auto type_name() -> std::string_view {
