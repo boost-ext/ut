@@ -18,7 +18,7 @@
 * **Fast to compile/execute** ([Benchmarks](benchmark))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
-<a href="https://godbolt.org/z/izlLC-"><img src="doc/images/ut.png"></a>
+<a href="https://godbolt.org/z/izlLC-"><img src="doc/images/ut.hpp.png"></a>
 
 ### Testing
 
@@ -271,6 +271,22 @@ skip | "don't run"_test = [] {
 ```
 All tests passed (0 asserts in 0 tests)
 1 tests skipped
+```
+
+**Module** (https://wandbox.org/permlink/yMnlEUeRHjQePSPw)
+
+```cpp
+import boost.ut;
+
+int main() {
+  "module"_test = [] {
+    expect(42_i == 42);
+  };
+}
+```
+
+```
+All tests passed (1 asserts in 1 tests)
 ```
 
 **Runner** (https://godbolt.org/z/0uaFlH)
