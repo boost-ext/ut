@@ -9,10 +9,10 @@
 
 # [Boost].UT / μt
 
-> C++20 **single header, macro-free** μ(micro)/Unit Testing Framework
+> C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
 
 * **No dependencies** (C++20 / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
-* **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+* **Single include** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)) or **Single module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.mpp))
 * **Macro-free** ([Based on modern C++ features](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
 * **Easy to use** (Minimal interface - `test, suite, expect`)
 * **Fast to compile/execute** ([Benchmarks](benchmark))
