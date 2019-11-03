@@ -5,21 +5,10 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#pragma once
+export module boost.ut;
 
-#include <ciso646>  // and, or, not
+import std;
 
-#if not defined(__cpp_variadic_templates) or                                  \
-    not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or    \
-    not defined(__cpp_alias_templates) or not defined(__cpp_static_assert) or \
-    not defined(__cpp_generic_lambdas) or not defined(__cpp_constexpr) or     \
-    not defined(__cpp_return_type_deduction) or                               \
-    not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
-#error "[Boost].UT requires C++20 support"
-#else
-#if __has_include(<experimental/source_location>)
-#include <experimental/source_location>
-#else
 namespace std::experimental {
 struct source_location {
   static constexpr auto current() noexcept { return source_location{}; }
@@ -27,18 +16,8 @@ struct source_location {
   constexpr auto line() const noexcept { return __LINE__; }
 };
 }  // namespace std::experimental
-#endif
-#include <algorithm>
-#include <array>
-#include <iostream>
-#include <sstream>
-#include <string_view>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <vector>
 
-namespace boost::ut {
+export namespace boost::ut {
 inline namespace v1_0_0 {
 namespace reflection {
 template <class T>
@@ -147,12 +126,12 @@ constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-constexpr auto has_npos_v = is_valid<T>([](auto t) -> decltype(void(t.npos)) {
-});
+constexpr auto has_npos_v =
+    is_valid<T>([](auto t) -> decltype(void(t.npos)) {});
 
 template <class T>
-constexpr auto has_value_v = is_valid<T>([](auto t) -> decltype(void(t.value)) {
-});
+constexpr auto has_value_v =
+    is_valid<T>([](auto t) -> decltype(void(t.value)) {});
 
 template <class T>
 constexpr auto has_epsilon_v =
@@ -1311,4 +1290,3 @@ using operators::operator|;
 
 }  // namespace v1_0_0
 }  // namespace boost::ut
-#endif
