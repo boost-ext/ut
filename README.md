@@ -32,6 +32,14 @@
 #include <boost/ut.hpp>
 ```
 
+or
+
+> Get the latest module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.mpp)
+
+```cpp
+import boost.ut;
+```
+
 **Hello World** (https://godbolt.org/z/ZLCQ2n)
 
 ```cpp
