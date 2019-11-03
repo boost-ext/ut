@@ -26,19 +26,11 @@
 
 ### Quick start
 
-> Get the latest latest header [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
+> Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
 
-```cpp
-#include <boost/ut.hpp>
-```
-
-or
-
-> Get the latest module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.mpp)
-
-```cpp
-import boost.ut;
-```
+| **C++ header** | **C++20 module** |
+|-|-|
+| `#include <boost/ut.hpp>` | `import boost.ut;` |
 
 **Hello World** (https://godbolt.org/z/ZLCQ2n)
 
