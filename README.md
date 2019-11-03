@@ -432,7 +432,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 * `compile-time` / `run-time` (*smaller is better*)
 
-| **Clang-9** | [μt-1.0.0](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) | [doctest-2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | [catch-2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) |
+| **Clang-9** | [μt-1.0.1](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) | [doctest-2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | [catch-2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) |
 | ------- | ----- | ----- | ----- |
 | [include](https://github.com/cpp-testing/ut-benchmark) | 0.42s / -     | 1.29s / -     | 5.44s / -     |
 | [assert](https://github.com/cpp-testing/ut-benchmark)  | 0.48s / 0.04s | 1.30s / 0.11s | 5.23s / 0.12s |
