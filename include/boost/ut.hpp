@@ -362,7 +362,7 @@ class reporter {
   auto on(events::test_end) -> void {
     if (asserts_.fail > fails_ or exception_) {
       ++tests_.fail;
-      out_ << '\n' << colors::red << "FAILED" << colors::none << '\n';
+      out_ << '\n' << colors::red << "❌" << colors::none << '\n';
     } else {
       ++tests_.pass;
       out_ << "✔️" << '\n';

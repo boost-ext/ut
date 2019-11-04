@@ -109,7 +109,7 @@ Running "fatal"...✔️
 Running "failure"...
   assertions.cpp:48:FAILED [1 == 2] should fail
   assertions.cpp:49:FAILED [(0 == 1 or 2 == 0)] sum?
-FAILED
+❌
 
 ===============================================================================
 
