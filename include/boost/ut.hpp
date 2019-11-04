@@ -84,6 +84,8 @@ constexpr auto pow(const T base, const TExp exp) -> T {
 
 template <class T, char... Cs>
 constexpr auto num() -> T {
+  static_assert(
+      ((Cs == '.' or Cs == '\'' or (Cs >= '0' and Cs <= '9')) and ...));
   constexpr const char cs[]{Cs...};
   T result{};
   auto size = 0u, i = 0u, tmp = 1u;
