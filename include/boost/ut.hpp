@@ -20,9 +20,11 @@ export import std;
 
 namespace std::experimental {
 struct source_location {
-  static constexpr auto current() noexcept { return source_location{}; }
-  constexpr auto file_name() const noexcept { return __FILE__; }
-  constexpr auto line() const noexcept { return __LINE__; }
+  [[nodiscard]] static constexpr auto current() noexcept {
+    return source_location{};
+  }
+  [[nodiscard]] constexpr auto file_name() const noexcept { return ""; }
+  [[nodiscard]] constexpr auto line() const noexcept { return 0; }
 };
 }  // namespace std::experimental
 #else
@@ -35,9 +37,11 @@ struct source_location {
 #else
 namespace std::experimental {
 struct source_location {
-  static constexpr auto current() noexcept { return source_location{}; }
-  constexpr auto file_name() const noexcept { return __FILE__; }
-  constexpr auto line() const noexcept { return __LINE__; }
+  [[nodiscard]] static constexpr auto current() noexcept {
+    return source_location{};
+  }
+  [[nodiscard]] constexpr auto file_name() const noexcept { return ""; }
+  [[nodiscard]] constexpr auto line() const noexcept { return 0; }
 };
 }  // namespace std::experimental
 #endif

@@ -305,8 +305,10 @@ int main() {
 
   {
     struct fake_source_location {
-      constexpr auto file_name() const noexcept { return "file/name"; }
-      constexpr auto line() const noexcept { return 42; }
+      [[nodiscard]] constexpr auto file_name() const noexcept {
+        return "file/name";
+      }
+      [[nodiscard]] constexpr auto line() const noexcept { return 42; }
     };
     std::stringstream out{};
     std::stringstream err{};
@@ -765,7 +767,6 @@ int main() {
     test_assert(std::empty(test_cfg.log_calls));
     test_assert(0 == test_cfg.fatal_assertion_calls);
     test_assert(1 == std::size(test_cfg.assertion_calls));
-    test_assert(test_cfg.assertion_calls[0].location.line() > 0);
     test_assert("42 == 42" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[0].result);
   }
