@@ -100,12 +100,12 @@ All tests passed (3 asserts in 1 tests)
 ```
 
 ```
-Running "message"...OK
-Running "operators"...OK
-Running "expressions"...OK
-Running "floating points"...OK
-Running "constant"...OK
-Running "fatal"...OK
+Running "message"...✔️
+Running "operators"...✔️
+Running "expressions"...✔️
+Running "floating points"...✔️
+Running "constant"...✔️
+Running "fatal"...✔️
 Running "failure"...
   assertions.cpp:48:FAILED [1 == 2] should fail
   assertions.cpp:49:FAILED [(0 == 1 or 2 == 0)] sum?
