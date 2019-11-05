@@ -11,7 +11,7 @@ int main() {
   using namespace boost::ut;
 
   "module"_test = [] {
-    expect(42_i == 42 and constant<3 == 3>);
+    expect(42_i == 42 and constant<3 == 3_i>);
     expect(std::vector{1, 2, 3} == std::vector{1, 2, 3});
   };
 }
