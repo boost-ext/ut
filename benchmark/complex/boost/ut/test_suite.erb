@@ -1,0 +1,12 @@
+#include <boost/ut.hpp>
+//import boost.ut;
+
+namespace ut = boost::ut;
+
+static ut::suite _ = +[] {
+  using namespace ut;
+
+  <% (0..n).each do |i| %>
+    "test_suite_<%= v %>.<%= i %>"_test = [] {};
+  <% end %>
+};

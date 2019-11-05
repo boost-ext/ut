@@ -1,0 +1,6 @@
+#define DOCTEST_CONFIG_IMPLEMENTATION_IN_DLL
+#include <doctest/doctest.h>
+
+<% (0..n).each do |i| %>
+  TEST_CASE("<%= v %>.<%= i %>") {}
+<% end %>
