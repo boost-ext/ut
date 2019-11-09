@@ -143,7 +143,7 @@ constexpr auto den_size(TValue value) -> T {
     value *= 10;
     tmp = value - T(value);
     ++result;
-  } while (tmp > precision and result < std::numeric_limits<TValue>::digits10);
+  } while (tmp > precision);
 
   return result;
 }
@@ -156,9 +156,11 @@ struct identity {
   using type = T;
 };
 
+template <class T>
+T&& declval();
 template <class... Ts, class TExpr>
 constexpr auto is_valid(TExpr expr)
-    -> decltype(expr(std::declval<Ts...>()), bool()) {
+    -> decltype(expr(declval<Ts...>()), bool()) {
   return true;
 }
 template <class...>
@@ -182,8 +184,15 @@ template <class T>
 constexpr auto has_epsilon_v =
     is_valid<T>([](auto t) -> decltype(void(t.epsilon)) {});
 
-template <bool Cond, class T = int>
-using requires_t = std::enable_if_t<Cond, T>;
+template <bool>
+struct requires_ {};
+template <>
+struct requires_<true> {
+  using type = int;
+};
+
+template <bool Cond>
+using requires_t = typename requires_<Cond>::type;
 }  // namespace type_traits
 
 namespace utility {
@@ -1114,7 +1123,7 @@ constexpr auto operator""_ld() {
 
 namespace type_traits {
 template <class T>
-constexpr auto is_op_v = std::is_base_of_v<detail::op, T>;
+constexpr auto is_op_v = __is_base_of(detail::op, T);
 }  // namespace type_traits
 
 namespace operators {
@@ -1150,50 +1159,44 @@ constexpr auto operator!=(T&& lhs, T&& rhs) {
   return detail::neq_{std::forward<T>(lhs), std::forward<T>(rhs)};
 }
 
-template <
-    class TLhs, class TRhs,
-    type_traits::requires_t<
-        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator>(const TLhs& lhs, const TRhs& rhs) {
   return detail::gt_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    type_traits::requires_t<
-        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator>=(const TLhs& lhs, const TRhs& rhs) {
   return detail::ge_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    type_traits::requires_t<
-        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator<(const TLhs& lhs, const TRhs& rhs) {
   return detail::lt_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    type_traits::requires_t<
-        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator<=(const TLhs& lhs, const TRhs& rhs) {
   return detail::le_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    type_traits::requires_t<
-        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   return detail::and_{lhs, rhs};
 }
 
-template <
-    class TLhs, class TRhs,
-    type_traits::requires_t<
-        type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>, int> = 0>
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
 constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   return detail::or_{lhs, rhs};
 }
@@ -1287,8 +1290,8 @@ struct _t : detail::value<T> {
 struct suite {
   template <class TSuite>
   constexpr explicit(false) suite(TSuite suite) {
-    static_assert(std::is_empty_v<TSuite>);
-    detail::on<TSuite>(events::suite{suite});
+    static_assert(1 == sizeof(suite));
+    detail::on<decltype(+suite)>(events::suite{+suite});
   }
 };
 
