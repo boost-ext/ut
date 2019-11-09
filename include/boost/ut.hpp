@@ -80,6 +80,11 @@ constexpr auto abs(const T t) -> T {
   return t < T{} ? -t : t;
 }
 
+template <class T>
+constexpr auto min(const T& lhs, const T& rhs) -> const T& {
+  return (rhs < lhs) ? rhs : lhs;
+}
+
 template <class T, class TExp>
 constexpr auto pow(const T base, const TExp exp) -> T {
   return exp ? T(base * pow(base, exp - TExp(1))) : T(1);
@@ -491,7 +496,7 @@ class runner {
     template <class TPath>
     constexpr auto operator()(const std::size_t level, const TPath& path) const
         -> bool {
-      for (auto i = 0u; i < std::min(level + 1, std::size(path_)); ++i) {
+      for (auto i = 0u; i < math::min(level + 1, std::size(path_)); ++i) {
         if (not utility::is_match(path[i], path_[i])) {
           return false;
         }
@@ -803,7 +808,7 @@ class eq_ : op {
     } else if constexpr (type_traits::has_epsilon_v<TLhs> and
                          type_traits::has_epsilon_v<TRhs>) {
       return math::abs(get(lhs_) - get(rhs_)) <
-             std::min(TLhs::epsilon, TRhs::epsilon);
+             math::min(TLhs::epsilon, TRhs::epsilon);
     } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
       return math::abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
     } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
@@ -838,7 +843,7 @@ class neq_ : op {
     } else if constexpr (type_traits::has_epsilon_v<TLhs> and
                          type_traits::has_epsilon_v<TRhs>) {
       return math::abs(get(lhs_) - get(rhs_)) >
-             std::min(TLhs::epsilon, TRhs::epsilon);
+             math::min(TLhs::epsilon, TRhs::epsilon);
     } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
       return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
     } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
@@ -1166,7 +1171,7 @@ constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
 
 template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 constexpr auto operator==(T&& lhs, T&& rhs) {
-  return detail::eq_{std::forward<T>(lhs), std::forward<T>(rhs)};
+  return detail::eq_{static_cast<T&&>(lhs), static_cast<T&&>(rhs)};
 }
 
 constexpr auto operator!=(std::string_view lhs, std::string_view rhs) {
@@ -1182,7 +1187,7 @@ constexpr auto operator!=(const TLhs& lhs, const TRhs& rhs) {
 
 template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 constexpr auto operator!=(T&& lhs, T&& rhs) {
-  return detail::neq_{std::forward<T>(lhs), std::forward<T>(rhs)};
+  return detail::neq_{static_cast<T&&>(lhs), static_cast<T&&>(rhs)};
 }
 
 template <class TLhs, class TRhs,
@@ -1247,8 +1252,10 @@ constexpr auto operator|(const F& f, const T& t) {
   };
 }
 
-template <class F, class... Ts>
-constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
+template <
+    class F, template <class...> class T, class... Ts,
+    type_traits::requires_t<not type_traits::is_container_v<T<Ts...>>> = 0>
+constexpr auto operator|(const F& f, const T<Ts...>& t) {
   return [f, t](auto name) {
     std::apply(
         [f, name](const auto&... args) {
