@@ -652,13 +652,13 @@ struct test {
     return test(name);
   }
 
-  template <class Test>
+  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
   constexpr auto operator=(Test test)
       -> decltype(test(type_traits::declval<std::string_view>())) {
     return test(name);
   }
 
-  template <class Test>
+  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
     on<Test>(events::test{type, name, none{}, test});
