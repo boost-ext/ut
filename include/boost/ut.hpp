@@ -51,7 +51,6 @@ struct source_location {
 #include <sstream>
 #include <string_view>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <vector>
 #endif
@@ -184,6 +183,26 @@ template <class T>
 constexpr auto has_epsilon_v =
     is_valid<T>([](auto t) -> decltype(void(t.epsilon)) {});
 
+template <class T>
+inline constexpr auto is_floating_point_v = false;
+template <>
+inline constexpr auto is_floating_point_v<float> = true;
+template <>
+inline constexpr auto is_floating_point_v<double> = true;
+template <>
+inline constexpr auto is_floating_point_v<long double> = true;
+
+template <class From, class To>
+constexpr auto is_convertible(int) -> decltype(To(declval<From>())) {
+  return true;
+}
+template <class...>
+constexpr auto is_convertible(...) {
+  return false;
+}
+template <class From, class To>
+constexpr auto is_convertible_v = is_convertible<From, To>(0);
+
 template <bool>
 struct requires_ {};
 template <>
@@ -281,15 +300,18 @@ struct test {
   constexpr auto operator()() const { run_impl(run, arg); }
 
  private:
-  static constexpr auto run_impl(Test test, [[maybe_unused]] const TArg& arg)
-      -> void {
-    if constexpr (std::is_same_v<none, TArg>) {
-      test();
-    } else if constexpr (std::is_invocable_v<Test, TArg>) {
-      test(arg);
-    } else {
-      test.template operator()<TArg>();
-    }
+  static constexpr auto run_impl(Test test, const none&) { test(); }
+
+  template <class T>
+  static constexpr auto run_impl(T test, const TArg& arg)
+      -> decltype(test(arg), void()) {
+    test(arg);
+  }
+
+  template <class T>
+  static constexpr auto run_impl(T test, const TArg&)
+      -> decltype(test.template operator()<TArg>(), void()) {
+    test.template operator()<TArg>();
   }
 };
 template <class Test, class TArg>
@@ -625,14 +647,17 @@ struct test {
     return test(name);
   }
 
-  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
-  constexpr auto operator=(Test test) {
-    if constexpr (std::is_invocable_v<Test, std::string_view>) {
-      return test(name);
-    } else {
-      on<Test>(events::test{type, name, none{}, test});
-      return test;
-    }
+  template <class Test>
+  constexpr auto operator=(Test test)
+      -> decltype(test(type_traits::declval<std::string_view>())) {
+    return test(name);
+  }
+
+  template <class Test>
+  constexpr auto operator=(Test test) ->
+      typename type_traits::identity<Test, decltype(test())>::type {
+    on<Test>(events::test{type, name, none{}, test});
+    return test;
   }
 };
 
@@ -701,7 +726,8 @@ class value : op {
 };
 
 template <class T>
-class value<T, type_traits::requires_t<std::is_floating_point_v<T>>> : op {
+class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
+    : op {
  public:
   static inline auto epsilon = T{};
 
@@ -1233,9 +1259,9 @@ constexpr auto operator|(const F& f, const std::tuple<Ts...>& t) {
 }
 }  //  namespace operators
 
-template <class TExpr,
-          type_traits::requires_t<type_traits::is_op_v<TExpr> or
-                                  std::is_convertible_v<TExpr, bool>> = 0>
+template <class TExpr, type_traits::requires_t<
+                           type_traits::is_op_v<TExpr> or
+                           type_traits::is_convertible_v<TExpr, bool>> = 0>
 constexpr auto expect(const TExpr& expr,
                       const std::experimental::source_location& location =
                           std::experimental::source_location::current()) {
