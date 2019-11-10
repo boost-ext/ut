@@ -1257,7 +1257,7 @@ template <
     type_traits::requires_t<not type_traits::is_container_v<T<Ts...>>> = 0>
 constexpr auto operator|(const F& f, const T<Ts...>& t) {
   return [f, t](auto name) {
-    std::apply(
+    apply(
         [f, name](const auto&... args) {
           (detail::on<F>(events::test{"test", name, args, f}), ...);
         },
