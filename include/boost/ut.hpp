@@ -13,7 +13,6 @@
     not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
 #error "[Boost].UT requires C++20 support"
 #else
-
 #define BOOST_UT_VERSION 1'0'1
 
 #if defined(__cpp_modules)
@@ -32,7 +31,9 @@ struct source_location {
 #else
 #pragma once
 
+#if defined(_MSC_VER) and not defined(__clang__)
 #include <ciso646>  // and, or, not
+#endif
 
 #if __has_include(<experimental/source_location>)
 #include <experimental/source_location>
@@ -76,28 +77,29 @@ export
 inline namespace v1_0_1 {
 
 namespace io {
+#if defined(BOOST_UT_INTERFACE)
 struct ostream;
 extern auto operator<<(ostream& os, char) -> ostream&;
 extern auto operator<<(ostream& os, char const*) -> ostream&;
 extern auto operator<<(ostream& os, int) -> ostream&;
 extern auto operator<<(ostream& os, const std::string_view) -> ostream&;
-#if not defined(BOOST_UT_INTERFACE)
+#elif defined(BOOST_UT_IMPLEMENTATION)
 struct ostream : std::ostream {
   using std::ostream::ostream;
 };
-inline auto operator<<(ostream& os, char s) -> ostream& {
+auto operator<<(ostream& os, char s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
   return os;
 }
-inline auto operator<<(ostream& os, char const* s) -> ostream& {
+auto operator<<(ostream& os, char const* s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
   return os;
 }
-inline auto operator<<(ostream& os, int s) -> ostream& {
+auto operator<<(ostream& os, int s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
   return os;
 }
-inline auto operator<<(ostream& os, const std::string_view s) -> ostream& {
+auto operator<<(ostream& os, const std::string_view s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
   return os;
 }
@@ -263,6 +265,7 @@ using requires_t = typename requires_<Cond>::type;
 }  // namespace type_traits
 
 namespace utility {
+#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
 template <class>
 class function;
 template <class R, class... TArgs>
@@ -306,6 +309,7 @@ class function<R(TArgs...)> {
   void (*destroy_)(void*){};
   void* data_{};
 };
+#endif
 
 #if not defined(BOOST_UT_INTERFACE)
 inline auto is_match(std::string_view input, std::string_view pattern) -> bool {
@@ -443,10 +447,12 @@ struct assertion {
 };
 template <class TLocation, class TExpr>
 assertion(TLocation, TExpr)->assertion<TLocation, TExpr>;
+#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
 struct expr {
   bool result;
   utility::function<io::ostream&(io::ostream&)> out;
 };
+#endif
 template <class TLocation, class TExpr>
 struct assertion_pass {
   TLocation location{};
@@ -564,10 +570,12 @@ class reporter {
     static_cast<std::ostream&>(os) << expr;
   }
 
+#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
   template <class TOs, class TExpr>
-  constexpr void out(TOs& os, const utility::function<TExpr>& expr) {
-    expr(reinterpret_cast<std::ostream&>(os));
+  constexpr void out(TOs& os, utility::function<TExpr>& expr) {
+    expr(reinterpret_cast<io::ostream&>(os));
   }
+#endif
 
   struct {
     std::size_t pass{};
@@ -699,6 +707,7 @@ class runner {
     }
   }
 
+#if defined(BOOST_UT_IMPLEMENTATION)
   [[nodiscard]] auto on(
       events::assertion<std::experimental::source_location, events::expr>
           assertion) -> bool {
@@ -719,6 +728,7 @@ class runner {
       return false;
     }
   }
+#endif
 
   [[noreturn]] auto on(events::fatal_assertion fatal_assertion) {
     reporter_.on(fatal_assertion);
@@ -757,50 +767,53 @@ template <class = override, class...>
 [[maybe_unused]] inline auto cfg = runner<reporter>{};
 #endif
 
+namespace link {
+#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
+extern void on(events::suite<void (*)()>);
+extern void on(events::test<void (*)()>);
+[[nodiscard]] extern auto on(
+    events::assertion<std::experimental::source_location, events::expr>)
+    -> bool;
+[[noreturn]] extern void on(events::fatal_assertion);
+#endif
+
+#if defined(BOOST_UT_IMPLEMENTATION)
+void on(events::suite<void (*)()> suite) { cfg<override>.on(suite); }
+void on(events::test<void (*)()> test) { cfg<override>.on(test); }
+[[nodiscard]] auto on(
+    events::assertion<std::experimental::source_location, events::expr>
+        assertion) -> bool {
+  return cfg<override>.on(static_cast<decltype(assertion)&&>(assertion));
+}
+void on(events::fatal_assertion assertion) { cfg<override>.on(assertion); }
+#endif
+}  // namespace link
+
 namespace detail {
 struct op {};
 struct skip {};
 
-extern void on_impl(events::suite<void (*)()>);
-extern void on_impl(events::test<void (*)()>);
-[[nodiscard]] extern auto on_impl(
-    events::assertion<std::experimental::source_location, events::expr>)
-    -> bool;
-[[noreturn]] extern void on_impl(events::fatal_assertion);
-
 #if defined(BOOST_UT_INTERFACE)
 template <class..., class TEvent>
 constexpr auto on(const TEvent& event) {
-  on_impl(event);
+  link::on(event);
 }
 
 template <class..., class TLocation, class TExpr>
 [[nodiscard]] auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
-  return on_impl(
+  return link::on(
       events::assertion<std::experimental::source_location, events::expr>{
           assertion.location,
           {assertion.expr, [assertion](io::ostream& os) -> io::ostream& {
              return (os << assertion.expr);
            }}});
 }
-
 #else
 template <class... Ts, class TEvent>
 [[nodiscard]] constexpr decltype(auto) on(const TEvent& event) {
   return ut::cfg<typename type_traits::identity<override, Ts...>::type>.on(
       event);
 }
-#endif
-
-#if defined(BOOST_UT_IMPLEMENTATION)
-void on_impl(events::suite<void (*)()> suite) { cfg<override>.on(suite); }
-void on_impl(events::test<void (*)()> test) { cfg<override>.on(test); }
-[[nodiscard]] auto on_impl(
-    events::assertion<std::experimental::source_location, events::expr>
-        assertion) -> bool {
-  return cfg<override>.on(static_cast<decltype(assertion)&&>(assertion));
-}
-void on_impl(events::fatal_assertion assertion) { cfg<override>.on(assertion); }
 #endif
 
 struct test {
@@ -1257,7 +1270,7 @@ class nothrow_ : op {
 }  // namespace detail
 
 namespace literals {
-constexpr auto operator""_test(const char* name, std::size_t size) {
+constexpr auto operator""_test(const char* name, unsigned long size) {
   return detail::test{"test", std::string_view{name, size}};
 }
 
@@ -1544,7 +1557,6 @@ using operators::operator and;
 using operators::operator or;
 using operators::operator not;
 using operators::operator|;
-
 }  // namespace v1_0_1
 }  // namespace boost::ut
 #endif
