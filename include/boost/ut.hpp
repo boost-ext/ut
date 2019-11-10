@@ -35,6 +35,18 @@ struct string_view {
   const char* data{};
   unsigned long size{};
 };
+template <class TLhs, class TRhs>
+auto operator==(TLhs, TRhs);
+template <class TLhs, class TRhs>
+auto operator<(TLhs, TRhs);
+template <class TLhs, class TRhs>
+auto operator<=(TLhs, TRhs);
+template <class TLhs, class TRhs>
+auto operator!=(TLhs, TRhs);
+template <class TLhs, class TRhs>
+auto operator>(TLhs, TRhs);
+template <class TLhs, class TRhs>
+auto operator>=(TLhs, TRhs);
 }  // namespace std
 namespace std::experimental {
 struct source_location {
