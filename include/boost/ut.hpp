@@ -108,9 +108,7 @@ class source_location {
     return sl;
   }
 #else
-  [[nodiscard]] static constexpr auto current() {
-    return source_location {};
-  }
+  [[nodiscard]] static constexpr auto current() { return source_location{}; }
 #endif
   [[nodiscard]] constexpr auto file_name() const noexcept { return file_; }
   [[nodiscard]] constexpr auto line() const noexcept { return line_; }
