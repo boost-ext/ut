@@ -48,30 +48,7 @@ auto operator>(TLhs, TRhs);
 template <class TLhs, class TRhs>
 auto operator>=(TLhs, TRhs);
 }  // namespace std
-namespace std::experimental {
-struct source_location {
-  [[nodiscard]] static constexpr auto current() noexcept {
-    return source_location{};
-  }
-  [[nodiscard]] constexpr auto file_name() const noexcept { return ""; }
-  [[nodiscard]] constexpr auto line() const noexcept { return 0; }
-};
-}  // namespace std::experimental
 #else
-#if __has_include(<experimental/source_location>)
-#include <experimental/source_location>
-#else
-namespace std::experimental {
-struct source_location {
-  [[nodiscard]] static constexpr auto current() noexcept {
-    return source_location{};
-  }
-  [[nodiscard]] constexpr auto file_name() const noexcept { return ""; }
-  [[nodiscard]] constexpr auto line() const noexcept { return 0; }
-};
-}  // namespace std::experimental
-#endif
-
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -119,6 +96,29 @@ auto operator<<(ostream& os, const std::string_view s) -> ostream& {
 }  // namespace io
 
 namespace reflection {
+class source_location {
+ public:
+#if __has_include(<experimental/source_location>)
+  [[nodiscard]] static constexpr auto current(
+      const char* file = __builtin_FILE(),
+      int line = __builtin_LINE()) noexcept {
+    source_location sl{};
+    sl.file_ = file;
+    sl.line_ = line;
+    return sl;
+  }
+#else
+  [[nodiscard]] static constexpr auto current() {
+    return source_location {};
+  }
+#endif
+  [[nodiscard]] constexpr auto file_name() const noexcept { return file_; }
+  [[nodiscard]] constexpr auto line() const noexcept { return line_; }
+
+ private:
+  const char* file_{"unknown"};
+  int line_{};
+};
 template <class T>
 constexpr auto type_name() -> std::string_view {
 #if defined(_MSC_VER) and not defined(__clang__)
@@ -721,8 +721,8 @@ class runner {
 
 #if defined(BOOST_UT_IMPLEMENTATION)
   [[nodiscard]] auto on(
-      events::assertion<std::experimental::source_location, events::expr>
-          assertion) -> bool {
+      events::assertion<reflection::source_location, events::expr> assertion)
+      -> bool {
     if (dry_run_) {
       return true;
     }
@@ -784,8 +784,7 @@ namespace link {
 extern void on(events::suite<void (*)()>);
 extern void on(events::test<void (*)()>);
 [[nodiscard]] extern auto on(
-    events::assertion<std::experimental::source_location, events::expr>)
-    -> bool;
+    events::assertion<reflection::source_location, events::expr>) -> bool;
 [[noreturn]] extern void on(events::fatal_assertion);
 #endif
 
@@ -793,8 +792,8 @@ extern void on(events::test<void (*)()>);
 void on(events::suite<void (*)()> suite) { cfg<override>.on(suite); }
 void on(events::test<void (*)()> test) { cfg<override>.on(test); }
 [[nodiscard]] auto on(
-    events::assertion<std::experimental::source_location, events::expr>
-        assertion) -> bool {
+    events::assertion<reflection::source_location, events::expr> assertion)
+    -> bool {
   return cfg<override>.on(static_cast<decltype(assertion)&&>(assertion));
 }
 void on(events::fatal_assertion assertion) { cfg<override>.on(assertion); }
@@ -813,12 +812,11 @@ constexpr auto on(const TEvent& event) {
 
 template <class..., class TLocation, class TExpr>
 [[nodiscard]] auto on(events::assertion<TLocation, TExpr> assertion) -> bool {
-  return link::on(
-      events::assertion<std::experimental::source_location, events::expr>{
-          assertion.location,
-          {assertion.expr, [assertion](io::ostream& os) -> io::ostream& {
-             return (os << assertion.expr);
-           }}});
+  return link::on(events::assertion<reflection::source_location, events::expr>{
+      assertion.location,
+      {assertion.expr, [assertion](io::ostream& os) -> io::ostream& {
+         return (os << assertion.expr);
+       }}});
 }
 #else
 template <class... Ts, class TEvent>
@@ -1471,8 +1469,8 @@ template <class TExpr, type_traits::requires_t<
                            type_traits::is_op_v<TExpr> or
                            type_traits::is_convertible_v<TExpr, bool>> = 0>
 constexpr auto expect(const TExpr& expr,
-                      const std::experimental::source_location& location =
-                          std::experimental::source_location::current()) {
+                      const reflection::source_location& location =
+                          reflection::source_location::current()) {
   return detail::expect_<TExpr>{
       detail::on<TExpr>(events::assertion{location, expr})};
 }

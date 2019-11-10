@@ -33,7 +33,7 @@ constexpr auto test_assert = [](const bool result) {
 
 struct fake_cfg {
   struct assertion_call {
-    std::experimental::source_location location{};
+    ut::reflection::source_location location{};
     std::string str{};
     bool result{};
   };
@@ -376,10 +376,10 @@ int main() {
     test_assert(1 == reporter.tests_.skip);
     run = options{};
 
-    run.on(events::test{"test", "pass", none{}, [&run] {
-                          return run.on(events::assertion{
-                              std::experimental::source_location{}, true});
-                        }});
+    run.on(events::test{
+        "test", "pass", none{}, [&run] {
+          return run.on(events::assertion{reflection::source_location{}, true});
+        }});
 
     test_assert(3 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
@@ -387,7 +387,7 @@ int main() {
 
     run.on(events::test{"test", "fail", none{}, [&run] {
                           return run.on(events::assertion{
-                              std::experimental::source_location{}, false});
+                              reflection::source_location{}, false});
                         }});
     test_assert(3 == reporter.tests_.pass);
     test_assert(1 == reporter.tests_.fail);
