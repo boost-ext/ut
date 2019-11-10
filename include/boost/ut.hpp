@@ -14,6 +14,8 @@
 #error "[Boost].UT requires C++20 support"
 #endif
 
+#define BOOST_UT_VERSION 1'0'1
+
 #if defined(__cpp_modules)
 export module boost.ut;
 export import std;
