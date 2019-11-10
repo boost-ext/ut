@@ -12,7 +12,7 @@
     not defined(__cpp_return_type_deduction) or                               \
     not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
 #error "[Boost].UT requires C++20 support"
-#endif
+#else
 
 #define BOOST_UT_VERSION 1'0'1
 
@@ -47,7 +47,7 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
-#if defined(BOOST_UT_CORE)
+#if defined(BOOST_UT_INTERFACE)
 namespace std {
 struct string_view {
   constexpr string_view(const char* data = {}, unsigned long size = {})
@@ -81,7 +81,7 @@ extern auto operator<<(ostream& os, char) -> ostream&;
 extern auto operator<<(ostream& os, char const*) -> ostream&;
 extern auto operator<<(ostream& os, int) -> ostream&;
 extern auto operator<<(ostream& os, const std::string_view) -> ostream&;
-#if not defined(BOOST_UT_CORE)
+#if not defined(BOOST_UT_INTERFACE)
 struct ostream : std::ostream {
   using std::ostream::ostream;
 };
@@ -307,7 +307,7 @@ class function<R(TArgs...)> {
   void* data_{};
 };
 
-#if not defined(BOOST_UT_CORE)
+#if not defined(BOOST_UT_INTERFACE)
 inline auto is_match(std::string_view input, std::string_view pattern) -> bool {
   if (std::empty(pattern)) {
     return std::empty(input);
@@ -370,7 +370,7 @@ constexpr auto& operator<<(TOs& os, const T& t) {
 }
 }  // namespace detail::operators
 
-#if not defined(BOOST_UT_CORE)
+#if not defined(BOOST_UT_INTERFACE)
 namespace colors {
 inline auto& none(std::ostream& os) { return os << "\033[0m"; }
 inline auto& red(std::ostream& os) { return os << "\033[31m"; }
@@ -473,7 +473,7 @@ struct exception {};
 struct summary {};
 }  // namespace events
 
-#if not defined(BOOST_UT_CORE)
+#if not defined(BOOST_UT_INTERFACE)
 class reporter {
  public:
   auto on(events::test_begin test) -> void {
@@ -768,7 +768,7 @@ extern void on_impl(events::test<void (*)()>);
     -> bool;
 [[noreturn]] extern void on_impl(events::fatal_assertion);
 
-#if defined(BOOST_UT_CORE)
+#if defined(BOOST_UT_INTERFACE)
 template <class..., class TEvent>
 constexpr auto on(const TEvent& event) {
   on_impl(event);
@@ -792,7 +792,7 @@ template <class... Ts, class TEvent>
 }
 #endif
 
-#if defined(BOOST_UT_IMPL)
+#if defined(BOOST_UT_IMPLEMENTATION)
 void on_impl(events::suite<void (*)()> suite) { cfg<override>.on(suite); }
 void on_impl(events::test<void (*)()> test) { cfg<override>.on(test); }
 [[nodiscard]] auto on_impl(
@@ -1547,3 +1547,4 @@ using operators::operator|;
 
 }  // namespace v1_0_1
 }  // namespace boost::ut
+#endif
