@@ -5,6 +5,17 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
+#if defined(__cpp_modules)
+export module boost.ut;
+export import std;
+#else
+#pragma once
+#endif
+
+#if defined(_MSC_VER)
+#include <ciso646>  // and, or, not
+#endif
+
 #if not defined(__cpp_variadic_templates) or                                  \
     not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or    \
     not defined(__cpp_alias_templates) or not defined(__cpp_static_assert) or \
@@ -15,10 +26,16 @@
 #else
 #define BOOST_UT_VERSION 1'0'1
 
-#if defined(__cpp_modules)
-export module boost.ut;
-export import std;
+#if defined(BOOST_UT_INTERFACE)
+namespace std {
+struct string_view {
+  constexpr string_view(const char* data = {}, unsigned long size = {})
+      : data{data}, size{size} {}
 
+  const char* data{};
+  unsigned long size{};
+};
+}  // namespace std
 namespace std::experimental {
 struct source_location {
   [[nodiscard]] static constexpr auto current() noexcept {
@@ -29,12 +46,6 @@ struct source_location {
 };
 }  // namespace std::experimental
 #else
-#pragma once
-
-#if defined(_MSC_VER) and not defined(__clang__)
-#include <ciso646>  // and, or, not
-#endif
-
 #if __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 #else
@@ -48,17 +59,7 @@ struct source_location {
 };
 }  // namespace std::experimental
 #endif
-#if defined(BOOST_UT_INTERFACE)
-namespace std {
-struct string_view {
-  constexpr string_view(const char* data = {}, unsigned long size = {})
-      : data{data}, size{size} {}
 
-  const char* data{};
-  unsigned long size{};
-};
-}  // namespace std
-#else
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -66,7 +67,6 @@ struct string_view {
 #include <string_view>
 #include <utility>
 #include <vector>
-#endif
 #endif
 
 #if defined(__cpp_modules)
@@ -1270,7 +1270,7 @@ class nothrow_ : op {
 }  // namespace detail
 
 namespace literals {
-constexpr auto operator""_test(const char* name, unsigned long size) {
+constexpr auto operator""_test(const char* name, decltype(sizeof("")) size) {
   return detail::test{"test", std::string_view{name, size}};
 }
 
