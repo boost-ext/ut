@@ -418,6 +418,14 @@ template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
 
+**Configuration**
+
+| Option *| Description | Example |
+|-|-|-|
+| `BOOST_UT_VERSION`        | Current version | `1'0'1` |
+| `BOOST_UT_INTERFACE`      | Can be used in `.cpp` files to speed up compilation of multiple test suites | `-DBOOST_UT_INTERFACE` |
+| `BOOST_UT_IMPLEMENTATION` | Used once in `main.cpp` to provide `ut` implementation (have to be used in compination with `BOOST_UT_INTERFACE) | `-DBOOST_UT_IMPLEMENTATION` |
+
 ---
 
 **Benchmarks** (https://github.com/cpp-testing/ut-benchmark)
