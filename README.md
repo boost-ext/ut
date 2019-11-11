@@ -434,18 +434,18 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 | **Clang-9** | Description | [μt-1.1.0](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) | [doctest-2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | [catch-2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | [googletest-1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0)
 | ------- | ----- | ----- | ----- | ----- | ----- |
-| [include](https://github.com/cpp-testing/ut-benchmark)        | `0 tests, 0 asserts, 1 cpp file`              | 0.42s / -     | 1.29s / -     | 5.44s / -     | 0.73s / -     |
-| [assert](https://github.com/cpp-testing/ut-benchmark)         | `1 test, 1'000'000 asserts, 1 cpp file`       | 0.48s / 0.04s | 1.30s / 0.11s | 5.23s / 0.12s | 0.77s / 0.04s |
-| [test](https://github.com/cpp-testing/ut-benchmark)           | `1'000 tests, 0 asserts, 1 cpp file`          | 0.93s / 0.00s | 2.33s / 0.01s | 6.11s / 0.04s | 4.43s / 0.18s |
-| [suite](https://github.com/cpp-testing/ut-benchmark)          | `10'000 tests, 0 asserts, 100 cpp files`      | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s |
-| [suite+assert](https://github.com/cpp-testing/ut-benchmark)   | `10'000 tests, 20'200 asserts, 100 cpp files` | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s |
-|                                                               |                                               |               |               |               |               |
-| **GCC-9**                                                     |                                               |               |               |               |               |
-| [include](https://github.com/cpp-testing/ut-benchmark)        | `0 tests, 0 asserts, 1 cpp file`              | 0.50s / -     | 1.77s / -     | 8.83s / -     | 0.89s / -     |
-| [assert](https://github.com/cpp-testing/ut-benchmark)         | `1 test, 1'000'000 asserts, 1 cpp file`       | 0.59s / 0.05s | 1.73s / 0.13s | 8.71s / 0.14s | 0.88s / 0.05s |
-| [test](https://github.com/cpp-testing/ut-benchmark)           | `1'000 tests, 0 asserts, 1 cpp file`          | 1.49s / 0.00s | 2.41s / 0.01s | 9.79s / 0.02s | 6.89s / 0.18s |
-| [suite](https://github.com/cpp-testing/ut-benchmark)          | `10'000 tests, 0 asserts, 100 cpp files`      | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s |
-| [suite+assert](https://github.com/cpp-testing/ut-benchmark)   | `10'000 tests, 20'200 asserts, 100 cpp files` | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s | 0.00s / 0.00s |
+| [include](https://github.com/cpp-testing/ut-benchmark)        | `0 tests, 0 asserts, 1 cpp file`              | 0.42s / -      | 1.29s / -      | 5.44s / -      | 0.73s / -       |
+| [assert](https://github.com/cpp-testing/ut-benchmark)         | `1 test, 1'000'000 asserts, 1 cpp file`       | 0.48s / 0.04s  | 1.30s / 0.11s  | 5.23s / 0.12s  | 0.77s / 0.04s   |
+| [test](https://github.com/cpp-testing/ut-benchmark)           | `1'000 tests, 0 asserts, 1 cpp file`          | 0.93s / 0.00s  | 2.33s / 0.01s  | 6.11s / 0.04s  | 4.43s / 0.18s   |
+| [suite](https://github.com/cpp-testing/ut-benchmark)          | `10'000 tests, 0 asserts, 100 cpp files`      | 9.37s / 0.00s  | 13.23s / 0.10s | 67.92s / 0.17s | 104.57s / 0.59s |
+| [suite+assert](https://github.com/cpp-testing/ut-benchmark)   | `10'000 tests, 20'200 asserts, 100 cpp files` | 0.00s / 0.00s  | 0.00s / 0.00s  | 0.00s / 0.00s  | 0.00s / 0.00s   |
+|                                                               |                                               |                |                |                |                 |
+| **GCC-9**                                                     |                                               |                |                |                |                 |
+| [include](https://github.com/cpp-testing/ut-benchmark)        | `0 tests, 0 asserts, 1 cpp file`              | 0.50s / -      | 1.77s / -      | 8.83s / -      | 0.89s / -       |
+| [assert](https://github.com/cpp-testing/ut-benchmark)         | `1 test, 1'000'000 asserts, 1 cpp file`       | 0.59s / 0.05s  | 1.73s / 0.13s  | 8.71s / 0.14s  | 0.88s / 0.05s   |
+| [test](https://github.com/cpp-testing/ut-benchmark)           | `1'000 tests, 0 asserts, 1 cpp file`          | 1.49s / 0.00s  | 2.41s / 0.01s  | 9.79s / 0.02s  | 6.89s / 0.18s   |
+| [suite](https://github.com/cpp-testing/ut-benchmark)          | `10'000 tests, 0 asserts, 100 cpp files`      | 11.08s / 0.00s | 10.94s / 0.10s | 81.56s / 0.18s | 136.52s / 0.29s |
+| [suite+assert](https://github.com/cpp-testing/ut-benchmark)   | `10'000 tests, 20'200 asserts, 100 cpp files` | 0.00s / 0.00s  | 0.00s / 0.00s  | 0.00s / 0.00s  | 0.00s / 0.00s   |
 
 ---
 
