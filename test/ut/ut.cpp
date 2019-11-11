@@ -46,7 +46,7 @@ struct fake_cfg {
 
   template <class... Ts>
   auto on(ut::events::test<Ts...> test) {
-    if (std::empty(test_filter) or test.name == test_filter) {
+    if (std::empty(test_filter) or std::string_view{test.name} == test_filter) {
       run_calls.push_back({test.type, test.name, test.arg});
       try {
         test();
@@ -135,8 +135,8 @@ int main() {
   }
 
   {
-    static_assert("void"sv == reflection::type_name<void>());
-    static_assert("int"sv == reflection::type_name<int>());
+    static_assert("void"sv == std::string_view{reflection::type_name<void>()});
+    static_assert("int"sv == std::string_view{reflection::type_name<int>()});
   }
 
   {
