@@ -32,8 +32,8 @@ struct string_view {
   constexpr string_view(const char* data = {}, unsigned long size = {})
       : data{data}, size{size} {}
 
-  const char* data{};
   unsigned long size{};
+  const char* data{};
 };
 template <class TLhs, class TRhs>
 auto operator==(TLhs, TRhs);
@@ -406,8 +406,8 @@ struct test {
   TArg arg{};
   Test run{};
 
-  constexpr auto operator()() { run_impl(run, arg); }
-  constexpr auto operator()() const { run_impl(run, arg); }
+  constexpr auto operator()() { run_impl(static_cast<Test&&>(run), arg); }
+  constexpr auto operator()() const { run_impl(static_cast<Test&&>(run), arg); }
 
  private:
   static constexpr auto run_impl(Test test, const none&) { test(); }
@@ -781,20 +781,28 @@ namespace link {
 #if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
 extern void on(events::suite<void (*)()>);
 extern void on(events::test<void (*)()>);
+extern void on(events::test<utility::function<void()>>);
+extern void on(events::skip<>);
 [[nodiscard]] extern auto on(
     events::assertion<reflection::source_location, events::expr>) -> bool;
 [[noreturn]] extern void on(events::fatal_assertion);
+extern void on(events::log);
 #endif
 
 #if defined(BOOST_UT_IMPLEMENTATION)
 void on(events::suite<void (*)()> suite) { cfg<override>.on(suite); }
 void on(events::test<void (*)()> test) { cfg<override>.on(test); }
+void on(events::test<utility::function<void()>> test) {
+  cfg<override>.on(static_cast<decltype(test)&&>(test));
+}
+void on(events::skip<> skip) { cfg<override>.on(skip); }
 [[nodiscard]] auto on(
     events::assertion<reflection::source_location, events::expr> assertion)
     -> bool {
   return cfg<override>.on(static_cast<decltype(assertion)&&>(assertion));
 }
 void on(events::fatal_assertion assertion) { cfg<override>.on(assertion); }
+void on(events::log l) { cfg<override>.on(l); }
 #endif
 }  // namespace link
 
@@ -806,6 +814,12 @@ struct skip {};
 template <class..., class TEvent>
 constexpr auto on(const TEvent& event) {
   link::on(event);
+}
+
+template <class..., class Test, class TArg>
+auto on(events::test<Test, TArg> test) -> void {
+  link::on(events::test<utility::function<void()>>{test.type, test.name, TArg{},
+                                                   test.run});
 }
 
 template <class..., class TLocation, class TExpr>
@@ -857,8 +871,15 @@ class test_skip {
  public:
   constexpr explicit test_skip(T t) : t_{t} {}
 
-  template <class Test>
-  constexpr auto operator=(Test test) {
+  template <class... Ts>
+  constexpr auto operator=(void (*test)()) {
+    on<Ts...>(events::skip{t_.type, t_.name, none{}});
+    return test;
+  }
+
+  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
+  constexpr auto operator=(Test test) ->
+      typename type_traits::identity<Test, decltype(test())>::type {
     on<Test>(events::skip{t_.type, t_.name, none{}});
     return test;
   }
