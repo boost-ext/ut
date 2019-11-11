@@ -683,12 +683,16 @@ class runner {
       }
 
       active_exception_ = false;
+#if defined(__cpp_exceptions)
       try {
+#endif
         test();
+#if defined(__cpp_exceptions)
       } catch (...) {
         reporter_.on(events::exception{});
         active_exception_ = true;
       }
+#endif
 
       if (not--level_) {
         reporter_.on(events::test_end{test.type, test.name});
@@ -1241,6 +1245,7 @@ class not_ : op {
   T t_{};
 };
 
+#if defined(__cpp_exceptions)
 template <class TExpr, class TException = void>
 class throws_ : op {
  public:
@@ -1296,6 +1301,7 @@ class nothrow_ : op {
  private:
   TExpr expr_{};
 };
+#endif
 }  // namespace detail
 
 namespace literals {
@@ -1501,6 +1507,7 @@ template <bool Constant>
 #endif
 constexpr auto constant = Constant;
 
+#if defined(__cpp_exceptions)
 template <class TException, class TExpr>
 constexpr auto throws(const TExpr& expr) {
   return detail::throws_<TExpr, TException>{expr};
@@ -1515,6 +1522,7 @@ template <class TExpr>
 constexpr auto nothrow(const TExpr& expr) {
   return detail::nothrow_{expr};
 }
+#endif
 
 using _i = detail::value<int>;
 using _b = detail::value<bool>;
