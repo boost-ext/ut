@@ -8,9 +8,11 @@
 #pragma once
 
 #include <boost/ut.hpp>
-#include <iostream>
 
 namespace test = boost::ut;
+
+#if not defined(BOOST_UT_INTERFACE)
+#include <iostream>
 
 namespace ft {
 template <class TReporter>
@@ -27,3 +29,4 @@ struct runner : test::runner<TReporter> {
 
 template <class... Ts>
 inline auto test::cfg<test::override, Ts...> = ft::runner<test::reporter>{};
+#endif

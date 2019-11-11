@@ -20,6 +20,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
                       -Wno-missing-variable-declarations
                       -Wno-class-varargs
                       -Wno-padded
+                      -Wno-missing-prototypes
                       -Wno-ctad-maybe-unsupported)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options(-Wall
@@ -48,7 +49,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
                       -Wduplicated-cond
                       -Wduplicated-branches
                       -Wcast-align=strict
-                      -Wmissing-include-dirs)
+                      -Wmissing-include-dirs
+                      -Wno-missing-declarations)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   add_compile_options(/W4
                       /Wall
