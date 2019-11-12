@@ -428,8 +428,8 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 ---
 
-[benchmarks](#benchmarks)
 **Benchmarks** (https://github.com/cpp-testing/ut-benchmark)
+[](#benchmarks)
 
 | Framework | Version | Standard | License | Linkage | Test configuration |
 |-|-|-|-|-|-|
