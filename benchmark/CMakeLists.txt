@@ -11,4 +11,5 @@ endfunction()
 
 benchmark(expect)
 benchmark(include)
+benchmark(suite)
 benchmark(test)
