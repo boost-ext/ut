@@ -471,7 +471,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
   <tr>
     <td colspan="2" align="center">
-    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite</b></a> / <i>10'000 tests, 0 asserts, 100 cpp files</i>
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite</b></a> / <i>10'100 tests, 0 asserts, 100 cpp files</i>
     </td>
   </tr>
   <tr>
@@ -481,12 +481,22 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
   <tr>
     <td colspan="2" align="center">
-    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert</b></a> / <i>10'000 tests, 20'200 asserts, 100 cpp files</i>
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert</b></a> / <i>10'100 tests, 40'400 asserts, 100 cpp files</i>
     </td>
   </tr>
   <tr>
     <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Compilation_suite+assert.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Compilation_suite+assert.png"></a></td>
     <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Execution_suite+assert.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Execution_suite+assert.png"></a></td>
+  </tr>
+
+  <tr>
+    <td colspan="2" align="center">
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert+STL</b></a> / <i>10'100 tests, 20'200 asserts, 100 cpp files</i>
+    </td>
+  </tr>
+  <tr>
+    <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Compilation_suite+assert+stl.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Compilation_suite+assert+stl.png"></a></td>
+    <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Execution_suite+assert+stl.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Execution_suite+assert+stl.png"></a></td>
   </tr>
 </table>
 
