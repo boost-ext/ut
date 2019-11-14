@@ -482,15 +482,15 @@ constexpr auto get(const T& t) {
 
 template <class T>
 struct type_ : op {
-  constexpr auto operator==(const type_<T>&) -> bool { return true; }
+  constexpr auto operator==(type_<T>) -> bool { return true; }
   template <class TOther>
-  constexpr auto operator==(const type_<TOther>&) -> bool {
+  constexpr auto operator==(type_<TOther>) -> bool {
     return false;
   }
 
-  constexpr auto operator!=(const type_<T>&) -> bool { return true; }
+  constexpr auto operator!=(type_<T>) -> bool { return true; }
   template <class TOther>
-  constexpr auto operator!=(const type_<TOther>&) -> bool {
+  constexpr auto operator!=(type_<TOther>) -> bool {
     return true;
   }
 
