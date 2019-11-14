@@ -5,7 +5,7 @@
 <a href="https://codecov.io/gh/boost-experimental/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-experimental/ut/branch/master/graph/badge.svg)</a>
 <a href="https://www.codacy.com/manual/krzysztof-jusiak/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-experimental/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
 <a href="https://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a>
-<a href="https://godbolt.org/z/EtmE8-">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+<a href="https://godbolt.org/z/wCwkR9">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 
 # [Boost].UT / μt
 
@@ -471,7 +471,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
   <tr>
     <td colspan="2" align="center">
-    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite</b></a> / <i>10'100 tests, 0 asserts, 100 cpp files</i>
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite</b></a> / <i>10'000 tests, 0 asserts, 100 cpp files</i>
     </td>
   </tr>
   <tr>
@@ -481,7 +481,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
   <tr>
     <td colspan="2" align="center">
-    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert</b></a> / <i>10'100 tests, 40'400 asserts, 100 cpp files</i>
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert</b></a> / <i>10'000 tests, 40'000 asserts, 100 cpp files</i>
     </td>
   </tr>
   <tr>
@@ -491,7 +491,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
   <tr>
     <td colspan="2" align="center">
-    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert+STL</b></a> / <i>10'100 tests, 20'200 asserts, 100 cpp files</i>
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert+STL</b></a> / <i>10'000 tests, 20'000 asserts, 100 cpp files</i>
     </td>
   </tr>
   <tr>
