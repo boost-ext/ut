@@ -12,8 +12,10 @@ static ut::suite _ = [] {
 
   <% (0..n).each do |i| %>
     "test_suite_<%= v %>.<%= i %>"_test = [] {
+      expect(_b(true) == true);
       expect(42_i == 42);
-      expect(43_i == 43);
+      expect(1 != 2);
+      expect(1.23f == 1.23_f);
     };
   <% end %>
 };

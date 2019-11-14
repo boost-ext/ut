@@ -358,28 +358,83 @@ using requires_t = typename requires_<Cond>::type;
 namespace io {
 #if defined(BOOST_UT_INTERFACE)
 struct ostream;
+extern auto operator<<(ostream& os, bool) -> ostream&;
 extern auto operator<<(ostream& os, char) -> ostream&;
-extern auto operator<<(ostream& os, char const*) -> ostream&;
+extern auto operator<<(ostream& os, short) -> ostream&;
 extern auto operator<<(ostream& os, int) -> ostream&;
+extern auto operator<<(ostream& os, long) -> ostream&;
+extern auto operator<<(ostream& os, long long) -> ostream&;
+extern auto operator<<(ostream& os, unsigned) -> ostream&;
+extern auto operator<<(ostream& os, unsigned char) -> ostream&;
+extern auto operator<<(ostream& os, unsigned short) -> ostream&;
+extern auto operator<<(ostream& os, unsigned long) -> ostream&;
+extern auto operator<<(ostream& os, float) -> ostream&;
+extern auto operator<<(ostream& os, double) -> ostream&;
+extern auto operator<<(ostream& os, long double) -> ostream&;
+extern auto operator<<(ostream& os, char const*) -> ostream&;
 extern auto operator<<(ostream& os, const utility::string_view) -> ostream&;
 #elif defined(BOOST_UT_IMPLEMENTATION)
 struct ostream : std::ostream {
   using std::ostream::ostream;
 };
-auto operator<<(ostream& os, char s) -> ostream& {
+auto operator<<(ostream& os, bool b) -> ostream& {
+  static_cast<std::ostream&>(os) << b;
+  return os;
+}
+auto operator<<(ostream& os, char c) -> ostream& {
+  static_cast<std::ostream&>(os) << c;
+  return os;
+}
+auto operator<<(ostream& os, short s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
+  return os;
+}
+auto operator<<(ostream& os, int i) -> ostream& {
+  static_cast<std::ostream&>(os) << i;
+  return os;
+}
+auto operator<<(ostream& os, long l) -> ostream& {
+  static_cast<std::ostream&>(os) << l;
+  return os;
+}
+auto operator<<(ostream& os, long long ll) -> ostream& {
+  static_cast<std::ostream&>(os) << ll;
+  return os;
+}
+auto operator<<(ostream& os, unsigned u) -> ostream& {
+  static_cast<std::ostream&>(os) << u;
+  return os;
+}
+auto operator<<(ostream& os, unsigned char uc) -> ostream& {
+  static_cast<std::ostream&>(os) << uc;
+  return os;
+}
+auto operator<<(ostream& os, unsigned short us) -> ostream& {
+  static_cast<std::ostream&>(os) << us;
+  return os;
+}
+auto operator<<(ostream& os, unsigned long ul) -> ostream& {
+  static_cast<std::ostream&>(os) << ul;
+  return os;
+}
+auto operator<<(ostream& os, float f) -> ostream& {
+  static_cast<std::ostream&>(os) << f;
+  return os;
+}
+auto operator<<(ostream& os, double d) -> ostream& {
+  static_cast<std::ostream&>(os) << d;
+  return os;
+}
+auto operator<<(ostream& os, long double ld) -> ostream& {
+  static_cast<std::ostream&>(os) << ld;
   return os;
 }
 auto operator<<(ostream& os, char const* s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
   return os;
 }
-auto operator<<(ostream& os, int s) -> ostream& {
-  static_cast<std::ostream&>(os) << s;
-  return os;
-}
-auto operator<<(ostream& os, const utility::string_view s) -> ostream& {
-  static_cast<std::ostream&>(os) << std::string_view{s};
+auto operator<<(ostream& os, const utility::string_view sv) -> ostream& {
+  static_cast<std::ostream&>(os) << std::string_view{sv};
   return os;
 }
 #endif
@@ -1555,15 +1610,12 @@ constexpr auto nothrow(const TExpr& expr) {
 }
 #endif
 
-using _i = detail::value<int>;
 using _b = detail::value<bool>;
 using _c = detail::value<char>;
 using _s = detail::value<short>;
+using _i = detail::value<int>;
 using _l = detail::value<long>;
 using _ll = detail::value<long long>;
-using _f = detail::value<float>;
-using _d = detail::value<double>;
-using _ld = detail::value<long double>;
 using _u = detail::value<unsigned>;
 using _uc = detail::value<unsigned char>;
 using _us = detail::value<unsigned short>;
