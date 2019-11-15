@@ -65,11 +65,15 @@ struct fake_cfg {
     return assertion.expr;
   }
   auto on(ut::events::fatal_assertion) { ++fatal_assertion_calls; }
-  auto on(ut::events::log log) { log_calls.push_back(log.msg); }
+
+  template <class TMsg>
+  auto on(ut::events::log<TMsg> log) {
+    log_calls.push_back(log.msg);
+  }
 
   std::vector<test_call> run_calls{};
   std::vector<test_call> skip_calls{};
-  std::vector<std::string_view> log_calls{};
+  std::vector<std::any> log_calls{};
   std::vector<assertion_call> assertion_calls{};
   std::size_t fatal_assertion_calls{};
   std::string test_filter{};
@@ -496,22 +500,26 @@ int main() {
 
     "logging"_test = [] {
       boost::ut::log << "msg1"
-                     << "msg2";
+                     << "msg2" << std::string{"msg3"} << 42;
     };
 
     test_assert(1 == std::size(test_cfg.run_calls));
     test_assert("logging"sv == test_cfg.run_calls[0].name);
-    test_assert(4 == std::size(test_cfg.log_calls));
-    test_assert("\n"sv == test_cfg.log_calls[0]);
-    test_assert("msg1"sv == test_cfg.log_calls[1]);
-    test_assert("\n"sv == test_cfg.log_calls[2]);
-    test_assert("msg2"sv == test_cfg.log_calls[3]);
+    test_assert(8 == std::size(test_cfg.log_calls));
+    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("msg1"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
+    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[2]));
+    test_assert("msg2"sv == std::any_cast<const char*>(test_cfg.log_calls[3]));
+    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[4]));
+    test_assert("msg3"sv == std::any_cast<std::string>(test_cfg.log_calls[5]));
+    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[6]));
+    test_assert(42 == std::any_cast<int>(test_cfg.log_calls[7]));
   }
 
   {
     test_cfg = fake_cfg{};
-    expect(true) << "true msg";
-    expect(false) << "false msg";
+    expect(true) << "true msg" << true;
+    expect(false) << "false msg" << false;
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert("true" == test_cfg.assertion_calls[0].str);
@@ -519,9 +527,12 @@ int main() {
 
     test_assert("false" == test_cfg.assertion_calls[1].str);
     test_assert(not test_cfg.assertion_calls[1].result);
-    test_assert(2 == std::size(test_cfg.log_calls));
-    test_assert(" "sv == test_cfg.log_calls[0]);
-    test_assert("false msg"sv == test_cfg.log_calls[1]);
+    test_assert(4 == std::size(test_cfg.log_calls));
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("false msg"sv ==
+                std::any_cast<const char*>(test_cfg.log_calls[1]));
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[2]));
+    test_assert(not std::any_cast<bool>(test_cfg.log_calls[3]));
   }
 
   {
@@ -585,8 +596,9 @@ int main() {
     test_assert("(false and 2 == 2)" == test_cfg.assertion_calls[1].str);
 #endif
     test_assert(not test_cfg.assertion_calls[1].result);
-    test_assert(" "sv == test_cfg.log_calls[0]);
-    test_assert("fail compile-time"sv == test_cfg.log_calls[1]);
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("fail compile-time"sv ==
+                std::any_cast<const char*>(test_cfg.log_calls[1]));
 
 #if defined(__cpp_nontype_template_parameter_class)
     test_assert("(4 == 4 and 3 == 2)" == test_cfg.assertion_calls[2].str);
@@ -594,8 +606,9 @@ int main() {
     test_assert("(true and 3 == 2)" == test_cfg.assertion_calls[2].str);
 #endif
     test_assert(not test_cfg.assertion_calls[2].result);
-    test_assert(" "sv == test_cfg.log_calls[2]);
-    test_assert("fail run-time"sv == test_cfg.log_calls[3]);
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[2]));
+    test_assert("fail run-time"sv ==
+                std::any_cast<const char*>(test_cfg.log_calls[3]));
   }
 
   {
@@ -632,8 +645,8 @@ int main() {
     test_assert("2 > 2" == test_cfg.assertion_calls[6].str);
     test_assert(not test_cfg.assertion_calls[6].result);
     test_assert(2 == std::size(test_cfg.log_calls));
-    test_assert(" "sv == test_cfg.log_calls[0]);
-    test_assert("msg"sv == test_cfg.log_calls[1]);
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("msg"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
   }
 
   {
@@ -787,8 +800,8 @@ int main() {
     test_assert("2 != 2" == test_cfg.assertion_calls[1].str);
     test_assert(1 == test_cfg.fatal_assertion_calls);
     test_assert(2 == std::size(test_cfg.log_calls));
-    test_assert(" "sv == test_cfg.log_calls[0]);
-    test_assert("fatal"sv == test_cfg.log_calls[1]);
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("fatal"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
   }
 
   {

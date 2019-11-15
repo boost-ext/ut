@@ -330,7 +330,8 @@ class runner {
    * @example log << "message"
    * @param log.msg "message"
    */
-  auto on(ut::events::log) { }
+  template<class TMsg>
+  auto on(ut::events::log<TMsg>) { }
 };
 } // namespace cfg
 
@@ -377,7 +378,8 @@ class reporter {
    * @example log << "message"
    * @param log.msg "message"
    */
-  auto on(ut::events::log) -> void {}
+  template<class TMsg>
+  auto on(ut::events::log<TMsg>) -> void {}
 
   /**
    * @example file.cpp:42: expect(42_i == 42);

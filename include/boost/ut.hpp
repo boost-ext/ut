@@ -61,6 +61,9 @@ namespace utility {
 class string_view {
  public:
   constexpr string_view() = default;
+  template <class TStr>
+  constexpr explicit string_view(const TStr& str)
+      : data_{str.c_str()}, size_{str.size()} {}
   constexpr string_view(const char* data, decltype(sizeof("")) size)
       : data_{data}, size_{size} {}
   template <auto N>
@@ -881,9 +884,12 @@ struct test_end {
   utility::string_view type{};
   utility::string_view name{};
 };
+template <class TMsg>
 struct log {
-  utility::string_view msg{};
+  TMsg msg{};
 };
+template <class TMsg>
+log(TMsg)->log<TMsg>;
 struct fatal_assertion {};
 struct exception {};
 struct summary {};
@@ -917,7 +923,10 @@ class reporter {
     }
   }
 
-  auto on(events::log l) -> void { out_ << l.msg; }
+  template <class TMsg>
+  auto on(events::log<TMsg> l) -> void {
+    out_ << l.msg;
+  }
 
   auto on(events::exception) -> void {
     exception_ = true;
@@ -1151,7 +1160,10 @@ class runner {
     std::abort();
   }
 
-  auto on(events::log l) { reporter_.on(l); }
+  template <class TMsg>
+  auto on(events::log<TMsg> l) {
+    reporter_.on(l);
+  }
 
   [[nodiscard]] auto run() -> bool {
     run_ = true;
@@ -1190,7 +1202,7 @@ extern void on(events::skip<>);
 [[nodiscard]] extern auto on(
     events::assertion<reflection::source_location, events::expr>) -> bool;
 [[noreturn]] extern void on(events::fatal_assertion);
-extern void on(events::log);
+extern void on(events::log<utility::string_view>);
 #endif
 
 #if defined(BOOST_UT_IMPLEMENTATION)
@@ -1206,7 +1218,7 @@ void on(events::skip<> skip) { cfg<override>.on(skip); }
   return cfg<override>.on(static_cast<decltype(assertion)&&>(assertion));
 }
 void on(events::fatal_assertion assertion) { cfg<override>.on(assertion); }
-void on(events::log l) { cfg<override>.on(l); }
+void on(events::log<utility::string_view> l) { cfg<override>.on(l); }
 #endif
 }  // namespace link
 
@@ -1294,7 +1306,7 @@ class test_skip {
 struct log {
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {
-    on<TMsg>(events::log{"\n"});
+    on<TMsg>(events::log{'\n'});
     on<TMsg>(events::log{msg});
     return *this;
   }
@@ -1308,7 +1320,7 @@ class expect_ {
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {
     if (not result_) {
-      on<T>(events::log{" "});
+      on<T>(events::log{' '});
       on<T>(events::log{msg});
     }
     return *this;
