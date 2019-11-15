@@ -11,7 +11,7 @@
 
 namespace test = boost::ut;
 
-#if not defined(BOOST_UT_INTERFACE)
+#if not defined(BOOST_UT_FORWARD)
 #include <iostream>
 
 namespace ft {

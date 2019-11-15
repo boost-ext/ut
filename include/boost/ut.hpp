@@ -26,7 +26,7 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'0
 
-#if defined(BOOST_UT_INTERFACE)
+#if defined(BOOST_UT_FORWARD)
 namespace std {
 template <class TLhs, class TRhs>
 auto operator==(TLhs, TRhs) -> bool;
@@ -82,7 +82,7 @@ class string_view {
   decltype(sizeof("")) size_{};
 };
 
-#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
+#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
 template <class>
 class function;
 template <class R, class... TArgs>
@@ -128,7 +128,7 @@ class function<R(TArgs...)> {
 };
 #endif
 
-#if not defined(BOOST_UT_INTERFACE)
+#if not defined(BOOST_UT_FORWARD)
 inline auto is_match(std::string_view input, std::string_view pattern) -> bool {
   if (std::empty(pattern)) {
     return std::empty(input);
@@ -356,7 +356,7 @@ using requires_t = typename requires_<Cond>::type;
 }  // namespace type_traits
 
 namespace io {
-#if defined(BOOST_UT_INTERFACE)
+#if defined(BOOST_UT_FORWARD)
 struct ostream;
 extern auto operator<<(ostream& os, bool) -> ostream&;
 extern auto operator<<(ostream& os, char) -> ostream&;
@@ -440,7 +440,7 @@ auto operator<<(ostream& os, const utility::string_view sv) -> ostream& {
 #endif
 }  // namespace io
 
-#if not defined(BOOST_UT_INTERFACE)
+#if not defined(BOOST_UT_FORWARD)
 namespace colors {
 inline auto& none(std::ostream& os) { return os << "\033[0m"; }
 inline auto& red(std::ostream& os) { return os << "\033[31m"; }
@@ -857,7 +857,7 @@ struct assertion {
 };
 template <class TLocation, class TExpr>
 assertion(TLocation, TExpr)->assertion<TLocation, TExpr>;
-#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
+#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
 struct expr {
   bool result;
   utility::function<io::ostream&(io::ostream&)> out;
@@ -889,7 +889,7 @@ struct exception {};
 struct summary {};
 }  // namespace events
 
-#if not defined(BOOST_UT_INTERFACE)
+#if not defined(BOOST_UT_FORWARD)
 class reporter {
  public:
   auto on(events::test_begin test) -> void {
@@ -980,7 +980,7 @@ class reporter {
     static_cast<std::ostream&>(os) << expr;
   }
 
-#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
+#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
   template <class TOs, class TExpr>
   constexpr void out(TOs& os, utility::function<TExpr>& expr) {
     expr(reinterpret_cast<io::ostream&>(os));
@@ -1182,7 +1182,7 @@ template <class = override, class...>
 #endif
 
 namespace link {
-#if defined(BOOST_UT_INTERFACE) or defined(BOOST_UT_IMPLEMENTATION)
+#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
 extern void on(events::suite<void (*)()>);
 extern void on(events::test<void (*)()>);
 extern void on(events::test<utility::function<void()>>);
@@ -1213,7 +1213,7 @@ void on(events::log l) { cfg<override>.on(l); }
 namespace detail {
 struct skip {};
 
-#if defined(BOOST_UT_INTERFACE)
+#if defined(BOOST_UT_FORWARD)
 template <class..., class TEvent>
 constexpr auto on(const TEvent& event) {
   link::on(event);
