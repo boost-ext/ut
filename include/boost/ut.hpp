@@ -1308,11 +1308,20 @@ class test_skip {
 };
 
 struct log {
+  struct next {
+    template <class TMsg>
+    auto& operator<<(const TMsg& msg) {
+      on<TMsg>(events::log{' '});
+      on<TMsg>(events::log{msg});
+      return *this;
+    }
+  };
+
   template <class TMsg>
-  auto& operator<<(const TMsg& msg) {
+  auto operator<<(const TMsg& msg) -> next {
     on<TMsg>(events::log{'\n'});
     on<TMsg>(events::log{msg});
-    return *this;
+    return next{};
   }
 };
 

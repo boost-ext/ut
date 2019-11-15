@@ -508,11 +508,11 @@ int main() {
     test_assert(8 == std::size(test_cfg.log_calls));
     test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[0]));
     test_assert("msg1"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
-    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[2]));
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[2]));
     test_assert("msg2"sv == std::any_cast<const char*>(test_cfg.log_calls[3]));
-    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[4]));
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[4]));
     test_assert("msg3"sv == std::any_cast<std::string>(test_cfg.log_calls[5]));
-    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[6]));
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[6]));
     test_assert(42 == std::any_cast<int>(test_cfg.log_calls[7]));
   }
 
