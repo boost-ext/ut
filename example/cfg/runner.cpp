@@ -23,7 +23,9 @@ class runner {
     return true;
   }
   auto on(ut::events::fatal_assertion) {}
-  auto on(ut::events::log) {}
+
+  template <class TMsg>
+  auto on(ut::events::log<TMsg>) {}
 };
 }  // namespace cfg
 
