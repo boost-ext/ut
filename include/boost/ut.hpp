@@ -48,6 +48,10 @@ auto operator>=(TLhs, TRhs) -> bool;
 #include <string_view>
 #include <utility>
 #include <vector>
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 #endif
 
 #if defined(__cpp_modules)
@@ -1398,6 +1402,27 @@ class nothrow_ : op {
   TExpr expr_{};
 };
 #endif
+
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
+template <class TExpr>
+class aborts_ : op {
+ public:
+  constexpr explicit aborts_(const TExpr& expr) : expr_{expr} {}
+
+  constexpr operator bool() const {
+    if (const auto pid = fork(); not pid) {
+      expr_();
+      exit(0);
+    }
+    auto exit_status = 0;
+    wait(&exit_status);
+    return exit_status;
+  }
+
+ private:
+  TExpr expr_{};
+};
+#endif
 }  // namespace detail
 
 namespace literals {
@@ -1619,6 +1644,13 @@ constexpr auto throws(const TExpr& expr) {
 template <class TExpr>
 constexpr auto nothrow(const TExpr& expr) {
   return detail::nothrow_{expr};
+}
+#endif
+
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
+template <class TExpr>
+constexpr auto aborts(const TExpr& expr) {
+  return detail::aborts_{expr};
 }
 #endif
 

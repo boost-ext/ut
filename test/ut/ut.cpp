@@ -847,6 +847,23 @@ int main() {
     test_assert(6 == std::size(test_cfg.assertion_calls));
   }
 
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
+  {
+    test_cfg = fake_cfg{};
+
+    "abort"_test = [] {
+      expect(aborts([] {}));
+      expect(aborts([] { throw; }));
+    };
+
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("abort"sv == test_cfg.run_calls[0].name);
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(not test_cfg.assertion_calls[0].result);
+    test_assert(test_cfg.assertion_calls[1].result);
+  }
+#endif
+
   {
     test_cfg = fake_cfg{};
 
