@@ -290,14 +290,28 @@ namespace cfg {
 class runner {
  public:
   /**
+   * @example cfg<override> = { .filter = "test.section.*", .dry_run = true };
+   * @param options.filter runs all tests which names matches test.section.* filter
+   * @param options.dry_run if true then print test names to be executed without running them
+   */
+  auto operator=(options);
+
+  /**
+   * @example suite _ = [] {};
+   * @param suite() executes suite
+   */
+  template<class TSuite>
+  auto on(ut::events::suite<TSuite>);
+
+  /**
    * @example "name"_test = [] {};
    * @param test.type ["test", "given", "when", "then"]
    * @param test.name "name"
    * @param test.arg parametrized argument
-   * @param test() execute test
+   * @param test() executes test
    */
   template<class... Ts>
-  auto on(ut::events::test<Ts...>) { }
+  auto on(ut::events::test<Ts...>);
 
   /**
    * @example skip | "don't run"_test = []{};
@@ -306,7 +320,7 @@ class runner {
    * @param skip.arg parametrized argument
    */
   template<class... Ts>
-  auto on(ut::events::skip<Ts...>) { }
+  auto on(ut::events::skip<Ts...>);
 
   /**
    * @example file.cpp:42: expect(42_i == 42);
@@ -315,23 +329,21 @@ class runner {
    * @return true if expr passes, false otherwise
    */
   template <class TLocation, class TExpr>
-  auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
-    return {};
-  }
+  auto on(ut::events::assertion<TLocation, TExpr>) -> bool;
 
   /**
    * @example !expect(2_i == 1)
    * @note triggered by `!expect`
    *       should std::exit
    */
-  auto on(ut::events::fatal_assertion) { }
+  auto on(ut::events::fatal_assertion);
 
   /**
    * @example log << "message"
    * @param log.msg "message"
    */
   template<class TMsg>
-  auto on(ut::events::log<TMsg>) { }
+  auto on(ut::events::log<TMsg>);
 };
 } // namespace cfg
 
@@ -351,35 +363,35 @@ class reporter {
    * @param test_begin.type ["test", "given", "when", "then"]
    * @param test_begin.name "name"
    */
-  auto on(ut::events::test_begin) -> void {}
+  auto on(ut::events::test_begin) -> void;
 
   /**
    * @example "name"_test = [] {};
    * @param test_run.type ["test", "given", "when", "then"]
    * @param test_run.name "name"
    */
-  auto on(ut::events::test_run) -> void {}
+  auto on(ut::events::test_run) -> void;
 
   /**
    * @example "name"_test = [] {};
    * @param test_skip.type ["test", "given", "when", "then"]
    * @param test_skip.name "name"
    */
-  auto on(ut::events::test_skip) -> void {}
+  auto on(ut::events::test_skip) -> void;
 
   /**
    * @example "name"_test = [] {};
    * @param test_end.type ["test", "given", "when", "then"]
    * @param test_end.name "name"
    */
-  auto on(ut::events::test_end) -> void {}
+  auto on(ut::events::test_end) -> void;
 
   /**
    * @example log << "message"
    * @param log.msg "message"
    */
   template<class TMsg>
-  auto on(ut::events::log<TMsg>) -> void {}
+  auto on(ut::events::log<TMsg>) -> void;
 
   /**
    * @example file.cpp:42: expect(42_i == 42);
@@ -387,7 +399,7 @@ class reporter {
    * @param assertion_pass.expr 42_i == 42
    */
   template <class TLocation, class TExpr>
-  auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
+  auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void;
 
   /**
    * @example file.cpp:42: expect(42_i != 42);
@@ -395,24 +407,24 @@ class reporter {
    * @param assertion_fail.expr 42_i != 42
    */
   template <class TLocation, class TExpr>
-  auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+  auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void;
 
   /**
    * @example !expect(2_i == 1)
    * @note triggered by `!expect`
    *       should std::exit
    */
-  auto on(ut::events::fatal_assertion) -> void {}
+  auto on(ut::events::fatal_assertion) -> void;
 
   /**
    * @example "exception"_test = [] { throw std::runtime_error{""}; };
    */
-  auto on(ut::events::exception) -> void {}
+  auto on(ut::events::exception) -> void;
 
   /**
    * @note triggered on destruction of runner
    */
-  auto on(ut::events::summary) -> void{};
+  auto on(ut::events::summary) -> void;
 };
 }  // namespace cfg
 
