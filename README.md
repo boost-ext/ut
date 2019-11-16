@@ -265,7 +265,7 @@ All tests passed (0 asserts in 0 tests)
 1 tests skipped
 ```
 
-**Module** (https://wandbox.org/permlink/yMnlEUeRHjQePSPw)
+**Module** (https://wandbox.org/permlink/CyqQu6PgVR1KvQpg)
 
 ```cpp
 import boost.ut;
