@@ -534,4 +534,4 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 **Disclaimer** `[Boost].UT` is not an official Boost library.
 
-<p align="center"><img src="doc/images/logo.png" /></p>
+<p align="left"><img width="64" src="doc/images/logo.png" /></p>
