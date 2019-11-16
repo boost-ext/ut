@@ -54,7 +54,7 @@ int main() {
 All tests passed (3 asserts in 1 tests)
 ```
 
-**Assertions** (https://godbolt.org/z/A-BGn2)
+**Assertions** (https://godbolt.org/z/uCX_aF)
 
 ```cpp
 "message"_test = [] {
@@ -281,7 +281,7 @@ int main() {
 All tests passed (1 asserts in 1 tests)
 ```
 
-**Runner** (https://godbolt.org/z/0uaFlH)
+**Runner** (https://godbolt.org/z/83NpjR)
 
 ```cpp
 namespace ut = boost::ut;
@@ -338,7 +338,7 @@ class runner {
 template<> auto ut::cfg<ut::override> = cfg::runner{};
 ```
 
-**Reporter** (https://godbolt.org/z/COV5xu)
+**Reporter** (https://godbolt.org/z/mN_SJQ)
 
 ```cpp
 namespace ut = boost::ut;
