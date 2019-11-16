@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(Boost.UT CXX)
 set(CMAKE_CXX_STANDARD 20)
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_options(-Weverything
                       -Werror
                       -pedantic
@@ -22,7 +22,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
                       -Wno-padded
                       -Wno-missing-prototypes
                       -Wno-ctad-maybe-unsupported)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   add_compile_options(-Wall
                       -Wextra
                       -Werror
@@ -51,9 +51,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
                       -Wcast-align=strict
                       -Wmissing-include-dirs
                       -Wno-missing-declarations)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_compile_options(/W4
-                      /Wall
                       /WX)
 endif()
 
