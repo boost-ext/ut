@@ -341,7 +341,7 @@ template <>
 inline constexpr auto is_floating_point_v<long double> = true;
 
 template <class From, class To>
-constexpr auto is_convertible(int) -> decltype(To(declval<From>())) {
+constexpr auto is_convertible(int) -> decltype(To(declval<From>()), bool()) {
   return true;
 }
 template <class...>
@@ -1271,13 +1271,17 @@ struct test {
     return test(name);
   }
 
-  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
+  template <class Test,
+            type_traits::requires_t<not type_traits::is_convertible_v<
+                Test, void (*)(utility::string_view)>> = 0>
   constexpr auto operator=(Test test)
       -> decltype(test(type_traits::declval<utility::string_view>())) {
     return test(name);
   }
 
-  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
+  template <class Test,
+            type_traits::requires_t<
+                not type_traits::is_convertible_v<Test, void (*)()>> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
     on<Test>(events::test{type, name, none{}, test});
@@ -1296,7 +1300,9 @@ class test_skip {
     return test;
   }
 
-  template <class Test, type_traits::requires_t<(sizeof(Test) > 1)> = 0>
+  template <class Test,
+            type_traits::requires_t<
+                not type_traits::is_convertible_v<Test, void (*)()>> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
     on<Test>(events::skip{t_.type, t_.name, none{}});

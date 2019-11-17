@@ -891,6 +891,17 @@ int main() {
 
   {
     test_cfg = fake_cfg{};
+    [[maybe_unused]] struct {
+    } empty{};
+
+    "[capture empty]"_test = [=] {};
+
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("[capture empty]"sv == test_cfg.run_calls[0].name);
+  }
+
+  {
+    test_cfg = fake_cfg{};
 
     "[vector]"_test = [] {
       std::vector<int> v(5);
