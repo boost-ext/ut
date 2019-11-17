@@ -141,6 +141,13 @@ int main() {
   {
     static_assert("void"sv == std::string_view{reflection::type_name<void>()});
     static_assert("int"sv == std::string_view{reflection::type_name<int>()});
+#if defined(_MSC_VER)
+    static_assert("struct fake_cfg"sv ==
+                  std::string_view{reflection::type_name<fake_cfg>()});
+#else
+    static_assert("fake_cfg"sv ==
+                  std::string_view{reflection::type_name<fake_cfg>()});
+#endif
   }
 
   {
@@ -822,17 +829,33 @@ int main() {
     test_assert("exceptions"sv == test_cfg.run_calls[0].name);
     test_assert(6 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
-    test_assert("true" == test_cfg.assertion_calls[0].str);
+#if defined(_MSC_VER)
+    test_assert("throws<class std::runtime_error>" ==
+                test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[1].result);
-    test_assert("true" == test_cfg.assertion_calls[1].str);
+    test_assert("throws" == test_cfg.assertion_calls[1].str);
     test_assert(not test_cfg.assertion_calls[2].result);
-    test_assert("false" == test_cfg.assertion_calls[2].str);
+    test_assert("throws<class std::runtime_error>" ==
+                test_cfg.assertion_calls[2].str);
     test_assert(not test_cfg.assertion_calls[3].result);
-    test_assert("false" == test_cfg.assertion_calls[3].str);
+    test_assert("throws<class std::runtime_error>" ==
+                test_cfg.assertion_calls[3].str);
+#else
+    test_assert("throws<std::runtime_error>" ==
+                test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("throws" == test_cfg.assertion_calls[1].str);
+    test_assert(not test_cfg.assertion_calls[2].result);
+    test_assert("throws<std::runtime_error>" ==
+                test_cfg.assertion_calls[2].str);
+    test_assert(not test_cfg.assertion_calls[3].result);
+    test_assert("throws<std::runtime_error>" ==
+                test_cfg.assertion_calls[3].str);
+#endif
     test_assert(test_cfg.assertion_calls[4].result);
-    test_assert("true" == test_cfg.assertion_calls[4].str);
+    test_assert("nothrow" == test_cfg.assertion_calls[4].str);
     test_assert(not test_cfg.assertion_calls[5].result);
-    test_assert("false" == test_cfg.assertion_calls[5].str);
+    test_assert("nothrow" == test_cfg.assertion_calls[5].str);
 
     "should throw"_test = [] {
       auto f = [](const auto should_throw) {
@@ -860,7 +883,9 @@ int main() {
     test_assert("abort"sv == test_cfg.run_calls[0].name);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(not test_cfg.assertion_calls[0].result);
+    test_assert("aborts" == test_cfg.assertion_calls[0].str);
     test_assert(test_cfg.assertion_calls[1].result);
+    test_assert("aborts" == test_cfg.assertion_calls[1].str);
   }
 #endif
 
