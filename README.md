@@ -143,14 +143,15 @@ asserts: 16 | 14 passed | 2 failed
 All tests passed (4 asserts in 1 tests)
 ```
 
-**Exceptions** (https://godbolt.org/z/3BdTtA)
+**Exceptions/Aborts** (https://godbolt.org/z/3BdTtA)
 
 ```cpp
-"exceptions"_test = [] {
+"exceptions/aborts"_test = [] {
   expect(throws<std::runtime_error>([]{throw std::runtime_error{""};}))
     << "throws runtime_error";
   expect(throws([]{throw 0;})) << "throws any exception";
   expect(nothrow([]{})) << "doesn't throw";
+  expect(aborts([] { assert(false); }));
 };
 ```
 

@@ -1371,6 +1371,11 @@ class throws_ : op {
     return false;
   }
 
+  template <class TOs>
+  friend auto operator<<(TOs& os, const throws_&) -> TOs& {
+    return (os << "throws<" << reflection::type_name<TException>() << ">");
+  }
+
  private:
   TExpr expr_{};
 };
@@ -1389,6 +1394,11 @@ class throws_<TExpr, void> : op {
     return false;
   }
 
+  template <class TOs>
+  friend auto operator<<(TOs& os, const throws_&) -> TOs& {
+    return (os << "throws");
+  }
+
  private:
   TExpr expr_{};
 };
@@ -1405,6 +1415,11 @@ class nothrow_ : op {
       return false;
     }
     return true;
+  }
+
+  template <class TOs>
+  friend auto operator<<(TOs& os, const nothrow_&) -> TOs& {
+    return (os << "nothrow");
   }
 
  private:
@@ -1426,6 +1441,11 @@ class aborts_ : op {
     auto exit_status = 0;
     wait(&exit_status);
     return exit_status;
+  }
+
+  template <class TOs>
+  friend auto operator<<(TOs& os, const aborts_&) -> TOs& {
+    return (os << "aborts");
   }
 
  private:
