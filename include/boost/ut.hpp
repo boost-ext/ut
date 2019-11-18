@@ -563,26 +563,26 @@ template <class TLhs, class TRhs>
 class eq_ : op {
  public:
   constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator==;
+          using std::operator<;
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value == TRhs::value;
+          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
+                               type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs) - get(rhs)) <
+                   math::min(TLhs::epsilon, TRhs::epsilon);
+          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+            return math::abs(get(lhs) - get(rhs)) < TLhs::epsilon;
+          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs) - get(rhs)) < TRhs::epsilon;
+          } else {
+            return get(lhs) == get(rhs);
+          }
+        }()} {}
 
-  constexpr operator bool() const {
-    using std::operator==;
-    using std::operator<;
-    if constexpr (type_traits::has_value_v<TLhs> and
-                  type_traits::has_value_v<TRhs>) {
-      return TLhs::value == TRhs::value;
-    } else if constexpr (type_traits::has_epsilon_v<TLhs> and
-                         type_traits::has_epsilon_v<TRhs>) {
-      return math::abs(get(lhs_) - get(rhs_)) <
-             math::min(TLhs::epsilon, TRhs::epsilon);
-    } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
-      return math::abs(get(lhs_) - get(rhs_)) < TLhs::epsilon;
-    } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
-      return math::abs(get(lhs_) - get(rhs_)) < TRhs::epsilon;
-    } else {
-      return get(lhs_) == get(rhs_);
-    }
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const eq_& op) -> TOs& {
@@ -591,34 +591,35 @@ class eq_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class neq_ : op {
  public:
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator!=;
+          using std::operator>;
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value != TRhs::value;
+          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
+                               type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs_) - get(rhs_)) >
+                   math::min(TLhs::epsilon, TRhs::epsilon);
+          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+            return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
+          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs_) - get(rhs_)) > TRhs::epsilon;
+          } else {
+            return get(lhs_) != get(rhs_);
+          }
+        }()} {}
 
-  constexpr operator bool() const {
-    using std::operator!=;
-    using std::operator>;
-    if constexpr (type_traits::has_value_v<TLhs> and
-                  type_traits::has_value_v<TRhs>) {
-      return TLhs::value != TRhs::value;
-    } else if constexpr (type_traits::has_epsilon_v<TLhs> and
-                         type_traits::has_epsilon_v<TRhs>) {
-      return math::abs(get(lhs_) - get(rhs_)) >
-             math::min(TLhs::epsilon, TRhs::epsilon);
-    } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
-      return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
-    } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
-      return math::abs(get(lhs_) - get(rhs_)) > TRhs::epsilon;
-    } else {
-      return get(lhs_) != get(rhs_);
-    }
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const neq_& op) -> TOs& {
@@ -627,25 +628,26 @@ class neq_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class gt_ : op {
  public:
   constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator>;
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value > TRhs::value;
+          } else {
+            return get(lhs_) > get(rhs_);
+          }
+        }()} {}
 
-  constexpr operator bool() const {
-    using std::operator>;
-    if constexpr (type_traits::has_value_v<TLhs> and
-                  type_traits::has_value_v<TRhs>) {
-      return TLhs::value > TRhs::value;
-    } else {
-      return get(lhs_) > get(rhs_);
-    }
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const gt_& op) -> TOs& {
@@ -654,25 +656,26 @@ class gt_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class ge_ : op {
  public:
   constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator>=;
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value >= TRhs::value;
+          } else {
+            return get(lhs_) >= get(rhs_);
+          }
+        }()} {}
 
-  constexpr operator bool() const {
-    using std::operator>=;
-    if constexpr (type_traits::has_value_v<TLhs> and
-                  type_traits::has_value_v<TRhs>) {
-      return TLhs::value >= TRhs::value;
-    } else {
-      return get(lhs_) >= get(rhs_);
-    }
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const ge_& op) -> TOs& {
@@ -681,25 +684,26 @@ class ge_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class lt_ : op {
  public:
   constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator<;
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value < TRhs::value;
+          } else {
+            return get(lhs_) < get(rhs_);
+          }
+        }()} {}
 
-  constexpr operator bool() const {
-    using std::operator<;
-    if constexpr (type_traits::has_value_v<TLhs> and
-                  type_traits::has_value_v<TRhs>) {
-      return TLhs::value < TRhs::value;
-    } else {
-      return get(lhs_) < get(rhs_);
-    }
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const lt_& op) -> TOs& {
@@ -708,25 +712,26 @@ class lt_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class le_ : op {
  public:
   constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator<=;
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value <= TRhs::value;
+          } else {
+            return get(lhs_) <= get(rhs_);
+          }
+        }()} {}
 
-  constexpr operator bool() const {
-    using std::operator<=;
-    if constexpr (type_traits::has_value_v<TLhs> and
-                  type_traits::has_value_v<TRhs>) {
-      return TLhs::value <= TRhs::value;
-    } else {
-      return get(lhs_) <= get(rhs_);
-    }
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const le_& op) -> TOs& {
@@ -735,19 +740,20 @@ class le_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class and_ : op {
  public:
   constexpr and_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs},
+        rhs_{rhs},
+        value_{static_cast<bool>(lhs) and static_cast<bool>(rhs)} {}
 
-  constexpr operator bool() const {
-    return static_cast<bool>(lhs_) and static_cast<bool>(rhs_);
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const and_& op) -> TOs& {
@@ -756,19 +762,20 @@ class and_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class TLhs, class TRhs>
 class or_ : op {
  public:
   constexpr or_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs} {}
+      : lhs_{lhs},
+        rhs_{rhs},
+        value_{static_cast<bool>(lhs) or static_cast<bool>(rhs)} {}
 
-  constexpr operator bool() const {
-    return static_cast<bool>(lhs_) or static_cast<bool>(rhs_);
-  }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const or_& op) -> TOs& {
@@ -777,16 +784,18 @@ class or_ : op {
   }
 
  private:
-  TLhs lhs_{};
-  TRhs rhs_{};
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
 };
 
 template <class T>
 class not_ : op {
  public:
-  explicit constexpr not_(const T& t = {}) : t_{t} {}
+  explicit constexpr not_(const T& t = {})
+      : t_{t}, value_{not static_cast<bool>(t)} {}
 
-  constexpr operator bool() const { return not static_cast<bool>(t_); }
+  constexpr operator bool() const { return value_; }
 
   template <class TOs>
   friend auto operator<<(TOs& os, const not_& op) -> TOs& {
@@ -795,7 +804,8 @@ class not_ : op {
   }
 
  private:
-  T t_{};
+  const T t_{};
+  const bool value_{};
 };
 }  // namespace detail
 
