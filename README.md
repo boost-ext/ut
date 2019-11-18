@@ -57,15 +57,15 @@ All tests passed (3 asserts in 1 tests)
 **Assertions** (https://godbolt.org/z/uCX_aF)
 
 ```cpp
-"message"_test = [] {
-  expect(3_i == sum(1, 2)) << "wrong sum";
-};
-
 "operators"_test = [] {
   expect(0_i == sum());
   expect(2_i != sum(1, 2));
   expect(sum(1) >= 0_i);
   expect(sum(1) <= 1_i);
+};
+
+"message"_test = [] {
+  expect(3_i == sum(1, 2)) << "wrong sum";
 };
 
 "expressions"_test = [] {
@@ -272,6 +272,8 @@ All tests passed (0 asserts in 0 tests)
 import boost.ut;
 
 int main() {
+  using namespace boost::ut;
+
   "module"_test = [] {
     expect(42_i == 42);
   };
