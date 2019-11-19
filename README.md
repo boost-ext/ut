@@ -32,7 +32,7 @@
 |-|-|
 | `#include <boost/ut.hpp>` | `import boost.ut;` |
 
-**Hello World** (https://godbolt.org/z/ZLCQ2n)
+**Hello World** (https://godbolt.org/z/hjfBf6)
 
 ```cpp
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
@@ -117,7 +117,7 @@ tests:   6  | 1 failed
 asserts: 16 | 14 passed | 2 failed
 ```
 
-**Sections** (https://godbolt.org/z/Q4iXBE)
+**Sections** (https://godbolt.org/z/qKxsf9)
 
 ```cpp
 "[vector]"_test = [] {
@@ -143,7 +143,7 @@ asserts: 16 | 14 passed | 2 failed
 All tests passed (4 asserts in 1 tests)
 ```
 
-**Exceptions/Aborts** (https://godbolt.org/z/3BdTtA)
+**Exceptions/Aborts** (https://godbolt.org/z/A2EehK)
 
 ```cpp
 "exceptions/aborts"_test = [] {
@@ -159,7 +159,7 @@ All tests passed (4 asserts in 1 tests)
 All tests passed (3 asserts in 1 tests)
 ```
 
-**Parameterized** (https://godbolt.org/z/N_4CIF)
+**Parameterized** (https://godbolt.org/z/WCqggN)
 
 ```cpp
 "args"_test =
@@ -187,7 +187,7 @@ All tests passed (3 asserts in 1 tests)
 All tests passed (11 asserts in 7 tests)
 ```
 
-**Logging** (https://godbolt.org/z/WLVmwd)
+**Logging** (https://godbolt.org/z/26fPSY)
 
 ```cpp
 "logging"_test = [] {
@@ -210,7 +210,7 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-**Behavior Driven Development** (https://godbolt.org/z/A1Lkec)
+**Behavior Driven Development** (https://godbolt.org/z/5nhdyn)
 
 ```cpp
 "scenario"_test = [] {
@@ -227,7 +227,7 @@ asserts: 1 | 0 passed | 1 failed
 All tests passed (2 asserts in 1 tests)
 ```
 
-**Test Suites** (https://godbolt.org/z/1pPYlN)
+**Test Suites** (https://godbolt.org/z/CFbTP9)
 
 ```cpp
 namespace ut = boost::ut;
@@ -253,7 +253,7 @@ int main() { }
 All tests passed (2 asserts in 1 tests)
 ```
 
-**Skipping tests** (https://godbolt.org/z/FeWVjB)
+**Skipping tests** (https://godbolt.org/z/R3dKAV)
 
 ```cpp
 skip | "don't run"_test = [] {
@@ -284,7 +284,7 @@ int main() {
 All tests passed (1 asserts in 1 tests)
 ```
 
-**Runner** (https://godbolt.org/z/83NpjR)
+**Runner** (https://godbolt.org/z/jdg687)
 
 ```cpp
 namespace ut = boost::ut;
@@ -353,7 +353,7 @@ class runner {
 template<> auto ut::cfg<ut::override> = cfg::runner{};
 ```
 
-**Reporter** (https://godbolt.org/z/mN_SJQ)
+**Reporter** (https://godbolt.org/z/gsAPKg)
 
 ```cpp
 namespace ut = boost::ut;
