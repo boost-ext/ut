@@ -73,6 +73,12 @@ All tests passed (3 asserts in 1 tests)
   expect(0_i == sum() or 1_i == sum()) << "compound";
 };
 
+"that"_test = [] {
+  expect(that % 0 == sum());
+  expect(that % 42 == sum(40, 2) and that % (1 + 2) == sum(1, 2));
+  expect(that % 1 != 2 or 2_i > 3);
+};
+
 "floating points"_test = [] {
   expect(42.1_d == 42.101) << "epsilon=0.1";
   expect(42.10_d == 42.101) << "epsilon=0.01";
