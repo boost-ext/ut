@@ -1341,6 +1341,52 @@ struct log {
   }
 };
 
+struct that_ {
+  template <class TLhs>
+  class expr {
+   public:
+    constexpr explicit expr(const TLhs& lhs) : lhs_{lhs} {}
+
+    template <class TRhs>
+    constexpr auto operator==(const TRhs& rhs) const {
+      return eq_{lhs_, rhs};
+    }
+
+    template <class TRhs>
+    constexpr auto operator!=(const TRhs& rhs) const {
+      return neq_{lhs_, rhs};
+    }
+
+    template <class TRhs>
+    constexpr auto operator>(const TRhs& rhs) const {
+      return gt_{lhs_, rhs};
+    }
+
+    template <class TRhs>
+    constexpr auto operator>=(const TRhs& rhs) const {
+      return ge_{lhs_, rhs};
+    }
+
+    template <class TRhs>
+    constexpr auto operator<(const TRhs& rhs) const {
+      return lt_{lhs_, rhs};
+    }
+
+    template <class TRhs>
+    constexpr auto operator<=(const TRhs& rhs) const {
+      return le_{lhs_, rhs};
+    }
+
+   private:
+    const TLhs lhs_{};
+  };
+
+  template <class TLhs>
+  constexpr auto operator%(const TLhs& lhs) const {
+    return expr{lhs};
+  }
+};
+
 template <class T>
 class expect_ {
  public:
@@ -1730,6 +1776,7 @@ struct suite {
 [[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
 
 [[maybe_unused]] inline auto log = detail::log{};
+[[maybe_unused]] inline auto that = detail::that_{};
 [[maybe_unused]] constexpr auto skip = detail::skip{};
 [[maybe_unused]] constexpr auto given = [](utility::string_view name) {
   return detail::test{"given", name};

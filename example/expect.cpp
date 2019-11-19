@@ -29,6 +29,12 @@ int main() {
     expect(1_i == sum() or (sum() != 0_i or sum(1) > 0_i)) << "compound";
   };
 
+  "that"_test = [] {
+    expect(that % 0 == sum());
+    expect(that % 42 == sum(40, 2) and that % (1 + 2) == sum(1, 2));
+    expect(that % 1 != 2 or 2_i > 3);
+  };
+
   "message"_test = [] { expect(3_i == sum(1, 2)) << "wrong sum"; };
 
   "floating points"_test = [] {
