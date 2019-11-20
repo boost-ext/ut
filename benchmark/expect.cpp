@@ -10,9 +10,25 @@
 int main() {
   using namespace boost::ut;
 
-  "expect"_test = [] {
-    for (auto i = 0; i < 1'000'000; ++i) {
+  static constexpr auto iterations = 1'000'000;
+
+#if defined(EXPECT_UDL)
+  "expect_udl"_test = [] {
+    for (auto i = 0; i < iterations; ++i) {
       expect(i == _i(i));
     }
   };
+#elif defined(EXPECT_THAT)
+  "expect_that"_test = [] {
+    for (auto i = 0; i < iterations; ++i) {
+      expect(that % i == i);
+    }
+  };
+#elif defined(EXPECT_EQ)
+  "expect_eq"_test = [] {
+    for (auto i = 0; i < iterations; ++i) {
+      expect(eq(i, i));
+    }
+  };
+#endif
 }
