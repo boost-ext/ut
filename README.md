@@ -32,7 +32,7 @@
 |-|-|
 | `#include <boost/ut.hpp>` | `import boost.ut;` |
 
-**Hello World** (https://godbolt.org/z/hjfBf6)
+**Hello World** (https://godbolt.org/z/pt-yUa)
 
 ```cpp
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
@@ -43,9 +43,7 @@ int main() {
   using namespace boost::ut;
 
   "hello world"_test = [] {
-    expect(0_i == sum());
-    expect(sum(1) == 1_i);
-    expect(3_i == sum(1, 2));
+    expect(42_i == sum(40, 2));
   };
 }
 ```
