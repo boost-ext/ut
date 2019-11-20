@@ -52,7 +52,7 @@ int main() {
 All tests passed (3 asserts in 1 tests)
 ```
 
-**Assertions** (https://godbolt.org/z/uCX_aF)
+**Assertions** (https://godbolt.org/z/pVk2M4)
 
 ```cpp
 "operators"_test = [] {
@@ -111,9 +111,11 @@ All tests passed (3 asserts in 1 tests)
 ```
 
 ```
-Running "message"...✔️
 Running "operators"...✔️
+Running "message"...✔️
 Running "expressions"...✔️
+Running "that"...✔️
+Running "eq/neq/gt/ge/lt/le"...✔️
 Running "floating points"...✔️
 Running "constant"...✔️
 Running "fatal"...✔️
