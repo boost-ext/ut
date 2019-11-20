@@ -79,6 +79,13 @@ All tests passed (3 asserts in 1 tests)
   expect(that % 1 != 2 or 2_i > 3);
 };
 
+"eq/neq/gt/ge/lt/le"_test = [] {
+  expect(eq(42, sum(40, 2)));
+  expect(neq(1, 2));
+  expect(eq(sum(1), 1) and neq(sum(1, 2), 2));
+  expect(eq(1, 1) and that % 1 == 1 and 1_i == 1);
+};
+
 "floating points"_test = [] {
   expect(42.1_d == 42.101) << "epsilon=0.1";
   expect(42.10_d == 42.101) << "epsilon=0.01";

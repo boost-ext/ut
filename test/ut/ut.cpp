@@ -685,6 +685,32 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
+    expect(eq(42, 42));
+
+    test_assert(1 == std::size(test_cfg.assertion_calls));
+    test_assert("42 == 42" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert(0 == std::size(test_cfg.log_calls));
+
+    expect(eq(1, 2) or gt(3, 7)) << "msg";
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert("(1 == 2 or 3 > 7)" == test_cfg.assertion_calls[1].str);
+    test_assert(not test_cfg.assertion_calls[1].result);
+    test_assert(2 == std::size(test_cfg.log_calls));
+    test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("msg"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
+
+    const auto f = false;
+    expect(3_i > 5 and eq(not true, f));
+    test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert("(3 > 5 and false == false)" ==
+                test_cfg.assertion_calls[2].str);
+    test_assert(not test_cfg.assertion_calls[2].result);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
     using namespace std::literals::string_view_literals;
     using namespace std::literals::string_literals;
 

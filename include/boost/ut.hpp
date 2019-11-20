@@ -1790,6 +1790,31 @@ struct suite {
 template <class T>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
 
+template <class TLhs, class TRhs>
+constexpr auto eq(const TLhs& lhs, const TRhs& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+template <class TLhs, class TRhs>
+constexpr auto neq(const TLhs& lhs, const TRhs& rhs) {
+  return detail::neq_{lhs, rhs};
+}
+template <class TLhs, class TRhs>
+constexpr auto gt(const TLhs& lhs, const TRhs& rhs) {
+  return detail::gt_{lhs, rhs};
+}
+template <class TLhs, class TRhs>
+constexpr auto ge(const TLhs& lhs, const TRhs& rhs) {
+  return detail::ge_{lhs, rhs};
+}
+template <class TLhs, class TRhs>
+constexpr auto lt(const TLhs& lhs, const TRhs& rhs) {
+  return detail::lt_{lhs, rhs};
+}
+template <class TLhs, class TRhs>
+constexpr auto le(const TLhs& lhs, const TRhs& rhs) {
+  return detail::le_{lhs, rhs};
+}
+
 using literals::operator""_test;
 using literals::operator""_i;
 using literals::operator""_s;
