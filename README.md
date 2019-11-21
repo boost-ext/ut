@@ -454,7 +454,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 | Option | Description | Example |
 |-|-|-|
-| `BOOST_UT_VERSION`        | Current version | `1'1'0` |
+| `BOOST_UT_VERSION`        | Current version | `1'1'1` |
 | `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple test suites | |
 | `BOOST_UT_IMPLEMENTATION` | Optionally used in `main.cpp` file to provide `ut` implementation (have to be used in combination with `BOOST_UT_FORWARD`) | |
 
