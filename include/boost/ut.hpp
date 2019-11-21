@@ -24,7 +24,7 @@ export import std;
     not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
 #error "[Boost].UT requires C++20 support"
 #else
-#define BOOST_UT_VERSION 1'1'0
+#define BOOST_UT_VERSION 1'1'1
 
 #if defined(BOOST_UT_FORWARD)
 namespace std {
@@ -60,7 +60,7 @@ export namespace boost::ut {
 namespace boost::ut {
 #endif
 
-inline namespace v1_1_0 {
+inline namespace v1_1_1 {
 namespace utility {
 class string_view {
  public:
@@ -1838,6 +1838,6 @@ using operators::operator and;
 using operators::operator or;
 using operators::operator not;
 using operators::operator|;
-}  // namespace v1_1_0
+}  // namespace v1_1_1
 }  // namespace boost::ut
 #endif
