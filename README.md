@@ -13,7 +13,7 @@
 
 * **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single header/module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
-* **Macro-free** ([How it works](#how-it-works))
+* **Macro-free** ([How does it work?](#how-it-works))
 * **Easy to use** ([Minimal API](#api) - `suite, test, expect`)
 * **Fast to compile/execute** ([Benchmarks](#benchmarks))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
@@ -124,14 +124,14 @@ Running "floating points"...✔️
 Running "constant"...✔️
 Running "fatal"...✔️
 Running "failure"...
-  assertions.cpp:48:FAILED [1 == 2] should fail
-  assertions.cpp:49:FAILED [(0 == 1 or 2 == 0)] sum?
+  assertions.cpp:61:FAILED [1 == 2] should fail
+  assertions.cpp:62:FAILED [(0 == 1 or 2 == 0)] sum?
 ❌
 
 ===============================================================================
 
-tests:   6  | 1 failed
-asserts: 16 | 14 passed | 2 failed
+tests:   9  | 1 failed
+asserts: 24 | 22 passed | 2 failed
 ```
 
 **Sections** (https://godbolt.org/z/qKxsf9)
@@ -173,7 +173,7 @@ All tests passed (4 asserts in 1 tests)
 ```
 
 ```
-All tests passed (3 asserts in 1 tests)
+All tests passed (4 asserts in 1 tests)
 ```
 
 **Parameterized** (https://godbolt.org/z/WCqggN)
@@ -327,7 +327,7 @@ class runner {
    * @example "name"_test = [] {};
    * @param test.type ["test", "given", "when", "then"]
    * @param test.name "name"
-   * @param test.arg parametrized argument
+   * @param test.arg parameterized argument
    * @param test() executes test
    */
   template<class... Ts>
@@ -337,7 +337,7 @@ class runner {
    * @example skip | "don't run"_test = []{};
    * @param skip.type ["test", "given", "when", "then"]
    * @param skip.name "don't run"
-   * @param skip.arg parametrized argument
+   * @param skip.arg parameterized argument
    */
   template<class... Ts>
   auto on(ut::events::skip<Ts...>);
@@ -461,57 +461,33 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 export module boost.ut;
 
 namespace boost::ut::inline v1_1_1 {
-  inline namespace literals {
+  /**
+   * Represents test suite object
+   */
+  struct suite final {
     /**
-     * Creates a test
-     * @example "test name"_test = [] {};
-     * @return test object to be executed
+     * Creates and executes test suite
+     * @example suite _ = [] {};
+     * @param suite test suite function
      */
-    constexpr auto operator""_test;
-
-    /**
-     * User defined literals which represent constant values
-     * @example 42_i, 0_uc, 1.23_d
-     */
-    constexpr auto operator""_i;
-    constexpr auto operator""_s;
-    constexpr auto operator""_c;
-    constexpr auto operator""_i;
-    constexpr auto operator""_s;
-    constexpr auto operator""_c;
-    constexpr auto operator""_l;
-    constexpr auto operator""_ll;
-    constexpr auto operator""_u;
-    constexpr auto operator""_uc;
-    constexpr auto operator""_us;
-    constexpr auto operator""_ul;
-    constexpr auto operator""_f;
-    constexpr auto operator""_d;
-    constexpr auto operator""_ld;
-  } // namespace literals
-
-  inline namespace operators {
-    /**
-     * Overloaded operators to be used in expressions
-     * @example (42_i != 0)
-     */
-    constexpr auto operator==;
-    constexpr auto operator!=;
-    constexpr auto operator>;
-    constexpr auto operator>=;
-    constexpr auto operator<;
-    constexpr auto operator<=;
-    constexpr auto operator and;
-    constexpr auto operator or;
-    constexpr auto operator not;
-    constexpr auto operator|;
-  } // namespace operators
+    constexpr explicit(false) suite(auto suite);
+  };
 
   /**
-   * Creates a test suite
-   * @example suite _ = [] {};
+   * Creates a test
+   * @example "test name"_test = [] {};
+   * @return test object to be executed
    */
-  struct suite;
+  constexpr auto operator""_test;
+
+  /**
+   * Behaviour Driven Development (BDD) helper functions
+   * @param name step name
+   * @return test object to be executed
+   */
+  constexpr auto given = [](auto name);
+  constexpr auto when  = [](auto name);
+  constexpr auto then  = [](auto name);
 
   /**
    * Evaluates an expression
@@ -524,6 +500,58 @@ namespace boost::ut::inline v1_1_1 {
     Expression expr,
     const std::source_location& location = std::source_location::current()
   );
+
+  inline namespace literals {
+    /**
+     * User defined literals to represent constant values
+     * @example 42_i, 0_uc, 1.23_d
+     */
+    constexpr auto operator""_i;  /// int
+    constexpr auto operator""_s;  /// short
+    constexpr auto operator""_c;  /// char
+    constexpr auto operator""_l;  /// long
+    constexpr auto operator""_ll; /// long long
+    constexpr auto operator""_u;  /// unsigned
+    constexpr auto operator""_uc; /// unsigned char
+    constexpr auto operator""_us; /// unsigned short
+    constexpr auto operator""_ul; /// unsigned long
+    constexpr auto operator""_f;  /// float
+    constexpr auto operator""_d;  /// double
+    constexpr auto operator""_ld; /// long double
+
+    /**
+     * Logical representation of constant values
+     */
+    constexpr auto true_b;        /// true
+    constexpr auto false_b;       /// false
+  } // namespace literals
+
+  inline namespace operators {
+    /**
+     * Overloaded comparison operators to be used in expressions
+     * @example (42_i != 0)
+     */
+    constexpr auto operator==;
+    constexpr auto operator!=;
+    constexpr auto operator>;
+    constexpr auto operator>=;
+    constexpr auto operator<;
+    constexpr auto operator<=;
+
+    /**
+     * Overloaded logic operators to be used in expressions
+     * @example (42_i != 0 and 1 == 2_i)
+     */
+    constexpr auto operator and;
+    constexpr auto operator or;
+    constexpr auto operator not;
+
+    /**
+     * Executes parameterized tests
+     * @example "parameterized"_test = [](auto arg) {} | std::tuple{1, 2, 3};
+     */
+    constexpr auto operator|;
+  } // namespace operators
 } // namespace boost::ut
 ```
 
@@ -540,7 +568,7 @@ namespace boost::ut::inline v1_1_1 {
 ---
 
 <a name="how-it-works"></a>
-**How it works**
+**How does it work?**
 
 > `suite`
 
