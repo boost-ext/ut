@@ -13,8 +13,8 @@
 
 * **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single header/module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
-* **Macro-free** ([How it works?](#how-it-works))
-* **Easy to use** (Minimal interface - `suite, test, expect`)
+* **Macro-free** ([How it works](#how-it-works))
+* **Easy to use** ([Minimal API](#api) - `suite, test, expect`)
 * **Fast to compile/execute** ([Benchmarks](#benchmarks))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
@@ -51,6 +51,8 @@ int main() {
 ```
 All tests passed (3 asserts in 1 tests)
 ```
+
+### Examples
 
 **Assertions** (https://godbolt.org/z/pVk2M4)
 
@@ -452,6 +454,81 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 
 ---
 
+<a name="api"></a>
+### API
+
+```cpp
+export module boost.ut;
+
+namespace boost::ut::inline v1_1_1 {
+  inline namespace literals {
+    /**
+     * Creates a test
+     * @example "test name"_test = [] {};
+     * @return test object to be executed
+     */
+    constexpr auto operator""_test;
+
+    /**
+     * User defined literals which represent constant values
+     * @example 42_i, 0_uc, 1.23_d
+     */
+    constexpr auto operator""_i;
+    constexpr auto operator""_s;
+    constexpr auto operator""_c;
+    constexpr auto operator""_i;
+    constexpr auto operator""_s;
+    constexpr auto operator""_c;
+    constexpr auto operator""_l;
+    constexpr auto operator""_ll;
+    constexpr auto operator""_u;
+    constexpr auto operator""_uc;
+    constexpr auto operator""_us;
+    constexpr auto operator""_ul;
+    constexpr auto operator""_f;
+    constexpr auto operator""_d;
+    constexpr auto operator""_ld;
+  } // namespace literals
+
+  inline namespace operators {
+    /**
+     * Overloaded operators to be used in expressions
+     * @example (42_i != 0)
+     */
+    constexpr auto operator==;
+    constexpr auto operator!=;
+    constexpr auto operator>;
+    constexpr auto operator>=;
+    constexpr auto operator<;
+    constexpr auto operator<=;
+    constexpr auto operator and;
+    constexpr auto operator or;
+    constexpr auto operator not;
+    constexpr auto operator|;
+  } // namespace operators
+
+  /**
+   * Creates a test suite
+   * @example suite _ = [] {};
+   */
+  struct suite;
+
+  /**
+   * Evaluates an expression
+   * @example expect(42 == 42_i and 1 != 2_i);
+   * @param expr expression to be evaluated
+   * @param location [source code location](https://en.cppreference.com/w/cpp/utility/source_location))
+   * @return stream
+   */
+  constexpr OStream& expect(
+    Expression expr,
+    const std::source_location& location = std::source_location::current()
+  );
+} // namespace boost::ut
+```
+
+---
+
 **Configuration**
 
 | Option | Description | Example |
@@ -463,7 +540,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ---
 
 <a name="how-it-works"></a>
-**How it works?**
+**How it works**
 
 > `suite`
 
