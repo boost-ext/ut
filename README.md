@@ -450,6 +450,8 @@ template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
 
+---
+
 **Configuration**
 
 | Option | Description | Example |
