@@ -49,7 +49,7 @@ int main() {
 ```
 
 ```
-All tests passed (3 asserts in 1 tests)
+All tests passed (1 assert in 1 test)
 ```
 
 ---
