@@ -11,10 +11,10 @@
 
 > C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
 
-* **No dependencies** (C++20 / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single header/module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
-* **Macro-free** ([Based on modern C++ features](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
-* **Easy to use** (Minimal interface - `test, suite, expect`)
+* **Macro-free** ([How it works?](#how-it-works))
+* **Easy to use** (Minimal interface - `suite, test, expect`)
 * **Fast to compile/execute** ([Benchmarks](#benchmarks))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
@@ -54,7 +54,7 @@ All tests passed (3 asserts in 1 tests)
 
 **Assertions** (https://godbolt.org/z/pVk2M4)
 
- <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
+> <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
 
 ```cpp
 "operators"_test = [] {
@@ -457,6 +457,133 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 | `BOOST_UT_VERSION`        | Current version | `1'1'0` |
 | `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple test suites | |
 | `BOOST_UT_IMPLEMENTATION` | Optionally used in `main.cpp` file to provide `ut` implementation (have to be used in combination with `BOOST_UT_FORWARD`) | |
+
+---
+
+<a name="how-it-works"></a>
+**How it works?**
+
+> `suite`
+
+  ```cpp
+  /**
+   * Reperesents suite object
+   * @example suite _ = []{};
+   */
+  struct suite final {
+    /**
+     * Assigns and executes test suite
+     */
+    [[nodiscard]] constexpr explicit(false) suite(Suite suite) {
+      suite();
+    }
+  };
+  ```
+
+> `test`
+
+  ```cpp
+  /**
+   * Creates named test object
+   * @example "hello world"_test
+   * @return test object
+   */
+  [[nodiscard]] constexpr Test operator ""_test(const char* name, std::size_t size) {
+    return test{{name, size}};
+  }
+  ```
+
+  ```cpp
+  /**
+   * Represents test object
+   */
+  struct test final {
+    std::string_view name{}; /// test case name
+
+    /**
+     * Assigns and executes test function
+     * @param test function
+     */
+    constexpr auto operator=(const Test& test) {
+      std::cout << "Running... " << name << '\n';
+      test();
+    }
+  };
+  ```
+
+> `expect`
+
+  ```cpp
+  /**
+   * Evaluates an expression
+   * @example expect(42_i == 42);
+   * @param expr expression to be evaluated
+   * @param location [source code location](https://en.cppreference.com/w/cpp/utility/source_location))
+   * @return stream
+   */
+  constexpr OStream& expect(
+    Expression expr,
+    const std::source_location& location = std::source_location::current()
+  ) {
+    if (not static_cast<bool>(expr) {
+      std::cerr << location.file()
+                << ':'
+                << location.line()
+                << ":FAILED: "
+                << expr
+                << '\n';
+    }
+
+    return std::cerr;
+  }
+  ```
+
+  ```cpp
+  /**
+   * Creates constant object for which operators can be overloaded
+   * @example 42_i
+   * @return integral constant object
+   */
+  template <char... Cs>
+  [[nodiscard]] constexpr Operator operator""_i() -> integral_constant<int, value<Cs...>>;
+  ```
+
+  ```cpp
+  /**
+   * Overloads comparison if at least one of {lhs, rhs} is an Operator
+   * @example (42_i == 42)
+   * @param lhs Left-hand side operator
+   * @param rhs Right-hand side operator
+   * @return Comparison object
+   */
+  [[nodiscard]] constexpr auto operator==(Operator lhs, Operator rhs) {
+    return eq{lhs, rhs};
+  }
+  ```
+
+  ```cpp
+  /**
+   * Comparison Operator
+   */
+  template <class TLhs, class TRhs>
+  struct eq final {
+    TLhs lhs{}; // Left-hand side operator
+    TRhs rhs{}; // Right-hand side operator
+
+    /**
+     * Performs comparison operatation
+     * @return true if expression is succesful
+     */
+    [[nodiscard]] constexpr explicit operator bool() const;
+
+    /**
+     * Nicely prints the operation
+     */
+    friend auto operator<<(OStream& os, const eq& op) -> Ostream& {
+      return (os << op.lhs << " == " << op.rhs);
+    }
+  };
+  ```
 
 ---
 
