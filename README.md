@@ -54,6 +54,8 @@ All tests passed (3 asserts in 1 tests)
 
 **Assertions** (https://godbolt.org/z/pVk2M4)
 
+ <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
+
 ```cpp
 "operators"_test = [] {
   expect(0_i == sum());
