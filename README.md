@@ -52,7 +52,7 @@ int main() {
 All tests passed (3 asserts in 1 tests)
 ```
 
-### Examples
+---
 
 **Assertions** (https://godbolt.org/z/pVk2M4)
 
