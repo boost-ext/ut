@@ -13,18 +13,25 @@
 
 > C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
 
+<p align="center">
+  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
+</p>
+
+---
+
+<details><summary><b>Overview</b></summary>
+<p>
+
 * **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single header/module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * **Macro-free** ([How does it work?](#how-it-works))
 * **Easy to use** ([Minimal API](#api) - `suite, test, expect`)
 * **Fast to compile/execute** ([Benchmarks](#benchmarks))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
+* **Features** ([assertions, suites, tests, sections, parameterized, matchers, logging, BDD, ...](example))
 
-<p align="center">
-  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
 </p>
-
----
+</details>
 
 <a name="quick-start"></a>
 <details><summary><b>Quick start</b></summary>
