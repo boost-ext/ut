@@ -1418,6 +1418,20 @@ class expect_ {
   bool result_{}, fatal_{};
 };
 
+template <class TExpr>
+class matcher_ : op {
+ public:
+  constexpr explicit matcher_(const TExpr& expr) : expr_{expr} {}
+
+  template <class... TArgs>
+  [[nodiscard]] constexpr auto operator()(const TArgs&... args) const {
+    return expr_(args...);
+  }
+
+ private:
+  TExpr expr_{};
+};
+
 #if defined(__cpp_exceptions)
 template <class TExpr, class TException = void>
 class throws_ : op {
@@ -1725,6 +1739,11 @@ template <auto Constant>
 template <bool Constant>
 #endif
 constexpr auto constant = Constant;
+
+template <class TExpr>
+[[nodiscard]] constexpr auto matcher(const TExpr& expr) {
+  return detail::matcher_<TExpr>{expr};
+}
 
 #if defined(__cpp_exceptions)
 template <class TException, class TExpr>
