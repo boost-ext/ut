@@ -20,7 +20,9 @@
 * **Fast to compile/execute** ([Benchmarks](#benchmarks))
 * **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
 
-<a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
+<p align="center">
+  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
+</p>
 
 <a name="quick-start"></a>
 <details><summary><b>Quick start</b></summary>
