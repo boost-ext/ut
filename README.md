@@ -681,8 +681,12 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
+<a name="faq"></a>
+<details><summary><b>FAQ</b></summary>
+<p>
+
 <a name="how-it-works"></a>
-<details><summary><b>How does it work?</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>How does it work?</b></summary>
 <p>
 
 > `suite`
@@ -808,6 +812,49 @@ namespace boost::ut::inline v1_1_1 {
     }
   };
   ```
+
+</p>
+</details>
+
+<a name="macro"></a>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Can I still use macros?</b></summary>
+<p>
+
+* **Macro** (https://godbolt.org/z/tvy-nP)
+
+```cpp
+#define EXPECT(...) ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
+#define SUITE ::boost::ut::suite _ = []
+#define TEST(name) ::boost::ut::detail::test{"test", name} = [=]() mutable
+
+SUITE {
+  TEST("suite") { EXPECT(42 == 42); };
+};
+
+int main() {
+  TEST("macro") {
+    EXPECT(1 != 2);
+  };
+
+  TEST("vector") {
+    std::vector<int> v(5);
+
+   !EXPECT(5u == std::size(v));
+
+    TEST("resize bigger") {
+      v.resize(10);
+      EXPECT(10u == std::size(v));
+    };
+  };
+}
+```
+
+```
+All tests passed (4 asserts in 3 tests)
+```
+
+</p>
+</details>
 
 </p>
 </details>
