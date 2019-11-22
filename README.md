@@ -7,6 +7,8 @@
 <a href="https://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a>
 <a href="https://godbolt.org/z/wCwkR9">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 
+> "If you liked it then you should have put a test on it", Beyonce rule
+
 # [Boost].UT / μt
 
 > C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
@@ -20,11 +22,9 @@
 
 <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
 
-### Testing
-
-> "If you liked it then you should have put a test on it", Beyonce rule
-
-### Quick start
+<a name="quick-start"></a>
+<details><summary><b>Quick start</b></summary>
+<p>
 
 > Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
 
@@ -52,7 +52,19 @@ int main() {
 All tests passed (1 assert in 1 test)
 ```
 
----
+</p>
+</details>
+
+<a name="tutorial"></a>
+<details><summary><b>Tutorial</b></summary>
+<p>
+
+</p>
+</details>
+
+<a name="examples"></a>
+<details><summary><b>Examples</b></summary>
+<p>
 
 **Assertions** (https://godbolt.org/z/pVk2M4)
 
@@ -452,10 +464,12 @@ template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
 
----
+</p>
+</details>
 
 <a name="api"></a>
-### API
+<details><summary><b>API</b></summary>
+<p>
 
 ```cpp
 export module boost.ut;
@@ -555,9 +569,12 @@ namespace boost::ut::inline v1_1_1 {
 } // namespace boost::ut
 ```
 
----
+</p>
+</details>
 
-**Configuration**
+<a name="how-it-works"></a>
+<details><summary><b>Configuration</b></summary>
+<p>
 
 | Option | Description | Example |
 |-|-|-|
@@ -565,10 +582,12 @@ namespace boost::ut::inline v1_1_1 {
 | `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple test suites | |
 | `BOOST_UT_IMPLEMENTATION` | Optionally used in `main.cpp` file to provide `ut` implementation (have to be used in combination with `BOOST_UT_FORWARD`) | |
 
----
+</p>
+</details>
 
 <a name="how-it-works"></a>
-**How does it work?**
+<details><summary><b>How does it work?</b></summary>
+<p>
 
 > `suite`
 
@@ -672,7 +691,7 @@ namespace boost::ut::inline v1_1_1 {
   /**
    * Comparison Operator
    */
-  template <class TLhs, class TRhs>
+  template <Operator TLhs, Opeartor TRhs>
   struct eq final {
     TLhs lhs{}; // Left-hand side operator
     TRhs rhs{}; // Right-hand side operator
@@ -694,10 +713,14 @@ namespace boost::ut::inline v1_1_1 {
   };
   ```
 
----
+</p>
+</details>
 
 <a name="benchmarks"></a>
-**Benchmarks** (https://github.com/cpp-testing/ut-benchmark)
+<details><summary><b>Benchmarks</b></summary>
+<p>
+
+* https://github.com/cpp-testing/ut-benchmark
 
 | Framework | Version | Standard | License | Linkage | Test configuration |
 |-|-|-|-|-|-|
@@ -783,6 +806,9 @@ namespace boost::ut::inline v1_1_1 {
     <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/ut_BinarySize_suite+assert+stl.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/ut_BinarySize_suite+assert+stl.png"></a></td>
   </tr>
 </table>
+
+</p>
+</details>
 
 ---
 
