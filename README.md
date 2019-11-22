@@ -24,6 +24,8 @@
   <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
 </p>
 
+---
+
 <a name="quick-start"></a>
 <details><summary><b>Quick start</b></summary>
 <p>
@@ -241,10 +243,10 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-**Matcher** (https://godbolt.org/z/nrJyV-)
+**Matchers** (https://godbolt.org/z/nrJyV-)
 
 ```cpp
-"matcher"_test = [] {
+"matchers"_test = [] {
   constexpr auto is_between = [](auto lhs, auto rhs) {
     return matcher([=](auto value) {
       return that % value >= lhs and that % value <= rhs;
@@ -492,7 +494,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 <p>
 
 ```cpp
-export module boost.ut; /// When `__cpp_modules` is defined
+export module boost.ut; /// __cpp_modules
 
 namespace boost::ut::inline v1_1_1 {
   /**
@@ -550,7 +552,7 @@ namespace boost::ut::inline v1_1_1 {
     /**
      * @param expr matcher expression
      */
-    constexpr explicit matcher_(Expression expr);
+    constexpr explicit(true) matcher_(Expression expr);
 
     /**
      * Executes matcher expression
@@ -659,7 +661,7 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
-<a name="how-it-works"></a>
+<a name="configuration"></a>
 <details><summary><b>Configuration</b></summary>
 <p>
 

@@ -21,7 +21,7 @@ int main() {
     };
 
     constexpr auto ends_with = matcher([](const auto& arg, const auto& ext) {
-      log << "Ends with" << ext << arg;
+      boost::ut::log << "Ends with" << ext << arg;
       if (ext.size() > arg.size()) {
         return false;
       }

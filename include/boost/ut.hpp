@@ -1421,7 +1421,7 @@ class expect_ {
 template <class TExpr>
 class matcher_ : op {
  public:
-  constexpr explicit matcher_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit(true) matcher_(const TExpr& expr) : expr_{expr} {}
 
   template <class... TArgs>
   [[nodiscard]] constexpr auto operator()(const TArgs&... args) const {
