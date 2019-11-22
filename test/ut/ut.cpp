@@ -685,6 +685,25 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
+    constexpr auto is_gt = [](auto N) {
+      return matcher([=](auto value) { return that % value > N; });
+    };
+
+    expect(is_gt(42)(99));
+    expect(is_gt(2)(1));
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+
+    test_assert("99 > 42" == test_cfg.assertion_calls[0].str);
+    test_assert(test_cfg.assertion_calls[0].result);
+
+    test_assert("1 > 2" == test_cfg.assertion_calls[1].str);
+    test_assert(not test_cfg.assertion_calls[1].result);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
     expect(eq(42, 42));
 
     test_assert(1 == std::size(test_cfg.assertion_calls));

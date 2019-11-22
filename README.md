@@ -241,6 +241,24 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
+**Matcher** (https://godbolt.org/z/nrJyV-)
+
+```cpp
+"matcher"_test = [] {
+  constexpr auto is_between = [](auto lhs, auto rhs) {
+    return matcher([=](auto value) {
+      return that % value >= lhs and that % value <= rhs;
+    });
+  };
+
+  expect(is_between(1, 100)(42));
+};
+```
+
+```
+All tests passed (1 asserts in 1 tests)
+```
+
 **Behavior Driven Development** (https://godbolt.org/z/5nhdyn)
 
 ```cpp
@@ -524,6 +542,22 @@ namespace boost::ut::inline v1_1_1 {
      */
     [[nodiscard]] constexpr auto operator%(Expression expr) const;
   } that{};
+
+  /**
+   * @example auto gt_0 = matcher([](auto arg){ return that % arg > 0; })
+   */
+  struct matcher {
+    /**
+     * @param expr matcher expression
+     */
+    constexpr explicit matcher_(Expression expr);
+
+    /**
+     * Executes matcher expression
+     * @param args arguments to be passed to a matcher expression
+     */
+    [[nodiscard]] constexpr auto operator()(const Args&... args) const;
+  };
 
   inline namespace literals {
     /**
