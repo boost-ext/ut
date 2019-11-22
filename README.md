@@ -474,7 +474,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 <p>
 
 ```cpp
-export module boost.ut;
+export module boost.ut; /// When `__cpp_modules` is defined
 
 namespace boost::ut::inline v1_1_1 {
   /**
@@ -517,6 +517,14 @@ namespace boost::ut::inline v1_1_1 {
     const std::source_location& location = std::source_location::current()
   );
 
+  struct {
+    /**
+     * @example (that % 42 == 42);
+     * @param expr expression to be evaluated
+     */
+    [[nodiscard]] constexpr auto operator%(Expression expr) const;
+  } that{};
+
   inline namespace literals {
     /**
      * User defined literals to represent constant values
@@ -536,6 +544,24 @@ namespace boost::ut::inline v1_1_1 {
     constexpr auto operator""_ld; /// long double
 
     /**
+     * Represents dynamic values
+     * @example _i(42), _f(42.)
+     */
+    constexpr auto _b(bool);
+    constexpr auto _c(char);
+    constexpr auto _s(short);
+    constexpr auto _i(int);
+    constexpr auto _l(long);
+    constexpr auto _ll(long long);
+    constexpr auto _u(unsigned);
+    constexpr auto _uc(unsigned char);
+    constexpr auto _us(unsigned short);
+    constexpr auto _ul(unsigned long);
+    constexpr auto _f(float);
+    constexpr auto _d(double);
+    constexpr auto _ld(long double);
+
+    /**
      * Logical representation of constant values
      */
     constexpr auto true_b;        /// true
@@ -543,6 +569,17 @@ namespace boost::ut::inline v1_1_1 {
   } // namespace literals
 
   inline namespace operators {
+    /**
+     * Comparison functions to be used in expressions
+     * @example eq(42, 42), neq(1, 2)
+     */
+    constexpr auto eq(Operator lhs, Operator rhs);  /// ==
+    constexpr auto neq(Operator lhs, Operator rhs); /// !=
+    constexpr auto gt(Operator lhs, Operator rhs);  /// >
+    constexpr auto ge(Operator lhs, Operator rhs);  /// >=
+    constexpr auto lt(Operator lhs, Operator rhs);  /// <
+    constexpr auto le(Operator lhs, Operator rhs);  /// <=
+
     /**
      * Overloaded comparison operators to be used in expressions
      * @example (42_i != 0)
@@ -568,6 +605,20 @@ namespace boost::ut::inline v1_1_1 {
      */
     constexpr auto operator|;
   } // namespace operators
+
+  /**
+   * Creates skippable test object
+   * @example skip | "don't run"_test = [] { };
+   */
+  struct { } skip{};
+
+  struct {
+    /**
+     * @example log << "message!";
+     * @param msg stringable message
+     */
+    auto& operator<<(Msg msg);
+  } log{};
 } // namespace boost::ut
 ```
 
