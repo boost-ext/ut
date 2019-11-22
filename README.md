@@ -681,7 +681,9 @@ namespace boost::ut::inline v1_1_1 {
      * Performs comparison operatation
      * @return true if expression is succesful
      */
-    [[nodiscard]] constexpr explicit operator bool() const;
+    [[nodiscard]] constexpr explicit operator bool() const {
+      return lhs == rhs;
+    }
 
     /**
      * Nicely prints the operation
