@@ -13,9 +13,8 @@
 
 > C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
 
-<p align="center">
-  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
-</p>
+<table>
+<tr><td valign="top" width="20%" colspan="2">
 
 <a name="overview"></a>
 <a name="quick-start"></a>
@@ -1289,6 +1288,17 @@ All tests passed (4 asserts in 3 tests)
 
 ---
 
-**Disclaimer** `[Boost].UT` is not an official Boost library.
+<p align="left"><img width="48" src="doc/images/logo.png" /></p>
 
-<p align="left"><img width="5%" src="doc/images/logo.png" /></p>
+</td>
+<td>
+
+<p align="center">
+  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
+</p>
+
+</td>
+</tr>
+</table>
+
+**Disclaimer** `[Boost].UT` is not an official Boost library.
