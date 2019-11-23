@@ -19,22 +19,21 @@
 
 ---
 
+<a name="overview"></a>
+<a name="quick-start"></a>
 <details><summary><b>Overview</b></summary>
 <p>
 
-* **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / tested: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
+  * **Tested Compilers** ([GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut) / [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * **Single header/module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * **Macro-free** ([How does it work?](#how-it-works))
 * **Easy to use** ([Minimal API](#api) - `suite, test, expect`)
 * **Fast to compile/execute** ([Benchmarks](#benchmarks))
-* **Extensible** ([Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp))
-* **Features** ([assertions, suites, tests, sections, parameterized, matchers, logging, BDD, ...](example))
+* **Features** ([Assertions](example) / [Suites](example) / [Tests](example) / [Parameterized Tests](example) / [Sections](example) / [Matchers](example) / [Logging](example) / [BDD](example) / [...](example))
+  * **Extensible** ([Runners](example/cfg/runner.cpp) / [Reporters](example/cfg/reporter.cpp))
 
-</p>
-</details>
-
-<a name="quick-start"></a>
-<details><summary><b>Quick start</b></summary>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Quick start</b></summary>
 <p>
 
 > Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
@@ -43,7 +42,7 @@
 |-|-|
 | `#include <boost/ut.hpp>` | `import boost.ut;` |
 
-**Hello World** (https://godbolt.org/z/pt-yUa)
+> **Hello World** (https://godbolt.org/z/pt-yUa)
 
 ```cpp
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
@@ -60,8 +59,16 @@ int main() {
 ```
 
 ```
+$CXX -o hello_world hello_world.cpp
+```
+
+```
+./hello_world
 All tests passed (1 assert in 1 test)
 ```
+
+</p>
+</details>
 
 </p>
 </details>
@@ -70,6 +77,8 @@ All tests passed (1 assert in 1 test)
 <details><summary><b>Tutorial</b></summary>
 <p>
 
+> WIP
+
 </p>
 </details>
 
@@ -77,7 +86,7 @@ All tests passed (1 assert in 1 test)
 <details><summary><b>Examples</b></summary>
 <p>
 
-**Assertions** (https://godbolt.org/z/pVk2M4)
+> **Assertions** (https://godbolt.org/z/pVk2M4)
 
 > <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
 
@@ -157,7 +166,7 @@ tests:   9  | 1 failed
 asserts: 24 | 22 passed | 2 failed
 ```
 
-**Sections** (https://godbolt.org/z/qKxsf9)
+> **Sections** (https://godbolt.org/z/qKxsf9)
 
 ```cpp
 "[vector]"_test = [] {
@@ -183,7 +192,7 @@ asserts: 24 | 22 passed | 2 failed
 All tests passed (4 asserts in 1 tests)
 ```
 
-**Exceptions/Aborts** (https://godbolt.org/z/A2EehK)
+> **Exceptions/Aborts** (https://godbolt.org/z/A2EehK)
 
 ```cpp
 "exceptions/aborts"_test = [] {
@@ -199,7 +208,7 @@ All tests passed (4 asserts in 1 tests)
 All tests passed (4 asserts in 1 tests)
 ```
 
-**Parameterized** (https://godbolt.org/z/WCqggN)
+> **Parameterized** (https://godbolt.org/z/WCqggN)
 
 ```cpp
 "args"_test =
@@ -227,7 +236,7 @@ All tests passed (4 asserts in 1 tests)
 All tests passed (11 asserts in 7 tests)
 ```
 
-**Logging** (https://godbolt.org/z/26fPSY)
+> **Logging** (https://godbolt.org/z/26fPSY)
 
 ```cpp
 "logging"_test = [] {
@@ -250,7 +259,7 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-**Matchers** (https://godbolt.org/z/nrJyV-)
+> **Matchers** (https://godbolt.org/z/nrJyV-)
 
 ```cpp
 "matchers"_test = [] {
@@ -268,7 +277,7 @@ asserts: 1 | 0 passed | 1 failed
 All tests passed (1 asserts in 1 tests)
 ```
 
-**Behavior Driven Development** (https://godbolt.org/z/5nhdyn)
+> **Behavior Driven Development** (https://godbolt.org/z/5nhdyn)
 
 ```cpp
 "scenario"_test = [] {
@@ -285,7 +294,7 @@ All tests passed (1 asserts in 1 tests)
 All tests passed (2 asserts in 1 tests)
 ```
 
-**Test Suites** (https://godbolt.org/z/CFbTP9)
+> **Test Suites** (https://godbolt.org/z/CFbTP9)
 
 ```cpp
 namespace ut = boost::ut;
@@ -311,7 +320,7 @@ int main() { }
 All tests passed (2 asserts in 1 tests)
 ```
 
-**Skipping tests** (https://godbolt.org/z/R3dKAV)
+> **Skipping tests** (https://godbolt.org/z/R3dKAV)
 
 ```cpp
 skip | "don't run"_test = [] {
@@ -324,7 +333,7 @@ All tests passed (0 asserts in 0 tests)
 1 tests skipped
 ```
 
-**Module** (https://wandbox.org/permlink/CyqQu6PgVR1KvQpg)
+> **Module** (https://wandbox.org/permlink/CyqQu6PgVR1KvQpg)
 
 ```cpp
 import boost.ut;
@@ -342,7 +351,7 @@ int main() {
 All tests passed (1 asserts in 1 tests)
 ```
 
-**Runner** (https://godbolt.org/z/jdg687)
+> **Runner** (https://godbolt.org/z/jdg687)
 
 ```cpp
 namespace ut = boost::ut;
@@ -411,7 +420,7 @@ class runner {
 template<> auto ut::cfg<ut::override> = cfg::runner{};
 ```
 
-**Reporter** (https://godbolt.org/z/gsAPKg)
+> **Reporter** (https://godbolt.org/z/gsAPKg)
 
 ```cpp
 namespace ut = boost::ut;
@@ -497,7 +506,12 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 </details>
 
 <a name="api"></a>
-<details><summary><b>API</b></summary>
+<a name="configuration"></a>
+<a name="user-guide"></a>
+<details><summary><b>User Guide</b></summary>
+<p>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>API</b></summary>
 <p>
 
 ```cpp
@@ -668,8 +682,7 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
-<a name="configuration"></a>
-<details><summary><b>Configuration</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Configuration</b></summary>
 <p>
 
 | Option | Description | Example |
@@ -681,11 +694,15 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
+</p>
+</details>
+
 <a name="faq"></a>
+<a name="how-it-works"></a>
+<a name="macro"></a>
 <details><summary><b>FAQ</b></summary>
 <p>
 
-<a name="how-it-works"></a>
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>How does it work?</b></summary>
 <p>
 
@@ -816,19 +833,20 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
-<a name="macro"></a>
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Can I still use macros?</b></summary>
 <p>
 
-* **Macro** (https://godbolt.org/z/tvy-nP)
+> https://godbolt.org/z/tvy-nP
 
 ```cpp
 #define EXPECT(...) ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
-#define SUITE ::boost::ut::suite _ = []
-#define TEST(name) ::boost::ut::detail::test{"test", name} = [=]() mutable
+#define SUITE       ::boost::ut::suite _ = []
+#define TEST(name)  ::boost::ut::detail::test{"test", name} = [=]() mutable
 
 SUITE {
-  TEST("suite") { EXPECT(42 == 42); };
+  TEST("suite") {
+    EXPECT(42 == 42);
+  };
 };
 
 int main() {
@@ -839,7 +857,7 @@ int main() {
   TEST("vector") {
     std::vector<int> v(5);
 
-   !EXPECT(5u == std::size(v));
+   !EXPECT(5u == std::size(v)) << "fatal";
 
     TEST("resize bigger") {
       v.resize(10);
@@ -863,7 +881,7 @@ All tests passed (4 asserts in 3 tests)
 <details><summary><b>Benchmarks</b></summary>
 <p>
 
-* https://github.com/cpp-testing/ut-benchmark
+> https://github.com/cpp-testing/ut-benchmark
 
 | Framework | Version | Standard | License | Linkage | Test configuration |
 |-|-|-|-|-|-|
