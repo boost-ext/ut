@@ -17,8 +17,6 @@
   <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
 </p>
 
----
-
 <a name="overview"></a>
 <a name="quick-start"></a>
 <details><summary><b>Overview</b></summary>
