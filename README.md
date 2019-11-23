@@ -75,7 +75,325 @@ All tests passed (1 assert in 1 test)
 <details><summary><b>Tutorial</b></summary>
 <p>
 
-> WIP
+> Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
+
+| **C++ header** | **C++20 module** |
+|-|-|
+| `#include <boost/ut.hpp>` | `import boost.ut;` |
+
+> **Main**
+
+```cpp
+int main() { }
+```
+
+> Compile & Run
+
+```
+$CXX main.cpp && ./a.out
+All tests passed (0 assert in 0 test)
+```
+
+> **First succesful assertion**
+
+```cpp
+int main() {
+  boost::ut::expect(true);
+}
+```
+
+```
+All tests passed (1 asserts in 0 test)
+```
+
+* https://godbolt.org/z/vfx-eB
+
+---
+
+> **Failed assertion**
+
+```cpp
+int main() {
+  boost::ut::expect(1 == 2);
+}
+```
+
+```
+main.cpp:4:FAILED [false]
+===============================================================================
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+* https://godbolt.org/z/7qTePx
+
+---
+
+> **Failed assertion with printed expression**
+
+```cpp
+int main() {
+  using namespace boost::ut;
+  expect(1_i == 2);
+}
+```
+
+```
+main.cpp:4:FAILED [1 == 2]
+===============================================================================
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+* https://godbolt.org/z/7MXVzu
+
+---
+
+> **Assertion with alternative expression syntax**
+
+```cpp
+int main() {
+  expect(1_i == 2);       // UDL syntax
+  expect(1 == 2_i);       // UDL syntax
+  expect(that % 1 == 2);  // Matcher syntax
+  expect(eq(1, 2));       // eq/neq/gt/ge/lt/le
+}
+```
+
+```
+main.cpp:6:FAILED [1 == 2]
+main.cpp:7:FAILED [1 == 2]
+main.cpp:8:FAILED [1 == 2]
+main.cpp:9:FAILED [1 == 2]
+===============================================================================
+tests:   0 | 0 failed
+asserts: 4 | 0 passed | 4 failed
+```
+
+* https://godbolt.org/z/QbgGtc
+
+---
+
+> **Fatal assertion**
+
+```cpp
+int main() {
+  !expect(1 == 2_i); // fatal assertion
+   expect(1_i == 2); // not executed
+}
+```
+
+```
+main.cpp:6:FAILED [1 == 2]
+===============================================================================
+tests:   1 | 1 failed
+asserts: 2 | 0 passed | 2 failed
+```
+
+* https://godbolt.org/z/469pH3
+
+---
+
+> **Assertion with a compound expressions**
+
+```cpp
+int main() {
+  expect(42l == 42_l and 1 == 2_i);
+}
+```
+
+```
+main.cpp:5:FAILED [(42 == 42 and 1 == 2)]
+===============================================================================
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+* https://godbolt.org/z/aEhX4t
+
+---
+
+> **Assertion with a message**
+
+```cpp
+int main() {
+  expect(42l == 42_l and 1 == 2_i) << "additional info";
+}
+```
+
+```
+main.cpp:5:FAILED [(42 == 42 and 1 == 2)] additional info
+===============================================================================
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+* https://godbolt.org/z/v2PDuU
+
+---
+
+> **First test**
+
+```cpp
+int main() {
+  "hello world"_test = [] { };
+}
+```
+
+```
+All tests passed (0 asserts in 1 tests)
+```
+
+* https://godbolt.org/z/Bh-EmY 
+
+---
+
+> **Test & Assertion**
+
+```cpp
+int main() {
+  "hello world"_test = [] {
+    int i = 42;
+    expect(42_i == i);
+  };
+}
+```
+
+```
+Running "hello world"...
+  main.cpp:8:FAILED [42 == 43]
+FAILED
+===============================================================================
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+* https://godbolt.org/z/Y43mXz
+
+---
+
+> **Logging**
+
+```cpp
+int main() {
+  "logging"_test = [] {
+    log << "pre";
+    expect(that % 1 == 2) << "during";
+    log << "post";
+  };
+```
+
+```
+Running "logging"...
+pre
+  logging.cpp:8:FAILED [1 == 2] during
+post
+===============================================================================
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+* https://godbolt.org/z/6rmvvU
+
+---
+
+> **Sections**
+
+```cpp
+int main() {
+  "[vector]"_test = [] {
+    std::vector<int> v(5);
+
+    !expect(5_ul == std::size(v));
+
+    "resize bigger"_test = [=]() mutable {
+      v.resize(10);
+      expect(10_ul == std::size(v));
+    };
+
+    !expect(5_ul == std::size(v));
+
+    "resize smaller"_test = [=]() mutable {
+      v.resize(0);
+      expect(0_ul == std::size(v));
+    };
+  }
+}
+```
+
+```
+All tests passed (4 asserts in 1 tests)
+```
+
+* https://godbolt.org/z/y9m5vF
+
+---
+
+> **Behaviour Driven Development** (BDD)
+
+```cpp
+int main() {
+  "vector"_test = [] {
+    given("I have a vector") = [] {
+      std::vector<int> v(5);
+      !expect(5_ul == std::size(v));
+
+      when("I resize bigger") = [=]() mutable {
+        v.resize(10);
+
+        then("The size should increase") = [=] {
+          expect(10_ul == std::size(v));
+        };
+      };
+    };
+  };
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+* https://godbolt.org/z/ps9_EQ
+
+---
+
+> **Parameterized tests**
+  * [Read more](#examples)
+
+```cpp
+int main() {
+  "args"_test = [](const auto& arg) {
+    expect(arg > 0_i) << "all values greater than 0";
+  } | std::vector{1, 2, 3};
+}
+```
+
+```
+All tests passed (3 asserts in 3 tests)
+```
+
+* https://godbolt.org/z/6FHtpq
+
+---
+
+> **Test Suite**
+
+```cpp
+boost::ut::suite _ = [] {
+  "suite"_test = [] {
+    "should be equal"_test = [] { expect(42_i == 42); };
+    "should not be equal "_test = [] { expect(1_i != 2); };
+  };
+}
+
+int main() { }
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+* https://godbolt.org/z/F3xJcJ
 
 </p>
 </details>
