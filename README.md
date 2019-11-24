@@ -19,26 +19,26 @@
 
 <a name="overview"></a>
 <a name="quick-start"></a>
-<details open><summary><b>Overview</b></summary>
+<details open><summary>Overview</summary>
 <p>
 
-* **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
-  * **Tested Compilers** ([GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut) / [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
-* **Single header/module** ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
-* **Macro-free** ([How does it work?](#how-it-works))
-* **Easy to use** ([Minimal API](#api) - `suite, test, expect`)
-* **Fast to compile/execute** ([Benchmarks](#benchmarks))
-* **Features** ([Assertions](example) / [Suites](example) / [Tests](example) / [Parameterized Tests](example) / [Sections](example) / [Matchers](example) / [Logging](example) / [BDD](example) / [...](example))
-  * **Extensible** ([Runners](example/cfg/runner.cpp) / [Reporters](example/cfg/reporter.cpp))
+* No dependencies ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
+  * Tested Compilers ([GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut) / [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+* Macro-free ([How does it work?](#how-it-works))
+* Easy to use ([Minimal API](#api) - `suite, test, expect`)
+* Fast to compile/execute ([Benchmarks](#benchmarks))
+* Features ([Assertions](example) / [Suites](example) / [Tests](example) / [Parameterized Tests](example) / [Sections](example) / [Matchers](example) / [Logging](example) / [BDD](example) / [...](example))
+  * Extensible ([Runners](example/cfg/runner.cpp) / [Reporters](example/cfg/reporter.cpp))
 
 </p>
 </details>
 
 <a name="tutorial"></a>
-<details><summary><b>Tutorial</b></summary>
+<details><summary>Tutorial</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Quick start</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Quick start</summary>
 <p>
 
 > Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
@@ -63,7 +63,7 @@ All tests passed (0 assert in 0 test)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Assertions</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Assertions</summary>
 <p>
 
 > **First succesful assertion**
@@ -204,7 +204,7 @@ asserts: 1 | 0 passed | 1 failed
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Tests</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
 <p>
 
 > **First test**
@@ -352,7 +352,7 @@ All tests passed (3 asserts in 3 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Suites</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Suites</summary>
 <p>
 
 > **Test Suite**
@@ -381,10 +381,10 @@ All tests passed (2 asserts in 1 tests)
 </details>
 
 <a name="examples"></a>
-<details><summary><b>Examples</b></summary>
+<details><summary>Examples</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Tests/Assertions</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests/Assertions</summary>
 <p>
 
 > <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
@@ -589,7 +589,7 @@ All tests passed (0 asserts in 0 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Matchers</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Matchers</summary>
 <p>
 
 ```cpp
@@ -632,7 +632,7 @@ All tests passed (4 asserts in 1 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Suites</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Suites</summary>
 <p>
 
 ```cpp
@@ -664,7 +664,7 @@ All tests passed (2 asserts in 1 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Modules</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Modules</summary>
 <p>
 
 ```cpp
@@ -688,10 +688,10 @@ All tests passed (1 asserts in 1 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Config</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Config</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Runner</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Runner</summary>
 <p>
 
 ```cpp
@@ -717,7 +717,7 @@ template<> auto ut::cfg<ut::override> = cfg::runner{};
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Reporter</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reporter</summary>
 <p>
 
 ```cpp
@@ -759,10 +759,10 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 <a name="api"></a>
 <a name="configuration"></a>
 <a name="user-guide"></a>
-<details><summary><b>User Guide</b></summary>
+<details><summary>User Guide</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>API</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;API</summary>
 <p>
 
 ```cpp
@@ -1081,7 +1081,7 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Configuration</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Configuration</summary>
 <p>
 
 | Option | Description | Example |
@@ -1099,10 +1099,10 @@ namespace boost::ut::inline v1_1_1 {
 <a name="faq"></a>
 <a name="how-it-works"></a>
 <a name="macro"></a>
-<details><summary><b>FAQ</b></summary>
+<details><summary>FAQ</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>How does it work?</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;How does it work?</summary>
 <p>
 
 > `suite`
@@ -1232,7 +1232,7 @@ namespace boost::ut::inline v1_1_1 {
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Can I still use macros?</b></summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Can I still use macros?</summary>
 <p>
 
 ```cpp
@@ -1277,7 +1277,7 @@ All tests passed (4 asserts in 3 tests)
 </details>
 
 <a name="benchmarks"></a>
-<details><summary><b>Benchmarks</b></summary>
+<details><summary>Benchmarks</summary>
 <p>
 
 | Framework | Version | Standard | License | Linkage | Test configuration |
