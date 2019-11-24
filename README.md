@@ -470,7 +470,7 @@ All tests passed (1 asserts in 1 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Sections</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sections</summary>
 <p>
 
 ```cpp
@@ -502,7 +502,7 @@ All tests passed (4 asserts in 1 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Parameterized</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Parameterized</summary>
 <p>
 
 ```cpp
@@ -536,7 +536,7 @@ All tests passed (11 asserts in 7 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
 <p>
 
 ```cpp
