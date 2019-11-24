@@ -674,20 +674,11 @@ namespace ut = boost::ut;
 namespace cfg {
   class runner {
    public:
-    template <class... Ts>
-    auto on(ut::events::test<Ts...> test) {
-      test();
-    }
-    template <class... Ts>
-    auto on(ut::events::skip<Ts...>) {}
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
-      return true;
-    }
+    template <class... Ts> auto on(ut::events::test<Ts...> test) { test(); }
+    template <class... Ts> auto on(ut::events::skip<Ts...>) {}
+    template <class TLocation, class TExpr> auto on(ut::events::assertion<TLocation, TExpr>) -> bool { return true; }
     auto on(ut::events::fatal_assertion) {}
-
-    template <class TMsg>
-    auto on(ut::events::log<TMsg>) {}
+    template <class TMsg> auto on(ut::events::log<TMsg>) {}
   };
 } // namespace cfg
 
@@ -706,12 +697,9 @@ namespace cfg {
     auto on(ut::events::test_run) -> void {}
     auto on(ut::events::test_skip) -> void {}
     auto on(ut::events::test_end) -> void {}
-    template <class TMsg>
-    auto on(ut::events::log<TMsg>) -> void {}
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+    template <class TMsg> auto on(ut::events::log<TMsg>) -> void {}
+    template <class TLocation, class TExpr> auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
+    template <class TLocation, class TExpr> auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
     auto on(ut::events::fatal_assertion) -> void {}
     auto on(ut::events::exception) -> void {}
     auto on(ut::events::summary) -> void {}
@@ -1341,7 +1329,7 @@ All tests passed (4 asserts in 3 tests)
 
 ---
 
-<p align="left"><img width="48" src="doc/images/logo.png" /></p>
+<p align="left"><img width="40" src="doc/images/logo.png" /></p>
 
 </td>
 <td>
