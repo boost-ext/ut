@@ -13,8 +13,9 @@
 
 > C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
 
-<table>
-<tr><td valign="top" width="20%" colspan="2">
+<p align="center">
+  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
+</p>
 
 <a name="overview"></a>
 <a name="quick-start"></a>
@@ -30,48 +31,14 @@
 * **Features** ([Assertions](example) / [Suites](example) / [Tests](example) / [Parameterized Tests](example) / [Sections](example) / [Matchers](example) / [Logging](example) / [BDD](example) / [...](example))
   * **Extensible** ([Runners](example/cfg/runner.cpp) / [Reporters](example/cfg/reporter.cpp))
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Quick start</b></summary>
-<p>
-
-> Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
-
-| **C++ header** | **C++20 module** |
-|-|-|
-| `#include <boost/ut.hpp>` | `import boost.ut;` |
-
-> **Hello World** (https://godbolt.org/z/pt-yUa)
-
-```cpp
-constexpr auto sum = [](auto... args) { return (0 + ... + args); };
-```
-
-```cpp
-int main() {
-  using namespace boost::ut;
-
-  "hello world"_test = [] {
-    expect(42_i == sum(40, 2));
-  };
-}
-```
-
-```
-$CXX -o hello_world hello_world.cpp
-```
-
-```
-./hello_world
-All tests passed (1 assert in 1 test)
-```
-
-</p>
-</details>
-
 </p>
 </details>
 
 <a name="tutorial"></a>
 <details><summary><b>Tutorial</b></summary>
+<p>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Quick start</b></summary>
 <p>
 
 > Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
@@ -93,6 +60,12 @@ $CXX main.cpp && ./a.out
 All tests passed (0 assert in 0 test)
 ```
 
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Assertions</b></summary>
+<p>
+
 > **First succesful assertion**
 
 ```cpp
@@ -107,7 +80,6 @@ All tests passed (1 asserts in 0 test)
 
 * https://godbolt.org/z/vfx-eB
 
----
 
 > **Failed assertion**
 
@@ -229,7 +201,11 @@ asserts: 1 | 0 passed | 1 failed
 
 * https://godbolt.org/z/v2PDuU
 
----
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Tests</b></summary>
+<p>
 
 > **First test**
 
@@ -373,7 +349,11 @@ All tests passed (3 asserts in 3 tests)
 
 * https://godbolt.org/z/6FHtpq
 
----
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Suites</b></summary>
+<p>
 
 > **Test Suite**
 
@@ -397,11 +377,15 @@ All tests passed (2 asserts in 1 tests)
 </p>
 </details>
 
+</p>
+</details>
+
 <a name="examples"></a>
 <details><summary><b>Examples</b></summary>
 <p>
 
-> **Assertions** (https://godbolt.org/z/pVk2M4)
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Tests/Assertions</b></summary>
+<p>
 
 > <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
 
@@ -481,7 +465,9 @@ tests:   9  | 1 failed
 asserts: 24 | 22 passed | 2 failed
 ```
 
-> **Sections** (https://godbolt.org/z/qKxsf9)
+* https://godbolt.org/z/pVk2M4)
+
+> Sections
 
 ```cpp
 "[vector]"_test = [] {
@@ -507,23 +493,9 @@ asserts: 24 | 22 passed | 2 failed
 All tests passed (4 asserts in 1 tests)
 ```
 
-> **Exceptions/Aborts** (https://godbolt.org/z/A2EehK)
+* https://godbolt.org/z/qKxsf9)
 
-```cpp
-"exceptions/aborts"_test = [] {
-  expect(throws<std::runtime_error>([]{throw std::runtime_error{""};}))
-    << "throws runtime_error";
-  expect(throws([]{throw 0;})) << "throws any exception";
-  expect(nothrow([]{})) << "doesn't throw";
-  expect(aborts([] { assert(false); }));
-};
-```
-
-```
-All tests passed (4 asserts in 1 tests)
-```
-
-> **Parameterized** (https://godbolt.org/z/WCqggN)
+> Parameterized
 
 ```cpp
 "args"_test =
@@ -551,7 +523,10 @@ All tests passed (4 asserts in 1 tests)
 All tests passed (11 asserts in 7 tests)
 ```
 
-> **Logging** (https://godbolt.org/z/26fPSY)
+* https://godbolt.org/z/WCqggN
+
+
+> Logging
 
 ```cpp
 "logging"_test = [] {
@@ -574,7 +549,48 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-> **Matchers** (https://godbolt.org/z/nrJyV-)
+* https://godbolt.org/z/26fPSY
+
+> Behavior Driven Development (BDD)
+
+
+```cpp
+"scenario"_test = [] {
+  given("I have...") = [] {
+    when("I run...") = [] {
+      then("I expect...") = [] { expect(1_i == 1); };
+      then("I expect...") = [] { expect(1 == 1_i); };
+    };
+  };
+};
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+* https://godbolt.org/z/5nhdyn
+
+> Skipping tests
+
+```cpp
+skip | "don't run"_test = [] {
+  expect(42_i == 43) << "should not fire!";
+};
+```
+
+```
+All tests passed (0 asserts in 0 tests)
+1 tests skipped
+```
+
+* https://godbolt.org/z/R3dKAV
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Matchers</b></summary>
+<p>
 
 ```cpp
 "matchers"_test = [] {
@@ -593,24 +609,31 @@ asserts: 1 | 0 passed | 1 failed
 All tests passed (1 asserts in 1 tests)
 ```
 
-> **Behavior Driven Development** (https://godbolt.org/z/5nhdyn)
+* https://godbolt.org/z/nrJyV-
+
+> Exceptions/Aborts
 
 ```cpp
-"scenario"_test = [] {
-  given("I have...") = [] {
-    when("I run...") = [] {
-      then("I expect...") = [] { expect(1_i == 1); };
-      then("I expect...") = [] { expect(1 == 1_i); };
-    };
-  };
+"exceptions/aborts"_test = [] {
+  expect(throws<std::runtime_error>([]{throw std::runtime_error{""};}))
+    << "throws runtime_error";
+  expect(throws([]{throw 0;})) << "throws any exception";
+  expect(nothrow([]{})) << "doesn't throw";
+  expect(aborts([] { assert(false); }));
 };
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+All tests passed (4 asserts in 1 tests)
 ```
 
-> **Test Suites** (https://godbolt.org/z/CFbTP9)
+* https://godbolt.org/z/A2EehK)
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Suites</b></summary>
+<p>
 
 ```cpp
 namespace ut = boost::ut;
@@ -636,20 +659,13 @@ int main() { }
 All tests passed (2 asserts in 1 tests)
 ```
 
-> **Skipping tests** (https://godbolt.org/z/R3dKAV)
+* https://godbolt.org/z/CFbTP9
 
-```cpp
-skip | "don't run"_test = [] {
-  expect(42_i == 43) << "should not fire!";
-};
-```
+</p>
+</details>
 
-```
-All tests passed (0 asserts in 0 tests)
-1 tests skipped
-```
-
-> **Module** (https://wandbox.org/permlink/CyqQu6PgVR1KvQpg)
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Modules</b></summary>
+<p>
 
 ```cpp
 import boost.ut;
@@ -667,7 +683,16 @@ int main() {
 All tests passed (1 asserts in 1 tests)
 ```
 
-> **Runner** (https://godbolt.org/z/jdg687)
+* https://wandbox.org/permlink/CyqQu6PgVR1KvQpg
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Config</b></summary>
+<p>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Runner</b></summary>
+<p>
 
 ```cpp
 namespace ut = boost::ut;
@@ -677,7 +702,8 @@ namespace cfg {
    public:
     template <class... Ts> auto on(ut::events::test<Ts...> test) { test(); }
     template <class... Ts> auto on(ut::events::skip<Ts...>) {}
-    template <class TLocation, class TExpr> auto on(ut::events::assertion<TLocation, TExpr>) -> bool { return true; }
+    template <class TLocation, class TExpr>
+    auto on(ut::events::assertion<TLocation, TExpr>) -> bool { return true; }
     auto on(ut::events::fatal_assertion) {}
     template <class TMsg> auto on(ut::events::log<TMsg>) {}
   };
@@ -686,7 +712,13 @@ namespace cfg {
 template<> auto ut::cfg<ut::override> = cfg::runner{};
 ```
 
-> **Reporter** (https://godbolt.org/z/gsAPKg)
+* https://godbolt.org/z/jdg687
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Reporter</b></summary>
+<p>
 
 ```cpp
 namespace ut = boost::ut;
@@ -699,8 +731,10 @@ namespace cfg {
     auto on(ut::events::test_skip) -> void {}
     auto on(ut::events::test_end) -> void {}
     template <class TMsg> auto on(ut::events::log<TMsg>) -> void {}
-    template <class TLocation, class TExpr> auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
-    template <class TLocation, class TExpr> auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+    template <class TLocation, class TExpr>
+    auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
+    template <class TLocation, class TExpr>
+    auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
     auto on(ut::events::fatal_assertion) -> void {}
     auto on(ut::events::exception) -> void {}
     auto on(ut::events::summary) -> void {}
@@ -710,6 +744,14 @@ namespace cfg {
 template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
+
+* https://godbolt.org/z/gsAPKg
+
+</p>
+</details>
+
+</p>
+</details>
 
 </p>
 </details>
@@ -1045,7 +1087,7 @@ namespace boost::ut::inline v1_1_1 {
 | Option | Description | Example |
 |-|-|-|
 | `BOOST_UT_VERSION`        | Current version | `1'1'1` |
-| `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple test suites | |
+| `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple suites | |
 | `BOOST_UT_IMPLEMENTATION` | Optionally used in `main.cpp` file to provide `ut` implementation (have to be used in combination with `BOOST_UT_FORWARD`) | |
 
 </p>
@@ -1193,8 +1235,6 @@ namespace boost::ut::inline v1_1_1 {
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;<b>Can I still use macros?</b></summary>
 <p>
 
-> https://godbolt.org/z/tvy-nP
-
 ```cpp
 #define EXPECT(...) ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
 #define SUITE       ::boost::ut::suite _ = []
@@ -1228,6 +1268,8 @@ int main() {
 All tests passed (4 asserts in 3 tests)
 ```
 
+* https://godbolt.org/z/tvy-nP
+
 </p>
 </details>
 
@@ -1237,8 +1279,6 @@ All tests passed (4 asserts in 3 tests)
 <a name="benchmarks"></a>
 <details><summary><b>Benchmarks</b></summary>
 <p>
-
-> https://github.com/cpp-testing/ut-benchmark
 
 | Framework | Version | Standard | License | Linkage | Test configuration |
 |-|-|-|-|-|-|
@@ -1325,22 +1365,13 @@ All tests passed (4 asserts in 3 tests)
   </tr>
 </table>
 
+* https://github.com/cpp-testing/ut-benchmark
+
 </p>
 </details>
 
 ---
 
-<p align="left"><img width="40" src="doc/images/logo.png" /></p>
-
-</td>
-<td>
-
-<p align="center">
-  <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
-</p>
-
-</td>
-</tr>
-</table>
-
 **Disclaimer** `[Boost].UT` is not an official Boost library.
+
+<p align="left"><img width="5%" src="doc/images/logo.png" /></p>
