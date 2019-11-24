@@ -585,6 +585,7 @@ asserts: 1 | 0 passed | 1 failed
   };
 
   expect(is_between(1, 100)(42));
+  expect(not is_between(1, 100)(0));
 };
 ```
 
