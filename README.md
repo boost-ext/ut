@@ -76,7 +76,7 @@ int main() {
 All tests passed (1 asserts in 0 test)
 ```
 
-* https://godbolt.org/z/vfx-eB
+> https://godbolt.org/z/vfx-eB
 
 
 > **Failed assertion**
@@ -94,7 +94,7 @@ tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-* https://godbolt.org/z/7qTePx
+> https://godbolt.org/z/7qTePx
 
 ---
 
@@ -114,7 +114,7 @@ tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-* https://godbolt.org/z/7MXVzu
+> https://godbolt.org/z/7MXVzu
 
 ---
 
@@ -139,7 +139,7 @@ tests:   0 | 0 failed
 asserts: 4 | 0 passed | 4 failed
 ```
 
-* https://godbolt.org/z/QbgGtc
+> https://godbolt.org/z/QbgGtc
 
 ---
 
@@ -159,7 +159,7 @@ tests:   1 | 1 failed
 asserts: 2 | 0 passed | 2 failed
 ```
 
-* https://godbolt.org/z/469pH3
+> https://godbolt.org/z/469pH3
 
 ---
 
@@ -178,7 +178,7 @@ tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-* https://godbolt.org/z/aEhX4t
+> https://godbolt.org/z/aEhX4t
 
 ---
 
@@ -197,7 +197,7 @@ tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-* https://godbolt.org/z/v2PDuU
+> https://godbolt.org/z/v2PDuU
 
 </p>
 </details>
@@ -217,7 +217,7 @@ int main() {
 All tests passed (0 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/Bh-EmY 
+> https://godbolt.org/z/Bh-EmY
 
 ---
 
@@ -241,7 +241,7 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-* https://godbolt.org/z/Y43mXz
+> https://godbolt.org/z/Y43mXz
 
 ---
 
@@ -266,7 +266,7 @@ tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
-* https://godbolt.org/z/6rmvvU
+> https://godbolt.org/z/6rmvvU
 
 ---
 
@@ -298,7 +298,7 @@ int main() {
 All tests passed (4 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/y9m5vF
+> https://godbolt.org/z/y9m5vF
 
 ---
 
@@ -326,7 +326,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/ps9_EQ
+> https://godbolt.org/z/ps9_EQ
 
 ---
 
@@ -345,7 +345,7 @@ int main() {
 All tests passed (3 asserts in 3 tests)
 ```
 
-* https://godbolt.org/z/6FHtpq
+> https://godbolt.org/z/6FHtpq
 
 </p>
 </details>
@@ -370,7 +370,7 @@ int main() { }
 All tests passed (2 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/F3xJcJ
+> https://godbolt.org/z/F3xJcJ
 
 </p>
 </details>
@@ -382,7 +382,7 @@ All tests passed (2 asserts in 1 tests)
 <details><summary>Examples</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests/Assertions</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Assertions</summary>
 <p>
 
 > <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
@@ -463,9 +463,36 @@ tests:   9  | 1 failed
 asserts: 24 | 22 passed | 2 failed
 ```
 
-* https://godbolt.org/z/pVk2M4)
+> https://godbolt.org/z/pVk2M4)
 
-> Sections
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
+<p>
+
+```cpp
+"run"_test = [] {
+  expect(42_i == 42);
+};
+
+skip | "don't run"_test = [] {
+  expect(42_i == 43) << "should not fire!";
+};
+```
+
+```
+All tests passed (1 asserts in 1 tests)
+1 tests skipped
+```
+
+> https://godbolt.org/z/G5rkAw
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Sections</summary>
+<p>
 
 ```cpp
 "[vector]"_test = [] {
@@ -491,9 +518,13 @@ asserts: 24 | 22 passed | 2 failed
 All tests passed (4 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/qKxsf9)
+> https://godbolt.org/z/qKxsf9)
 
-> Parameterized
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Parameterized</summary>
+<p>
 
 ```cpp
 "args"_test =
@@ -521,36 +552,13 @@ All tests passed (4 asserts in 1 tests)
 All tests passed (11 asserts in 7 tests)
 ```
 
-* https://godbolt.org/z/WCqggN
+> https://godbolt.org/z/WCqggN
 
+</p>
+</details>
 
-> Logging
-
-```cpp
-"logging"_test = [] {
-  log << "pre";
-  expect(42_i == 43) << "message on failure";
-  log << "post";
-};
-```
-
-```
-Running "logging"...
-pre
-  logging.cpp:8:FAILED [42 == 43] message on failure
-post
-FAILED
-
-===============================================================================
-
-tests:   1 | 1 failed
-asserts: 1 | 0 passed | 1 failed
-```
-
-* https://godbolt.org/z/26fPSY
-
-> Behavior Driven Development (BDD)
-
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
+<p>
 
 ```cpp
 "scenario"_test = [] {
@@ -567,65 +575,7 @@ asserts: 1 | 0 passed | 1 failed
 All tests passed (2 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/5nhdyn
-
-> Skipping tests
-
-```cpp
-skip | "don't run"_test = [] {
-  expect(42_i == 43) << "should not fire!";
-};
-```
-
-```
-All tests passed (0 asserts in 0 tests)
-1 tests skipped
-```
-
-* https://godbolt.org/z/R3dKAV
-
-</p>
-</details>
-
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Matchers</summary>
-<p>
-
-```cpp
-"matchers"_test = [] {
-  constexpr auto is_between = [](auto lhs, auto rhs) {
-    return matcher([=](auto value) {
-      return that % value >= lhs and that % value <= rhs;
-    });
-  };
-
-  expect(is_between(1, 100)(42));
-  expect(not is_between(1, 100)(0));
-};
-```
-
-```
-All tests passed (1 asserts in 1 tests)
-```
-
-* https://godbolt.org/z/nrJyV-
-
-> Exceptions/Aborts
-
-```cpp
-"exceptions/aborts"_test = [] {
-  expect(throws<std::runtime_error>([]{throw std::runtime_error{""};}))
-    << "throws runtime_error";
-  expect(throws([]{throw 0;})) << "throws any exception";
-  expect(nothrow([]{})) << "doesn't throw";
-  expect(aborts([] { assert(false); }));
-};
-```
-
-```
-All tests passed (4 asserts in 1 tests)
-```
-
-* https://godbolt.org/z/A2EehK)
+> https://godbolt.org/z/5nhdyn
 
 </p>
 </details>
@@ -657,31 +607,89 @@ int main() { }
 All tests passed (2 asserts in 1 tests)
 ```
 
-* https://godbolt.org/z/CFbTP9
+> https://godbolt.org/z/CFbTP9
 
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Modules</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Misc</summary>
+<p>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging</summary>
 <p>
 
 ```cpp
-import boost.ut;
+"logging"_test = [] {
+  log << "pre";
+  expect(42_i == 43) << "message on failure";
+  log << "post";
+};
+```
 
-int main() {
-  using namespace boost::ut;
+```
+Running "logging"...
+pre
+  logging.cpp:8:FAILED [42 == 43] message on failure
+post
+FAILED
 
-  "module"_test = [] {
-    expect(42_i == 42);
+===============================================================================
+
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+> https://godbolt.org/z/26fPSY
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Matchers</summary>
+<p>
+
+```cpp
+"matchers"_test = [] {
+  constexpr auto is_between = [](auto lhs, auto rhs) {
+    return matcher([=](auto value) {
+      return that % value >= lhs and that % value <= rhs;
+    });
   };
-}
+
+  expect(is_between(1, 100)(42));
+  expect(not is_between(1, 100)(0));
+};
 ```
 
 ```
 All tests passed (1 asserts in 1 tests)
 ```
 
-* https://wandbox.org/permlink/CyqQu6PgVR1KvQpg
+> https://godbolt.org/z/nrJyV-
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exceptions/Aborts</summary>
+<p>
+
+```cpp
+"exceptions/aborts"_test = [] {
+  expect(throws<std::runtime_error>([]{throw std::runtime_error{""};}))
+    << "throws runtime_error";
+  expect(throws([]{throw 0;})) << "throws any exception";
+  expect(nothrow([]{})) << "doesn't throw";
+  expect(aborts([] { assert(false); }));
+};
+```
+
+```
+All tests passed (4 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/A2EehK)
+
+</p>
+</details>
 
 </p>
 </details>
@@ -710,7 +718,7 @@ namespace cfg {
 template<> auto ut::cfg<ut::override> = cfg::runner{};
 ```
 
-* https://godbolt.org/z/jdg687
+> https://godbolt.org/z/jdg687
 
 </p>
 </details>
@@ -743,7 +751,7 @@ template <>
 auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 ```
 
-* https://godbolt.org/z/gsAPKg
+> https://godbolt.org/z/gsAPKg
 
 </p>
 </details>
@@ -1266,7 +1274,7 @@ int main() {
 All tests passed (4 asserts in 3 tests)
 ```
 
-* https://godbolt.org/z/tvy-nP
+> https://godbolt.org/z/tvy-nP
 
 </p>
 </details>
@@ -1363,7 +1371,7 @@ All tests passed (4 asserts in 3 tests)
   </tr>
 </table>
 
-* https://github.com/cpp-testing/ut-benchmark
+> https://github.com/cpp-testing/ut-benchmark
 
 </p>
 </details>
