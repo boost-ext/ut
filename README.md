@@ -120,6 +120,8 @@ asserts: 1 | 0 passed | 1 failed
 
 > **Assertion with alternative expression syntax**
 
+> <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
+
 ```cpp
 int main() {
   expect(1_i == 2);       // UDL syntax
@@ -385,85 +387,62 @@ All tests passed (2 asserts in 1 tests)
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Assertions</summary>
 <p>
 
-> <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
-
 ```cpp
-"operators"_test = [] {
-  expect(0_i == sum());
-  expect(2_i != sum(1, 2));
-  expect(sum(1) >= 0_i);
-  expect(sum(1) <= 1_i);
-};
+// operators
+expect(0_i == sum());
+expect(2_i != sum(1, 2));
+expect(sum(1) >= 0_i);
+expect(sum(1) <= 1_i);
 
-"message"_test = [] {
-  expect(3_i == sum(1, 2)) << "wrong sum";
-};
+// message
+expect(3_i == sum(1, 2)) << "wrong sum";
 
-"expressions"_test = [] {
-  expect(0_i == sum() and 42_i == sum(40, 2));
-  expect(0_i == sum() or 1_i == sum()) << "compound";
-};
+//expressions
+expect(0_i == sum() and 42_i == sum(40, 2));
+expect(0_i == sum() or 1_i == sum()) << "compound";
 
-"that"_test = [] {
-  expect(that % 0 == sum());
-  expect(that % 42 == sum(40, 2) and that % (1 + 2) == sum(1, 2));
-  expect(that % 1 != 2 or 2_i > 3);
-};
+// that
+expect(that % 0 == sum());
+expect(that % 42 == sum(40, 2) and that % (1 + 2) == sum(1, 2));
+expect(that % 1 != 2 or 2_i > 3);
 
-"eq/neq/gt/ge/lt/le"_test = [] {
-  expect(eq(42, sum(40, 2)));
-  expect(neq(1, 2));
-  expect(eq(sum(1), 1) and neq(sum(1, 2), 2));
-  expect(eq(1, 1) and that % 1 == 1 and 1_i == 1);
-};
+// eq/neq/gt/ge/lt/le
+expect(eq(42, sum(40, 2)));
+expect(neq(1, 2));
+expect(eq(sum(1), 1) and neq(sum(1, 2), 2));
+expect(eq(1, 1) and that % 1 == 1 and 1_i == 1);
 
-"floating points"_test = [] {
-  expect(42.1_d == 42.101) << "epsilon=0.1";
-  expect(42.10_d == 42.101) << "epsilon=0.01";
-  expect(42.10000001 == 42.1_d) << "epsilon=0.1";
-};
+// floating points
+expect(42.1_d == 42.101) << "epsilon=0.1";
+expect(42.10_d == 42.101) << "epsilon=0.01";
+expect(42.10000001 == 42.1_d) << "epsilon=0.1";
 
-"constant"_test = [] {
-  constexpr auto compile_time_v = 42;
-  auto run_time_v = 99;
-  expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
-};
+// constant
+constexpr auto compile_time_v = 42;
+auto run_time_v = 99;
+expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
 
-"fatal"_test = [] {
-  std::vector v{1, 2, 3};
-  !expect(std::size(v) == 3_ul) << "fatal assertion";
-   expect(v[0] == 1_i);
-   expect(v[1] == 2_i);
-   expect(v[2] == 3_i);
-};
+// fatal
+std::vector v{1, 2, 3};
+!expect(std::size(v) == 3_ul) << "fatal assertion";
+expect(v[0] == 1_i);
+expect(v[1] == 2_i);
+expect(v[2] == 3_i);
 
-"failure"_test = [] {
-  expect(1_i == 2) << "should fail";
-  expect(sum() == 1_i or 2_i == sum()) << "sum?";
-};
+// failure
+expect(1_i == 2) << "should fail";
+expect(sum() == 1_i or 2_i == sum()) << "sum?";
 ```
 
 ```
-Running "operators"...✔️
-Running "message"...✔️
-Running "expressions"...✔️
-Running "that"...✔️
-Running "eq/neq/gt/ge/lt/le"...✔️
-Running "floating points"...✔️
-Running "constant"...✔️
-Running "fatal"...✔️
-Running "failure"...
-  assertions.cpp:61:FAILED [1 == 2] should fail
-  assertions.cpp:62:FAILED [(0 == 1 or 2 == 0)] sum?
-❌
-
+assertions.cpp:53:FAILED [1 == 2] should fail
+assertions.cpp:54:FAILED [(0 == 1 or 2 == 0)] sum?
 ===============================================================================
-
-tests:   9  | 1 failed
+tests:   0 | 0 failed
 asserts: 24 | 22 passed | 2 failed
 ```
 
-> https://godbolt.org/z/pVk2M4)
+> https://godbolt.org/z/jaFK8w
 
 </p>
 </details>
