@@ -19,7 +19,7 @@
 
 <a name="overview"></a>
 <a name="quick-start"></a>
-<details><summary><b>Overview</b></summary>
+<details open><summary><b>Overview</b></summary>
 <p>
 
 * **No dependencies** ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
