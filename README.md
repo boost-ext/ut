@@ -22,14 +22,12 @@
 <details open><summary>Overview</summary>
 <p>
 
-* No dependencies ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a))
-  * Tested Compilers ([GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut) / [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* No dependencies ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `suite, test, expect`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
-* Features ([Assertions](example) / [Suites](example) / [Tests](example) / [Parameterized Tests](example) / [Sections](example) / [Matchers](example) / [Logging](example) / [BDD](example) / [...](example))
-  * Extensible ([Runners](example/cfg/runner.cpp) / [Reporters](example/cfg/reporter.cpp))
+* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 
 </p>
 </details>
