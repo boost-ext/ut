@@ -441,6 +441,9 @@ asserts: 24 | 22 passed | 2 failed
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
 <p>
 
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run/Skip</summary>
+<p>
+
 ```cpp
 "run"_test = [] {
   expect(42_i == 42);
@@ -546,6 +549,9 @@ All tests passed (2 asserts in 1 tests)
 ```
 
 > https://godbolt.org/z/5nhdyn
+
+</p>
+</details>
 
 </p>
 </details>
