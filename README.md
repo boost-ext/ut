@@ -36,7 +36,7 @@
 <details><summary>Tutorial</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 0: Get</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 0: Get it...</summary>
 <p>
 
 > Get the latest latest header/module from [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
@@ -60,13 +60,21 @@ $CXX main.cpp && ./a.out
 All tests passed (0 assert in 0 test)
 ```
 
+> [Optional] Install it
+
+```
+cmake -Bbuild -H.
+cd build && make         # run tests
+cd build && make install # install
+```
+
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 1: Check</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 1: Expect it...</summary>
 <p>
 
-> Let's write first assertion, shall we?
+> Let's write our first assertion, shall we?
 
 ```cpp
 int main() {
@@ -203,11 +211,11 @@ asserts: 1 | 0 passed | 1 failed
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Organize</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Group by...</summary>
 <p>
 
 > Assertions are great, but how to combine them into more cohesive units?
-> Test case for the rescue!
+> `Test cases` are the way to go! They allow to group expectations for the same functionality into coherent units.
 
 ```cpp
 "hello world"_test = [] { };
@@ -327,12 +335,12 @@ All tests passed (3 asserts in 3 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 3: Scale</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 3: Scale it...</summary>
 <p>
 
 > Okay, but my project is more complex than that. How can I scale?
-> `Test suites` will make that possible. Just use `ut::suite` in your translation units
-> and all tests inside will be automatically registered 👍
+> `Test suites` will make that possible. By using `ut::suite` in translation units
+> `tests` defined inside will be automatically registered 👍
 
 ```cpp
 boost::ut::suite _ = [] {
@@ -353,7 +361,7 @@ All tests passed (2 asserts in 1 tests)
 
 ---
 
-> Further reading
+> What's next?
 > * [Examples](#examples)
 > * [User-Guide](#user-guide)
 
