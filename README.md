@@ -36,18 +36,17 @@
 <details><summary>Tutorial</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Quick start</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 0: Get</summary>
 <p>
 
-> Get the latest latest header/module [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
+> Get the latest latest header/module from [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
 
-| **C++ header** | **C++20 module** |
-|-|-|
-| `#include <boost/ut.hpp>` | `import boost.ut;` |
-
-> **Main**
+> Include/Import
 
 ```cpp
+// #include <boost/ut.hpp> // single header
+// import boost.ut;        // single module (C++20)
+
 int main() { }
 ```
 
@@ -55,16 +54,19 @@ int main() { }
 
 ```
 $CXX main.cpp && ./a.out
+```
+
+```
 All tests passed (0 assert in 0 test)
 ```
 
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Assertions</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 1: Check</summary>
 <p>
 
-> **First succesful assertion**
+> Let's write first assertion, shall we?
 
 ```cpp
 int main() {
@@ -79,7 +81,7 @@ All tests passed (1 asserts in 0 test)
 > https://godbolt.org/z/vfx-eB
 
 
-> **Failed assertion**
+> Okay, let's make it fail now?
 
 ```cpp
 int main() {
@@ -96,9 +98,9 @@ asserts: 1 | 0 passed | 1 failed
 
 > https://godbolt.org/z/7qTePx
 
----
+> Notice that expression `1 == 2` hasn't been printed. Instead we got `false`?
 
-> **Failed assertion with printed expression**
+> Let's print it then?
 
 ```cpp
 int main() {
@@ -116,19 +118,22 @@ asserts: 1 | 0 passed | 1 failed
 
 > https://godbolt.org/z/7MXVzu
 
----
+> Okay, now we have it! `1 == 2` has been printed as expected.
+> Notice the User Defined Literal (UDL) `1_i` was used.
+> `_i` is a compile-time constant integer value
 
-> **Assertion with alternative expression syntax**
+* It allows to override comparison operators 👍
+* It disallow comparison of different types 👍
 
-> <a href="https://godbolt.org/z/Df2nrN"><img width="50%" src="doc/images/expect.png"></a>
+See the [User-guide](#user-guide) for more details.
+
+> Alternatively, other expression syntaxes can be used.
 
 ```cpp
-int main() {
-  expect(1_i == 2);       // UDL syntax
-  expect(1 == 2_i);       // UDL syntax
-  expect(that % 1 == 2);  // Matcher syntax
-  expect(eq(1, 2));       // eq/neq/gt/ge/lt/le
-}
+expect(1_i == 2);       // UDL syntax
+expect(1 == 2_i);       // UDL syntax
+expect(that % 1 == 2);  // Matcher syntax
+expect(eq(1, 2));       // eq/neq/gt/ge/lt/le
 ```
 
 ```
@@ -143,15 +148,13 @@ asserts: 4 | 0 passed | 4 failed
 
 > https://godbolt.org/z/QbgGtc
 
----
-
-> **Fatal assertion**
+> Okay, but what about the case if my assertion is fatal.
+> Meaning that the program will crash unless the processing will be terminated.
+> Nothing easier, let's just add `!` before the `expect` call to make it fatal.
 
 ```cpp
-int main() {
-  !expect(1 == 2_i); // fatal assertion
-   expect(1_i == 2); // not executed
-}
+!expect(1 == 2_i); // fatal assertion
+ expect(1_i == 2); // not executed
 ```
 
 ```
@@ -163,14 +166,11 @@ asserts: 2 | 0 passed | 2 failed
 
 > https://godbolt.org/z/469pH3
 
----
-
-> **Assertion with a compound expressions**
+> But my expression is more complex than just simple comparisons.
+> Not a problem, logic operators are also supported in the `expect` 👍.
 
 ```cpp
-int main() {
-  expect(42l == 42_l and 1 == 2_i);
-}
+expect(42l == 42_l and 1 == 2_i); // compound expression
 ```
 
 ```
@@ -182,9 +182,8 @@ asserts: 1 | 0 passed | 1 failed
 
 > https://godbolt.org/z/aEhX4t
 
----
-
-> **Assertion with a message**
+> Can I add a custom message though?
+> Sure, `expect` calls are streamable!
 
 ```cpp
 int main() {
@@ -204,15 +203,14 @@ asserts: 1 | 0 passed | 1 failed
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Organize</summary>
 <p>
 
-> **First test**
+> Assertions are great, but how to combine them into more cohesive units?
+> Test case for the rescue!
 
 ```cpp
-int main() {
-  "hello world"_test = [] { };
-}
+"hello world"_test = [] { };
 ```
 
 ```
@@ -221,9 +219,9 @@ All tests passed (0 asserts in 1 tests)
 
 > https://godbolt.org/z/Bh-EmY
 
----
+> Notice `1 tests` but `0 asserts`.
 
-> **Test & Assertion**
+> Let's make our first end-2-end test case, shall we?
 
 ```cpp
 int main() {
@@ -245,34 +243,11 @@ asserts: 1 | 0 passed | 1 failed
 
 > https://godbolt.org/z/Y43mXz
 
----
+> 👍 We are done here!
 
-> **Logging**
-
-```cpp
-int main() {
-  "logging"_test = [] {
-    log << "pre";
-    expect(that % 1 == 2) << "during";
-    log << "post";
-  };
-```
-
-```
-Running "logging"...
-pre
-  logging.cpp:8:FAILED [1 == 2] during
-post
-===============================================================================
-tests:   1 | 1 failed
-asserts: 1 | 0 passed | 1 failed
-```
-
-> https://godbolt.org/z/6rmvvU
-
----
-
-> **Sections**
+> I'd like to nest my tests, though and share setup/tear-down.
+> With lambdas used to represents tests we can easily achieve that.
+> Let's just take a look at the following example.
 
 ```cpp
 int main() {
@@ -302,9 +277,9 @@ All tests passed (4 asserts in 1 tests)
 
 > https://godbolt.org/z/y9m5vF
 
----
-
-> **Behaviour Driven Development** (BDD)
+> Nice! That was easy, but I'm a believer into Behaviour Driven Development (BDD).
+> Is there a support for that?
+> Yes! Same example as above just with the BDD syntax.
 
 ```cpp
 int main() {
@@ -330,10 +305,8 @@ All tests passed (2 asserts in 1 tests)
 
 > https://godbolt.org/z/ps9_EQ
 
----
-
-> **Parameterized tests**
-  * [Read more](#examples)
+> That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
+> Parameterized tests to the rescue!
 
 ```cpp
 int main() {
@@ -349,13 +322,17 @@ All tests passed (3 asserts in 3 tests)
 
 > https://godbolt.org/z/6FHtpq
 
+> Check [Examples](#examples) for further reading.
+
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Suites</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 3: Scale</summary>
 <p>
 
-> **Test Suite**
+> Okay, but my project is more complex than that. How can I scale?
+> `Test suites` will make that possible. Just use `ut::suite` in your translation units
+> and all tests inside will be automatically registered 👍
 
 ```cpp
 boost::ut::suite _ = [] {
@@ -373,6 +350,12 @@ All tests passed (2 asserts in 1 tests)
 ```
 
 > https://godbolt.org/z/F3xJcJ
+
+---
+
+> Further reading
+> * [Examples](#examples)
+> * [User-Guide](#user-guide)
 
 </p>
 </details>
