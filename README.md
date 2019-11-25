@@ -211,7 +211,7 @@ asserts: 1 | 0 passed | 1 failed
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Group by...</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Group it...</summary>
 <p>
 
 > Assertions are great, but how to combine them into more cohesive units?
