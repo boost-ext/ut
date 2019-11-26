@@ -1161,23 +1161,23 @@ int main() {
     test_cfg = fake_cfg{};
 
     "scenario"_test = [] {
-      given("I have...") = [] {
-        when("I run...") = [] {
-          then("I expect...") = [] { expect(1_u == 1u); };
-          then("I expect...") = [] { expect(1u == 1_u); };
+      Given("I have...") = [] {
+        When("I run...") = [] {
+          Then("I expect...") = [] { expect(1_u == 1u); };
+          Then("I expect...") = [] { expect(1u == 1_u); };
         };
       };
     };
 
     test_assert(5 == std::size(test_cfg.run_calls));
     test_assert("scenario"sv == test_cfg.run_calls[0].name);
-    test_assert("given"sv == test_cfg.run_calls[1].type);
+    test_assert("Given"sv == test_cfg.run_calls[1].type);
     test_assert("I have..."sv == test_cfg.run_calls[1].name);
-    test_assert("when"sv == test_cfg.run_calls[2].type);
+    test_assert("When"sv == test_cfg.run_calls[2].type);
     test_assert("I run..."sv == test_cfg.run_calls[2].name);
-    test_assert("then"sv == test_cfg.run_calls[3].type);
+    test_assert("Then"sv == test_cfg.run_calls[3].type);
     test_assert("I expect..."sv == test_cfg.run_calls[3].name);
-    test_assert("then"sv == test_cfg.run_calls[4].type);
+    test_assert("Then"sv == test_cfg.run_calls[4].type);
     test_assert("I expect..."sv == test_cfg.run_calls[4].name);
     test_assert(2 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);

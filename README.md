@@ -292,14 +292,14 @@ All tests passed (4 asserts in 1 tests)
 ```cpp
 int main() {
   "vector"_test = [] {
-    given("I have a vector") = [] {
+    Given("I have a vector") = [] {
       std::vector<int> v(5);
       !expect(5_ul == std::size(v));
 
-      when("I resize bigger") = [=]() mutable {
+      When("I resize bigger") = [=]() mutable {
         v.resize(10);
 
-        then("The size should increase") = [=] {
+        Then("The size should increase") = [=] {
           expect(10_ul == std::size(v));
         };
       };
@@ -311,7 +311,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/ps9_EQ
+> https://godbolt.org/z/RQaz2u
 
 > That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
 > Parameterized tests to the rescue!
@@ -535,10 +535,10 @@ All tests passed (11 asserts in 7 tests)
 
 ```cpp
 "scenario"_test = [] {
-  given("I have...") = [] {
-    when("I run...") = [] {
-      then("I expect...") = [] { expect(1_i == 1); };
-      then("I expect...") = [] { expect(1 == 1_i); };
+  Given("I have...") = [] {
+    When("I run...") = [] {
+      Then("I expect...") = [] { expect(1_i == 1); };
+      Then("I expect...") = [] { expect(1 == 1_i); };
     };
   };
 };
@@ -548,7 +548,7 @@ All tests passed (11 asserts in 7 tests)
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/5nhdyn
+> https://godbolt.org/z/adQb2C
 
 </p>
 </details>
@@ -775,9 +775,9 @@ namespace boost::ut::inline v1_1_1 {
    * @param name step name
    * @return test object to be executed
    */
-  constexpr auto given = [](auto name);
-  constexpr auto when  = [](auto name);
-  constexpr auto then  = [](auto name);
+  constexpr auto Given = [](auto name);
+  constexpr auto When  = [](auto name);
+  constexpr auto Then  = [](auto name);
 
   /**
    * Evaluates an expression
@@ -931,7 +931,7 @@ namespace boost::ut::inline v1_1_1 {
 
     /**
      * @example "name"_test = [] {};
-     * @param test.type ["test", "given", "when", "then"]
+     * @param test.type ["test", "Given", "When", "Then"]
      * @param test.name "name"
      * @param test.arg parameterized argument
      * @param test() executes test
@@ -941,7 +941,7 @@ namespace boost::ut::inline v1_1_1 {
 
     /**
      * @example skip | "don't run"_test = []{};
-     * @param skip.type ["test", "given", "when", "then"]
+     * @param skip.type ["test", "Given", "When", "Then"]
      * @param skip.name "don't run"
      * @param skip.arg parameterized argument
      */
@@ -979,28 +979,28 @@ namespace boost::ut::inline v1_1_1 {
    public:
     /**
      * @example "name"_test = [] {};
-     * @param test_begin.type ["test", "given", "when", "then"]
+     * @param test_begin.type ["test", "Given", "When", "Then"]
      * @param test_begin.name "name"
      */
     auto on(ut::events::test_begin) -> void;
 
     /**
      * @example "name"_test = [] {};
-     * @param test_run.type ["test", "given", "when", "then"]
+     * @param test_run.type ["test", "Given", "When", "Then"]
      * @param test_run.name "name"
      */
     auto on(ut::events::test_run) -> void;
 
     /**
      * @example "name"_test = [] {};
-     * @param test_skip.type ["test", "given", "when", "then"]
+     * @param test_skip.type ["test", "Given", "When", "Then"]
      * @param test_skip.name "name"
      */
     auto on(ut::events::test_skip) -> void;
 
     /**
      * @example "name"_test = [] {};
-     * @param test_end.type ["test", "given", "when", "then"]
+     * @param test_end.type ["test", "Given", "When", "Then"]
      * @param test_end.name "name"
      */
     auto on(ut::events::test_end) -> void;
