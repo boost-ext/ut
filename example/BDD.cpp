@@ -11,10 +11,10 @@ int main() {
   using namespace boost::ut;
 
   "scenario"_test = [] {
-    given("I have...") = [] {
-      when("I run...") = [] {
-        then("I expect...") = [] { expect(1_u == 1u); };
-        then("I expect...") = [] { expect(1u == 1_u); };
+    Given("I have...") = [] {
+      When("I run...") = [] {
+        Then("I expect...") = [] { expect(1_u == 1u); };
+        Then("I expect...") = [] { expect(1u == 1_u); };
       };
     };
   };

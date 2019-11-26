@@ -1802,14 +1802,14 @@ struct suite {
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};
 [[maybe_unused]] constexpr auto skip = detail::skip{};
-[[maybe_unused]] constexpr auto given = [](utility::string_view name) {
-  return detail::test{"given", name};
+[[maybe_unused]] constexpr auto Given = [](utility::string_view name) {
+  return detail::test{"Given", name};
 };
-[[maybe_unused]] constexpr auto when = [](utility::string_view name) {
-  return detail::test{"when", name};
+[[maybe_unused]] constexpr auto When = [](utility::string_view name) {
+  return detail::test{"When", name};
 };
-[[maybe_unused]] constexpr auto then = [](utility::string_view name) {
-  return detail::test{"then", name};
+[[maybe_unused]] constexpr auto Then = [](utility::string_view name) {
+  return detail::test{"Then", name};
 };
 template <class T>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
