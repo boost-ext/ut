@@ -221,13 +221,14 @@ asserts: 1 | 0 passed | 1 failed
 "hello world"_test = [] { };
 ```
 
-> Note: Alternately `test("hello world") = [] {}` can be used.
+> Alternatively `test("hello world") = [] {}` can be used.
 
 ```
 All tests passed (0 asserts in 1 tests)
 ```
 
 > https://godbolt.org/z/Bh-EmY
+
 
 > Notice `1 tests` but `0 asserts`.
 
@@ -451,11 +452,17 @@ asserts: 24 | 22 passed | 2 failed
   expect(42_i == 42);
 };
 
+skip | "don't run UDL"_test = [] {
+  expect(42_i == 43) << "should not fire!";
+};
+```
+
+```cpp
 test("run function") = [] {
   expect(42_i == 42);
 };
 
-skip | "don't run"_test = [] {
+skip | test("don't run function") = [] {
   expect(42_i == 43) << "should not fire!";
 };
 ```
@@ -465,7 +472,7 @@ All tests passed (1 asserts in 1 tests)
 1 tests skipped
 ```
 
-> https://godbolt.org/z/BWG8jV
+> https://godbolt.org/z/2drJGq
 
 </p>
 </details>
