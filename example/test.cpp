@@ -10,11 +10,7 @@
 int main() {
   using namespace boost::ut;
 
-  "UDL syntax"_test = [] {
-    expect(42_i == 42);
-  };
+  "UDL syntax"_test = [] { expect(42_i == 42); };
 
-  test("function syntax") = [] {
-    expect(42_i == 42);
-  };
+  test("function syntax") = [] { expect(42_i == 42); };
 }

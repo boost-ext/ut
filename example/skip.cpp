@@ -14,4 +14,9 @@ int main() {
     expect(42_i == 43) << "should not fire!";
     expect(false) << "should fail!";
   };
+
+  skip | test("don't run") = [] {
+    expect(42_i == 43) << "should not fire!";
+    expect(false) << "should fail!";
+  };
 }
