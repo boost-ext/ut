@@ -221,6 +221,8 @@ asserts: 1 | 0 passed | 1 failed
 "hello world"_test = [] { };
 ```
 
+> Note: Alternately `test("hello world") = [] {}` can be used.
+
 ```
 All tests passed (0 asserts in 1 tests)
 ```
@@ -445,7 +447,11 @@ asserts: 24 | 22 passed | 2 failed
 <p>
 
 ```cpp
-"run"_test = [] {
+"run UDL"_test = [] {
+  expect(42_i == 42);
+};
+
+test("run function") = [] {
   expect(42_i == 42);
 };
 
@@ -459,7 +465,7 @@ All tests passed (1 asserts in 1 tests)
 1 tests skipped
 ```
 
-> https://godbolt.org/z/G5rkAw
+> https://godbolt.org/z/BWG8jV
 
 </p>
 </details>
