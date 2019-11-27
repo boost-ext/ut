@@ -16,13 +16,26 @@ export import std;
 #include <ciso646>  // and, or, not
 #endif
 
-#if not defined(__cpp_variadic_templates) or                                  \
-    not defined(__cpp_rvalue_references) or not defined(__cpp_decltype) or    \
-    not defined(__cpp_alias_templates) or not defined(__cpp_static_assert) or \
-    not defined(__cpp_generic_lambdas) or not defined(__cpp_constexpr) or     \
-    not defined(__cpp_return_type_deduction) or                               \
-    not defined(__cpp_fold_expressions) or not defined(__cpp_deduction_guides)
-#error "[Boost].UT requires C++20 support"
+#if not defined(__cpp_rvalue_references)
+#error "[Boost].UT requires support for rvalue references";
+#elif not defined(__cpp_decltype)
+#error "[Boost].UT requires support for decltype";
+#elif not defined(__cpp_return_type_deduction)
+#error "[Boost].UT requires support for return type deduction";
+#elif not defined(__cpp_deduction_guides)
+#error "[Boost].UT requires support for return deduction guides";
+#elif not defined(__cpp_generic_lambdas)
+#error "[Boost].UT requires support for generic lambdas";
+#elif not defined(__cpp_constexpr)
+#error "[Boost].UT requires support for constexpr";
+#elif not defined(__cpp_alias_templates)
+#error "[Boost].UT requires support for alias templates";
+#elif not defined(__cpp_variadic_templates)
+#error "[Boost].UT requires support for variadic templates";
+#elif not defined(__cpp_fold_expressions)
+#error "[Boost].UT requires support for return fold expressions";
+#elif not defined(__cpp_static_assert)
+#error "[Boost].UT requires support for static assert";
 #else
 #define BOOST_UT_VERSION 1'1'1
 
@@ -96,7 +109,7 @@ template <class R, class... TArgs>
 class function<R(TArgs...)> {
  public:
   template <class T>
-  constexpr explicit(false) function(T data)
+  constexpr /*explicit(false)*/ function(T data)
       : invoke_{invoke_impl<T>},
         destroy_{destroy_impl<T>},
         data_{new T{static_cast<T&&>(data)}} {}
@@ -186,7 +199,7 @@ class function<R(TArgs...)> {
 namespace reflection {
 class source_location {
  public:
-#if __has_include(<experimental/source_location>)
+#if (__GNUC__ >= 9 or __clang_major__ >= 9)
   [[nodiscard]] static constexpr auto current(
       const char* file = __builtin_FILE(),
       int line = __builtin_LINE()) noexcept {
@@ -1040,7 +1053,7 @@ class runner {
     static constexpr auto delim = ".";
 
    public:
-    constexpr explicit(false) filter(std::string_view filter = {})
+    constexpr /*explicit(false)*/ filter(std::string_view filter = {})
         : path_{utility::split(filter, delim)} {}
 
     template <class TPath>
@@ -1421,7 +1434,7 @@ class expect_ {
 template <class TExpr>
 class matcher_ : op {
  public:
-  constexpr explicit(true) matcher_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit matcher_(const TExpr& expr) : expr_{expr} {}
 
   template <class... TArgs>
   [[nodiscard]] constexpr auto operator()(const TArgs&... args) const {
@@ -1438,7 +1451,7 @@ class throws_ : op {
  public:
   constexpr explicit throws_(const TExpr& expr) : expr_{expr} {}
 
-  [[nodiscard]] constexpr operator bool() const {
+  [[nodiscard]] /*constexpr*/ operator bool() const {
     try {
       expr_();
     } catch (const TException&) {
@@ -1463,7 +1476,7 @@ class throws_<TExpr, void> : op {
  public:
   constexpr explicit throws_(const TExpr& expr) : expr_{expr} {}
 
-  [[nodiscard]] constexpr operator bool() const {
+  [[nodiscard]] /*constexpr*/ operator bool() const {
     try {
       expr_();
     } catch (...) {
@@ -1486,7 +1499,7 @@ class nothrow_ : op {
  public:
   constexpr explicit nothrow_(const TExpr& expr) : expr_{expr} {}
 
-  [[nodiscard]] constexpr operator bool() const {
+  [[nodiscard]] /*constexpr*/ operator bool() const {
     try {
       expr_();
     } catch (...) {
@@ -1790,7 +1803,7 @@ struct _t : detail::value<T> {
 
 struct suite {
   template <class TSuite>
-  constexpr explicit(false) suite(TSuite suite) {
+  constexpr /*explicit(false)*/ suite(TSuite suite) {
     static_assert(1 == sizeof(suite));
     detail::on<decltype(+suite)>(events::suite{+suite});
   }
