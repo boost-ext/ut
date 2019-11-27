@@ -62,12 +62,12 @@
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 <!-- .element: class="fragment" -->
 
-* Macro-free ✔️
+* Macro-free (✔️)
 <!-- .element: class="fragment" -->
 
 ---
 
-* `*` - There might be limitations
+* `*` - Limitations may apply
 <!-- .element: class="fragment" -->
 
 * `[Boost].UT` is not an official Boost library
@@ -310,7 +310,7 @@ int main() { } // All tests passed (2 asserts in 2 tests)
 
 ----
 
-### "If you liked it then you should have put a ""_test on it", Beyonce rule
+### "If you liked it then you "should have put a"_test on it", Beyonce rule
 
 👍
 
@@ -429,20 +429,20 @@ int main() { } // All tests passed (2 asserts in 2 tests)
         ]
       });
 
-      window.addEventListener("mousedown", handleClick, false);
-      window.addEventListener("contextmenu", function(e) { e.preventDefault(); }, false);
+      <!--window.addEventListener("mousedown", handleClick, false);-->
+      <!--window.addEventListener("contextmenu", function(e) { e.preventDefault(); }, false);-->
 
-      function handleClick(e) {
-        if (1 >= outerHeight - innerHeight) {
-          document.querySelector( '.reveal' ).style.cursor = 'none';
-        } else {
-          document.querySelector( '.reveal' ).style.cursor = '';
-        }
+      <!--function handleClick(e) {-->
+        <!--if (1 >= outerHeight - innerHeight) {-->
+          <!--document.querySelector( '.reveal' ).style.cursor = 'none';-->
+        <!--} else {-->
+          <!--document.querySelector( '.reveal' ).style.cursor = '';-->
+        <!--}-->
 
-        e.preventDefault();
-        if(e.button === 0) Reveal.next();
-        if(e.button === 2) Reveal.prev();
-      }
+        <!--e.preventDefault();-->
+        <!--if(e.button === 0) Reveal.next();-->
+        <!--if(e.button === 2) Reveal.prev();-->
+      <!--}-->
     </script>
 
   </body>
