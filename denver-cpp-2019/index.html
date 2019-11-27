@@ -54,23 +54,28 @@
 
 ----
 
-### Overview
+#### Overview
 
-* No dependencies ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 <!-- .element: class="fragment" -->
 
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 <!-- .element: class="fragment" -->
 
-* Macro-free
+* Macro-free 👍
 <!-- .element: class="fragment" -->
 
-> **Disclaimer** `[Boost].UT` is not an official Boost library
+---
+
+* `*` - There might be limitations
+<!-- .element: class="fragment" -->
+
+* `[Boost].UT` is not an official Boost library
 <!-- .element: class="fragment" -->
 
 ----
 
-### Hello World
+#### Hello World - https://godbolt.org/z/Y43mXz
 
 ```cpp
 // #include <boost/ut.hpp> // single header
@@ -97,30 +102,24 @@ int main() {
 
 ----
 
-### Hello World
+#### Hello World - https://godbolt.org/z/Y43mXz
 
 ```cpp
-$CXX -std=c++2a main.cpp
+$CXX main.cpp
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```
-./a.out
+./a.out // All tests passed (1 asserts in 1 tests)
 ```
-<!-- .element: class="fragment" data-fragment-index="2" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
-```
-All tests passed (1 asserts in 1 tests)
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
----
-https://godbolt.org/z/Y43mXz
+✔️
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
 
-### Assertions
+#### Assertions - https://godbolt.org/z/jaFK8w
 
 ```cpp
 expect(1_i == 2);
@@ -154,14 +153,9 @@ expect(41.10_d == 42.101 and "a" == "b"sv);
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
----
-
-https://godbolt.org/z/jaFK8w
-<!-- .element: class="fragment" data-fragment-index="6" -->
-
 ----
 
-### Sections
+#### Sections - https://godbolt.org/z/y9m5vF
 
 ```cpp
 "[vector]"_test = [] {
@@ -198,21 +192,7 @@ https://godbolt.org/z/jaFK8w
 
 ----
 
-### Sections
-
-```
-All tests passed (4 asserts in 1 tests)
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
----
-
-https://godbolt.org/z/y9m5vF
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-----
-
-### Behavior Driven Development (BDD)
+#### Behavior Driven Development (BDD) - https://godbolt.org/z/ps9_EQ
 
 ```cpp
 "vector"_test = [] {
@@ -256,47 +236,38 @@ https://godbolt.org/z/y9m5vF
 
 ----
 
-### Behavior Driven Development (BDD)
-
-```
-All tests passed (2 asserts in 1 tests)
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
----
-
-https://godbolt.org/z/ps9_EQ
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-----
-
-### Parameterized
+#### Parameterized - https://godbolt.org/z/6FHtpq
 
 ```cpp
-"parameterized"_test = [](const auto& arg) {
+"args"_test = [](const auto& arg) {
   expect(arg > 0_i) << "all values greater than 0";
 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
-
 ```cpp
-| std::vector{1, 2, 3};
+| std::vector{1, 2, 3}; // All tests passed (3 asserts in 3 tests)
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ---
 
-```
-All tests passed (3 asserts in 3 tests)
+```cpp
+"args and types"_test =
+  []<class TArg>(const TArg& arg) {
+    expect(std::is_integral_v<TArg>);
+    expect(type<TArg> == type<int> or type<TArg> == type<bool>);
+  }
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
-https://godbolt.org/z/6FHtpq
+```cpp
+| std::tuple{true, 42}; // All tests passed (4 asserts in 2 tests)
+```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
 
-### Suites
+#### Suites - https://godbolt.org/z/F3xJcJ
 
 ```cpp
 suite _ = [] {
@@ -304,8 +275,13 @@ suite _ = [] {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "should be equal"_test      = [] { expect(42_i == 42); };
-  "should not be equal "_test = [] { expect(1_i != 2); };
+  "should throw"_test = [] { 
+    expect(throws([]{throw 0;})) << "throws any exception";
+  };
+
+  "should abort"_test = [] {
+    expect(aborts([] { assert(false); }));
+  };
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -314,49 +290,38 @@ suite _ = [] {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
+---
+
 ```cpp
-int main() { }
+int main() { } // All tests passed (2 asserts in 2 tests)
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
----
+----
 
-```
-All tests passed (2 asserts in 1 tests)
-```
-<!-- .element: class="fragment" data-fragment-index="4" -->
+#### Benchmarks - https://github.com/cpp-testing/ut-benchmark
 
-https://godbolt.org/z/F3xJcJ
-<!-- .element: class="fragment" data-fragment-index="5" -->
+<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 
 ----
 
-### Benchmarks
+#### Benchmarks - C++20 Modules - https://github.com/cpp-testing/ut-benchmark
 
-<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
-
-----
-
-### Benchmarks - C++20 Modules
-
-<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 
 ----
-
 
 ### "If you liked it then you should have put a ""_test on it", Beyonce rule
+
+👍
 
 ---
 
 #### https://github.com/boost-experimental/ut
-
----
-
-#### [kris@jusiak.net](mailto:kris@jusiak.net) | [@krisjusiak](https://twitter.com/krisjusiak) | [linkedin.com/in/kris-jusiak](https://www.linkedin.com/in/kris-jusiak)
           </script>
         </section>
 
@@ -379,7 +344,7 @@ https://godbolt.org/z/F3xJcJ
         progress: false,
 
         // Display the page number of the current slide
-        slideNumber: false,
+        slideNumber: true,
 
         // Push each slide change to the browser history
         history: true,
@@ -431,7 +396,7 @@ https://godbolt.org/z/F3xJcJ
         hideAddressBar: true,
 
         // Opens links in an iframe preview overlay
-        previewLinks: false,
+        previewLinks: true,
 
         // Transition style
         transition: 'convex', // none/fade/slide/convex/concave/zoom
