@@ -62,7 +62,7 @@
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 <!-- .element: class="fragment" -->
 
-* Macro-free 👍
+* Macro-free ✔️
 <!-- .element: class="fragment" -->
 
 ---
@@ -78,8 +78,8 @@
 #### Hello World - https://godbolt.org/z/Y43mXz
 
 ```cpp
-// #include <boost/ut.hpp> // single header
-// import boost.ut;        // single module (C++20)
+// #include <boost/ut.hpp> // Single header
+// import boost.ut;        // Single module (C++20)
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -100,22 +100,17 @@ int main() {
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
-----
-
-#### Hello World - https://godbolt.org/z/Y43mXz
+---
 
 ```cpp
 $CXX main.cpp
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
-```
+```cpp
 ./a.out // All tests passed (1 asserts in 1 tests)
 ```
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-✔️
-<!-- .element: class="fragment" data-fragment-index="4" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
@@ -276,7 +271,7 @@ suite _ = [] {
 
 ```cpp
   "should throw"_test = [] { 
-    expect(throws([]{throw 0;})) << "throws any exception";
+    expect(throws([] { throw 0; })) << "throws any exception";
   };
 
   "should abort"_test = [] {
