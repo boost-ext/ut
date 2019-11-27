@@ -1097,6 +1097,29 @@ namespace boost::ut::inline v1_1_1 {
 <details><summary>FAQ</summary>
 <p>
 
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Used C++20 features?</summary>
+<p>
+
+* API
+
+  * [Source Location](https://eel.is/c++draft/support.srcloc#source.location.syn)
+    * Assertions - `expect(...)`
+
+  * [Non-Type Template Parameter](https://eel.is/c++draft/temp.arg.nontype)
+    * Constant matchers - `constant<42_i == 42>`
+
+  * [Template Parameter List for generic lambdas](https://eel.is/c++draft/expr.prim.lambda)
+    * Parameterized tests - `"types"_test = []<class T>() {};`
+
+  * [Concepts](https://eel.is/c++draft/concepts.lang)
+    * Operators - `Operator @ Opeartor`
+
+  * [Modules](https://eel.is/c++draft/module)
+    * `import boost.ut;`
+
+</p>
+</details>
+
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;How does it work?</summary>
 <p>
 
