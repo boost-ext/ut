@@ -7,11 +7,11 @@
 <a href="https://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a>
 <a href="https://godbolt.org/z/wCwkR9">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 
-> "If you liked it then you should have put a test on it", Beyonce rule
+> "If you liked it then you should have put a `""_test` on it", Beyonce rule
 
 # [Boost].UT / μt
 
-> C++20 **single header/single module, macro-free** μ(micro)/Unit Testing Framework
+> C++ **single header/single module, macro-free** μ(micro)/Unit Testing Framework
 
 <p align="center">
   <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
@@ -22,12 +22,15 @@
 <details open><summary>Overview</summary>
 <p>
 
-* No dependencies ([C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a) / Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `suite, test, expect`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
 * Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+
+
+> `*` - There might be limitations
 
 </p>
 </details>
@@ -1092,12 +1095,13 @@ namespace boost::ut::inline v1_1_1 {
 </details>
 
 <a name="faq"></a>
+<a name="cpp-20"></a>
 <a name="how-it-works"></a>
 <a name="macro"></a>
 <details><summary>FAQ</summary>
 <p>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Used C++20 features?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++20 features?</summary>
 <p>
 
 * API
@@ -1304,7 +1308,7 @@ All tests passed (4 asserts in 3 tests)
 | **[GoogleTest](https://github.com/google/googletest)** | [1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0) | C++11 | BSD-3 | library | `static library` |
 | **[Catch](https://github.com/catchorg/Catch2)** | [2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | C++11 | Boost 1.0 | single header | `CATCH_CONFIG_FAST_COMPILE` |
 | **[Doctest](https://github.com/onqtam/doctest)** | [2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | C++11 | MIT | single header | `DOCTEST_CONFIG_SUPER_FAST_ASSERTS` |
-| **[μt](https://github.com/boost-experimental/ut)** | [1.1.0](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) | C++20 | Boost 1.0 | single header/module | |
+| **[μt](https://github.com/boost-experimental/ut)** | [1.1.0](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) | C++17 | Boost 1.0 | single header/module | |
 
 <table>
   <tr>
