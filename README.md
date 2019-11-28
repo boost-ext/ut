@@ -7,7 +7,7 @@
 <a href="https://github.com/boost-experimental/ut/issues" target="_blank">![Github Issues](https://img.shields.io/github/issues/boost-experimental/ut.svg)</a>
 <a href="https://godbolt.org/z/wCwkR9">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 
-> "If you liked it then you should have put a `""_test` on it", Beyonce rule
+> "If you liked it then you `"should have put a"_test` on it", Beyonce rule
 
 # [Boost].UT / μt
 
@@ -29,8 +29,7 @@
 * Fast to compile/execute ([Benchmarks](#benchmarks))
 * Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 
-
-> `*` - There might be limitations
+> `*` - Limitations may apply
 
 </p>
 </details>
@@ -1107,7 +1106,7 @@ namespace boost::ut::inline v1_1_2 {
 * API
 
   * [Source Location](https://eel.is/c++draft/support.srcloc#source.location.syn)
-    * Assertions - `expect(...)`
+    * Assertions - `expect(false)` - ` __FILE__:__LINE__:FAILED [false]`
 
   * [Non-Type Template Parameter](https://eel.is/c++draft/temp.arg.nontype)
     * Constant matchers - `constant<42_i == 42>`
