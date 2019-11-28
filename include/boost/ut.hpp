@@ -461,13 +461,22 @@ auto operator<<(ostream& os, const utility::string_view sv) -> ostream& {
 #endif
 }  // namespace io
 
-#if not defined(BOOST_UT_FORWARD)
 namespace colors {
-[[nodiscard]] inline auto& none(std::ostream& os) { return os << "\033[0m"; }
-[[nodiscard]] inline auto& red(std::ostream& os) { return os << "\033[31m"; }
-[[nodiscard]] inline auto& green(std::ostream& os) { return os << "\033[32m"; }
-}  // namespace colors
+#if defined(BOOST_UT_CFG_COLORS)
+constexpr auto none = "\033[0m";
+constexpr auto red = "\033[31m";
+constexpr auto green = "\033[32m";
+[[nodiscard]] constexpr auto color(const bool cond) {
+  constexpr const char* colors[] = {red, green};
+  return colors[cond];
+};
+#else
+constexpr auto none = "";
+constexpr auto red = "";
+constexpr auto green = "";
+constexpr auto color(...) { return none; }
 #endif
+}  // namespace colors
 
 namespace detail {
 namespace operators {
@@ -602,7 +611,8 @@ class eq_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const eq_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << get(op.lhs_) << " == " << get(op.rhs_));
+    return (os << colors::color(op.value_) << get(op.lhs_)
+               << " == " << get(op.rhs_) << colors::none);
   }
 
  private:
@@ -639,7 +649,8 @@ class neq_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const neq_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << get(op.lhs_) << " != " << get(op.rhs_));
+    return (os << colors::color(op.value_) << get(op.lhs_)
+               << " != " << get(op.rhs_) << colors::none);
   }
 
  private:
@@ -667,7 +678,8 @@ class gt_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const gt_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << get(op.lhs_) << " > " << get(op.rhs_));
+    return (os << colors::color(op.value_) << get(op.lhs_) << " > "
+               << get(op.rhs_) << colors::none);
   }
 
  private:
@@ -695,7 +707,8 @@ class ge_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const ge_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << get(op.lhs_) << " >= " << get(op.rhs_));
+    return (os << colors::color(op.value_) << get(op.lhs_)
+               << " >= " << get(op.rhs_) << colors::none);
   }
 
  private:
@@ -723,7 +736,8 @@ class lt_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const lt_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << get(op.lhs_) << " < " << get(op.rhs_));
+    return (os << colors::color(op.value_) << get(op.lhs_) << " < "
+               << get(op.rhs_) << colors::none);
   }
 
  private:
@@ -751,7 +765,8 @@ class le_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const le_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << get(op.lhs_) << " <= " << get(op.rhs_));
+    return (os << colors::color(op.value_) << get(op.lhs_)
+               << " <= " << get(op.rhs_) << colors::none);
   }
 
  private:
@@ -773,7 +788,8 @@ class and_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const and_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << '(' << get(op.lhs_) << " and " << get(op.rhs_) << ')');
+    return (os << '(' << get(op.lhs_) << colors::color(op.value_) << " and "
+               << colors::none << get(op.rhs_) << ')');
   }
 
  private:
@@ -795,7 +811,8 @@ class or_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const or_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << '(' << get(op.lhs_) << " or " << get(op.rhs_) << ')');
+    return (os << '(' << get(op.lhs_) << colors::color(op.value_) << " or "
+               << colors::none << get(op.rhs_) << ')');
   }
 
  private:
@@ -815,7 +832,8 @@ class not_ : op {
   template <class TOs>
   friend auto operator<<(TOs& os, const not_& op) -> TOs& {
     using detail::operators::operator<<;
-    return (os << "not " << get(op.t_));
+    return (os << colors::color(op.value_) << "not " << get(op.t_)
+               << colors::none);
   }
 
  private:
@@ -976,7 +994,7 @@ class reporter {
     };
     out_ << "\n  " << short_name(assertion.location.file_name()) << ':'
          << assertion.location.line() << ':' << colors::red << "FAILED"
-         << colors::none << " [" << std::boolalpha << colors::red;
+         << colors::none << " [" << std::boolalpha;
     out(out_, assertion.expr);
     out_ << colors::none << ']';
     ++asserts_.fail;
@@ -1449,72 +1467,76 @@ class matcher_ : op {
 template <class TExpr, class TException = void>
 class throws_ : op {
  public:
-  constexpr explicit throws_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit throws_(const TExpr& expr)
+      : value_{[&expr] {
+          try {
+            expr();
+          } catch (const TException&) {
+            return true;
+          } catch (...) {
+            return false;
+          }
+          return false;
+        }()} {}
 
-  [[nodiscard]] /*constexpr*/ operator bool() const {
-    try {
-      expr_();
-    } catch (const TException&) {
-      return true;
-    } catch (...) {
-      return false;
-    }
-    return false;
-  }
+  [[nodiscard]] /*constexpr*/ operator bool() const { return value_; }
 
   template <class TOs>
-  friend auto operator<<(TOs& os, const throws_&) -> TOs& {
-    return (os << "throws<" << reflection::type_name<TException>() << ">");
+  friend auto operator<<(TOs& os, const throws_& op) -> TOs& {
+    return (os << colors::color(op.value_) << "throws<"
+               << reflection::type_name<TException>() << ">" << colors::none);
   }
 
  private:
-  TExpr expr_{};
+  const bool value_{};
 };
 
 template <class TExpr>
 class throws_<TExpr, void> : op {
  public:
-  constexpr explicit throws_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit throws_(const TExpr& expr)
+      : value_{[&expr] {
+          try {
+            expr();
+          } catch (...) {
+            return true;
+          }
+          return false;
+        }()} {}
 
-  [[nodiscard]] /*constexpr*/ operator bool() const {
-    try {
-      expr_();
-    } catch (...) {
-      return true;
-    }
-    return false;
-  }
+  [[nodiscard]] /*constexpr*/ operator bool() const { return value_; }
 
   template <class TOs>
-  friend auto operator<<(TOs& os, const throws_&) -> TOs& {
-    return (os << "throws");
+  friend auto operator<<(TOs& os, const throws_& op) -> TOs& {
+    return (os << colors::color(op.value_) << "throws" << colors::none);
   }
 
  private:
-  TExpr expr_{};
+  const bool value_{};
 };
 
 template <class TExpr>
 class nothrow_ : op {
  public:
-  constexpr explicit nothrow_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit nothrow_(const TExpr& expr)
+      : value_{[&expr] {
+          try {
+            expr();
+          } catch (...) {
+            return false;
+          }
+          return true;
+        }()} {}
 
-  [[nodiscard]] /*constexpr*/ operator bool() const {
-    try {
-      expr_();
-    } catch (...) {
-      return false;
-    }
-    return true;
-  }
+  [[nodiscard]] /*constexpr*/ operator bool() const { return value_; }
 
   template <class TOs>
-  friend auto operator<<(TOs& os, const nothrow_&) -> TOs& {
-    return (os << "nothrow");
+  friend auto operator<<(TOs& os, const nothrow_& op) -> TOs& {
+    return (os << colors::color(op.value_) << "nothrow" << colors::none);
   }
 
  private:
-  TExpr expr_{};
+  const bool value_{};
 };
 #endif
 
@@ -1522,25 +1544,26 @@ class nothrow_ : op {
 template <class TExpr>
 class aborts_ : op {
  public:
-  constexpr explicit aborts_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit aborts_(const TExpr& expr)
+      : value_{[&expr]() -> bool {
+          if (const auto pid = fork(); not pid) {
+            expr();
+            exit(0);
+          }
+          auto exit_status = 0;
+          wait(&exit_status);
+          return exit_status;
+        }()} {}
 
-  [[nodiscard]] constexpr operator bool() const {
-    if (const auto pid = fork(); not pid) {
-      expr_();
-      exit(0);
-    }
-    auto exit_status = 0;
-    wait(&exit_status);
-    return exit_status;
-  }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
 
   template <class TOs>
-  friend auto operator<<(TOs& os, const aborts_&) -> TOs& {
-    return (os << "aborts");
+  friend auto operator<<(TOs& os, const aborts_& op) -> TOs& {
+    return (os << colors::color(op.value_) << "aborts" << colors::none);
   }
 
  private:
-  TExpr expr_{};
+  const bool value_{};
 };
 #endif
 }  // namespace detail
