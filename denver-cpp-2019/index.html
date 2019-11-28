@@ -120,13 +120,13 @@ $CXX main.cpp
 #### Assertions - https://godbolt.org/z/jaFK8w
 
 ```cpp
-expect(1_i == 2);
+expect(1_i == 2);                       // UDL syntax
   // expect.cpp:10:FAILED [1 == 2]
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-expect(that % 1 == 2);
+expect(that % 1 == 2);                  // Matchers syntax
   // expect.cpp:10:FAILED [1 == 2]
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -139,9 +139,9 @@ expect(2 == 1_i) << "should equal";
 
 ```cpp
  std::vector v{1l, 2l, 3l};
-!expect(4_ul == std::size(v)); // fatal assertion
+!expect(4_ul == std::size(v));          // Fatal assertion
   // expect.cpp:10:FAILED [4 == 3]
- expect(v[3] == 4_l);          // not executed
+ expect(v[3] == 4_l);                   // Not executed
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
