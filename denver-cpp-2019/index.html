@@ -110,45 +110,27 @@ $CXX main.cpp
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-```cpp
-./a.out // All tests passed (1 asserts in 1 tests)
-```
+<pre><code>./a.out</code> -> <font color="lime">All tests passed</font> (1 asserts in 1 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
 #### Assertions - https://godbolt.org/z/jaFK8w
 
-```cpp
-expect(1_i == 2);                       // UDL syntax
-  // expect.cpp:10:FAILED [1 == 2]
-```
+<pre><code>expect(1_i == 2);                       // UDL syntax</code>  -> assertions.cpp:42:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-```cpp
-expect(that % 1 == 2);                  // Matchers syntax
-  // expect.cpp:10:FAILED [1 == 2]
-```
+<pre><code>expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:42:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
-```cpp
-expect(2 == 1_i) << "should equal";
-  // expect.cpp:10:FAILED [2 == 1] should equal?
-```
+<pre><code>expect(2 == 1_i) << "should equal";</code>  -> assertions.cpp:42:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
-```cpp
- std::vector v{1l, 2l, 3l};
-!expect(4_ul == std::size(v));          // Fatal assertion
-  // expect.cpp:10:FAILED [4 == 3]
- expect(v[3] == 4_l);                   // Not executed
-```
+<pre><code> std::vector v{1l, 2l, 3l};
+!expect(4_ul == std::size(v));         // Fatal assertion</code>  -> assertions.cpp:42:<font color="salmon">FAILED</font> [<font color="salmon">4 == 3</font>]<code> expect(v[3] == 4_l);                  // Not executed</code></pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-```cpp
-expect(41.10_d == 42.101 and "a" == "b"sv);
-  // expect.cpp:10:FAILED [42.1 == 42.101 and a == b]
-```
+<pre><code>expect(41.10_d == 42.101 and "a" == "b"sv);</code>  -> assertions.cpp:42:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
@@ -242,9 +224,8 @@ expect(41.10_d == 42.101 and "a" == "b"sv);
 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
-```cpp
-| std::vector{1, 2, 3}; // All tests passed (3 asserts in 3 tests)
-```
+
+<pre><code>| std::vector{1, 2, 3};</code> -> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ---
@@ -258,9 +239,7 @@ expect(41.10_d == 42.101 and "a" == "b"sv);
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
-```cpp
-| std::tuple{true, 42}; // All tests passed (4 asserts in 2 tests)
-```
+<pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
@@ -290,9 +269,7 @@ suite _ = [] {
 
 ---
 
-```cpp
-int main() { } // All tests passed (2 asserts in 2 tests)
-```
+<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
