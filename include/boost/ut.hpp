@@ -944,15 +944,13 @@ struct summary {};
 #if not defined(BOOST_UT_FORWARD)
 struct colors {
   std::string_view none = "\033[0m";
-  std::string_view red = "\033[31m";
-  std::string_view green = "\033[32m";
-  std::string_view pass = "✔️";
-  std::string_view fail = "❌";
+  std::string_view pass = "\033[32m";
+  std::string_view fail = "\033[31m";
 };
 
 class printer {
   [[nodiscard]] inline auto color(const bool cond) {
-    const std::string_view colors[] = {colors_.red, colors_.green};
+    const std::string_view colors[] = {colors_.fail, colors_.pass};
     return colors[cond];
   }
 
@@ -1110,11 +1108,12 @@ class reporter {
     if (asserts_.fail > fails_ or exception_) {
       ++tests_.fail;
       printer_ << '\n'
-               << printer_.colors().red << printer_.colors().fail
-               << printer_.colors().none << '\n';
+               << printer_.colors().fail << "FAILED" << printer_.colors().none
+               << '\n';
     } else {
       ++tests_.pass;
-      printer_ << printer_.colors().pass << '\n';
+      printer_ << printer_.colors().pass << "PASSED" << printer_.colors().none
+               << '\n';
     }
   }
 
@@ -1125,7 +1124,7 @@ class reporter {
 
   auto on(events::exception) -> void {
     exception_ = true;
-    printer_ << "\n  " << printer_.colors().red << "Unexpected exception!"
+    printer_ << "\n  " << printer_.colors().fail << "Unexpected exception!"
              << printer_.colors().none;
   }
 
@@ -1142,10 +1141,9 @@ class reporter {
                  : name;
     };
     printer_ << "\n  " << short_name(assertion.location.file_name()) << ':'
-             << assertion.location.line() << ':' << printer_.colors().red
-             << printer_.colors().fail << printer_.colors().none << " ["
-             << std::boolalpha << assertion.expr << printer_.colors().none
-             << ']';
+             << assertion.location.line() << ':' << printer_.colors().fail
+             << "FAILED" << printer_.colors().none << " [" << std::boolalpha
+             << assertion.expr << printer_.colors().none << ']';
     ++asserts_.fail;
   }
 
@@ -1160,15 +1158,15 @@ class reporter {
                "=="
                "=================\n"
             << "tests:   " << (tests_.pass + tests_.fail) << " | "
-            << printer_.colors().red << tests_.fail << " failed"
+            << printer_.colors().fail << tests_.fail << " failed"
             << printer_.colors().none << '\n'
             << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
             << asserts_.pass << " passed"
-            << " | " << printer_.colors().red << asserts_.fail << " failed"
+            << " | " << printer_.colors().fail << asserts_.fail << " failed"
             << printer_.colors().none << '\n';
         std::cerr << printer_.str() << std::endl;
       } else {
-        std::cout << printer_.colors().green << "All tests passed"
+        std::cout << printer_.colors().pass << "All tests passed"
                   << printer_.colors().none << " (" << asserts_.pass
                   << " asserts in " << tests_.pass << " tests)\n";
 

@@ -20,7 +20,7 @@
 namespace ut = boost::ut;
 
 constexpr auto to_string = [](const auto expr) {
-  ut::printer printer{{.none = "", .red = "", .green = ""}};
+  ut::printer printer{{.none = "", .pass = "", .fail = ""}};
   printer << std::boolalpha << expr;
   return printer.str();
 };
