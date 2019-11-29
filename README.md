@@ -931,10 +931,17 @@ namespace boost::ut::inline v1_1_2 {
   class runner {
    public:
     /**
-     * @example cfg<override> = { .filter = "test.section.*", .colors = false, .dry_run = true };
-     * @param options.filter (default: *) runs all tests which names matches test.section.* filter
-     * @param options.colors (default: true) if true then print results/failures in colors
-     * @param options.dry_run (default: false) if true then print test names to be executed without running them
+     * @example cfg<override> = { .filter = "test.section.*", .colors = false, .dry__run = true };
+     * @param options.filter {default: "*"} runs all tests which names matches test.section.* filter
+     * @param options.colors {default: {
+                               .none  = "\033[0m",
+                               .red   = "\033[31m",
+                               .green = "\033[32m",
+                               .pass  = "✔️",
+                               .fail  = "❌"}
+              } if specified then overrides default color values
+     * @param options.dry_run {default: false} if true then print test names to be
+                                               executed without running them
      */
     auto operator=(options);
 
