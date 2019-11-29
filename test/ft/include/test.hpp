@@ -28,5 +28,5 @@ struct runner : test::runner<TReporter> {
 }  // namespace ft
 
 template <class... Ts>
-inline auto test::cfg<test::override, Ts...> = ft::runner<test::reporter>{};
+inline auto test::cfg<test::override, Ts...> = ft::runner<test::reporter<>>{};
 #endif

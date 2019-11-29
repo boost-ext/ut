@@ -5,6 +5,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
+#include <array>
 #include <boost/ut.hpp>
 #include <memory>
 #include <string>
@@ -87,6 +88,8 @@ int main() {
     std::vector v1{1, 2, 3};
     std::vector v2{1, 2, 3};
     expect(v1 == v2);
+    expect(std::vector{"a", "b"} != std::vector{"c"});
+    expect(std::array{true, false} == std::array{true, false});
   };
 
   "constant"_test = [] {

@@ -20,9 +20,15 @@
 namespace ut = boost::ut;
 
 constexpr auto to_string = [](const auto expr) {
-  std::stringstream str{};
-  str << std::boolalpha << expr;
-  return str.str();
+  struct fake_printer : ut::printer {
+    constexpr fake_printer() {
+      none = "";
+      red = "";
+      green = "";
+    }
+  } printer{};
+  printer << std::boolalpha << expr;
+  return printer.str();
 };
 
 constexpr auto test_assert = [](const bool result) {
@@ -309,7 +315,7 @@ int main() {
     static_assert(type<int> != type<void>);
   }
 
-  struct test_reporter : reporter {
+  struct test_reporter : reporter<printer> {
     using reporter::asserts_;
     using reporter::tests_;
   };
@@ -734,7 +740,6 @@ int main() {
     using namespace std::literals::string_literals;
 
     {
-      using boost::ut::detail::operators::operator<<;
       std::stringstream str{};
       str << "should print" << ' ' << "string"s
           << " and "
