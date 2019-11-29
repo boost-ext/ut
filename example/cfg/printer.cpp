@@ -6,15 +6,16 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <iostream>
 
 namespace ut = boost::ut;
 
 namespace cfg {
 struct printer : ut::printer {
-  constexpr printer() {
-    none = "";
-    red = "";
-    green = "";
+  template <class T>
+  auto& operator<<(T&& t) {
+    std::cerr << t;
+    return *this;
   }
 };
 }  // namespace cfg
@@ -24,5 +25,5 @@ auto ut::cfg<ut::override> = ut::runner<ut::reporter<cfg::printer>>{};
 
 int main() {
   using namespace ut;
-  "no colors"_test = [] {};
+  "printer"_test = [] {};
 }

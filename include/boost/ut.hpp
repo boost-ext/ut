@@ -942,15 +942,23 @@ struct summary {};
 }  // namespace events
 
 #if not defined(BOOST_UT_FORWARD)
+struct colors {
+  std::string_view none = "\033[0m";
+  std::string_view red = "\033[31m";
+  std::string_view green = "\033[32m";
+  std::string_view pass = "✔️";
+  std::string_view fail = "❌";
+};
+
 class printer {
- public:
-  static inline auto none = "\033[0m";
-  static inline auto red = "\033[31m";
-  static inline auto green = "\033[32m";
   [[nodiscard]] inline auto color(const bool cond) {
-    const decltype(red) colors[] = {red, green};
+    const std::string_view colors[] = {colors_.red, colors_.green};
     return colors[cond];
   }
+
+ public:
+  printer() = default;
+  /*explicit(false)*/ printer(const colors colors) : colors_{colors} {}
 
   template <class T>
   auto& operator<<(const T& t) {
@@ -979,49 +987,55 @@ class printer {
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::eq_<TLhs, TRhs>& op) {
-    return (*this << color(op) << op.lhs() << " == " << op.rhs() << none);
+    return (*this << color(op) << op.lhs() << " == " << op.rhs()
+                  << colors_.none);
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::neq_<TLhs, TRhs>& op) {
-    return (*this << color(op) << op.lhs() << " != " << op.rhs() << none);
+    return (*this << color(op) << op.lhs() << " != " << op.rhs()
+                  << colors_.none);
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::gt_<TLhs, TRhs>& op) {
-    return (*this << color(op) << op.lhs() << " > " << op.rhs() << none);
+    return (*this << color(op) << op.lhs() << " > " << op.rhs()
+                  << colors_.none);
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::ge_<TLhs, TRhs>& op) {
-    return (*this << color(op) << op.lhs() << " >= " << op.rhs() << none);
+    return (*this << color(op) << op.lhs() << " >= " << op.rhs()
+                  << colors_.none);
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::lt_<TRhs, TLhs>& op) {
-    return (*this << color(op) << op.lhs() << " < " << op.rhs() << none);
+    return (*this << color(op) << op.lhs() << " < " << op.rhs()
+                  << colors_.none);
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::le_<TRhs, TLhs>& op) {
-    return (*this << color(op) << op.lhs() << " <= " << op.rhs() << none);
+    return (*this << color(op) << op.lhs() << " <= " << op.rhs()
+                  << colors_.none);
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::and_<TLhs, TRhs>& op) {
-    return (*this << '(' << op.lhs() << color(op) << " and " << none << op.rhs()
-                  << ')');
+    return (*this << '(' << op.lhs() << color(op) << " and " << colors_.none
+                  << op.rhs() << ')');
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::or_<TLhs, TRhs>& op) {
-    return (*this << '(' << op.lhs() << color(op) << " or " << none << op.rhs()
-                  << ')');
+    return (*this << '(' << op.lhs() << color(op) << " or " << colors_.none
+                  << op.rhs() << ')');
   }
 
   template <class T>
   auto& operator<<(const detail::not_<T>& op) {
-    return (*this << color(op) << "not " << op.value() << none);
+    return (*this << color(op) << "not " << op.value() << colors_.none);
   }
 
 #if defined(__cpp_exceptions)
@@ -1029,24 +1043,24 @@ class printer {
   auto& operator<<(const detail::throws_<TExpr, TException>& op) {
     return (*this << color(op) << "throws<"
                   << std::string_view{reflection::type_name<TException>()}
-                  << ">" << none);
+                  << ">" << colors_.none);
   }
 
   template <class TExpr>
   auto& operator<<(const detail::throws_<TExpr, void>& op) {
-    return (*this << color(op) << "throws" << none);
+    return (*this << color(op) << "throws" << colors_.none);
   }
 
   template <class TExpr>
   auto& operator<<(const detail::nothrow_<TExpr>& op) {
-    return (*this << color(op) << "nothrow" << none);
+    return (*this << color(op) << "nothrow" << colors_.none);
   }
 #endif
 
 #if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
   template <class TExpr>
   auto& operator<<(const detail::aborts_<TExpr>& op) {
-    return (*this << color(op) << "aborts" << none);
+    return (*this << color(op) << "aborts" << colors_.none);
   }
 #endif
 
@@ -1062,24 +1076,21 @@ class printer {
     return *this;
   }
 #endif
-
-  auto colors(bool colors) {
-    if (not colors) {
-      none = "";
-      red = "";
-      green = "";
-    }
-  }
-
   auto str() const { return out_.str(); }
+  const auto& colors() const { return colors_; }
 
  private:
+  ut::colors colors_{};
   std::stringstream out_{};
 };
 
 template <class TPrinter = printer>
 class reporter {
  public:
+  constexpr auto operator=(TPrinter printer) {
+    printer_ = static_cast<TPrinter&&>(printer);
+  }
+
   auto on(events::test_begin test_begin) -> void {
     printer_ << "Running \"" << test_begin.name << "\"...";
     fails_ = asserts_.fail;
@@ -1098,10 +1109,12 @@ class reporter {
   auto on(events::test_end) -> void {
     if (asserts_.fail > fails_ or exception_) {
       ++tests_.fail;
-      printer_ << '\n' << printer::red << "❌" << printer::none << '\n';
+      printer_ << '\n'
+               << printer_.colors().red << printer_.colors().fail
+               << printer_.colors().none << '\n';
     } else {
       ++tests_.pass;
-      printer_ << "✔️" << '\n';
+      printer_ << printer_.colors().pass << '\n';
     }
   }
 
@@ -1112,8 +1125,8 @@ class reporter {
 
   auto on(events::exception) -> void {
     exception_ = true;
-    printer_ << "\n  " << printer::red << "Unexpected exception!"
-             << printer::none;
+    printer_ << "\n  " << printer_.colors().red << "Unexpected exception!"
+             << printer_.colors().none;
   }
 
   template <class TLocation, class TExpr>
@@ -1129,9 +1142,10 @@ class reporter {
                  : name;
     };
     printer_ << "\n  " << short_name(assertion.location.file_name()) << ':'
-             << assertion.location.line() << ':' << printer::red << "FAILED"
-             << printer::none << " [" << std::boolalpha << assertion.expr
-             << printer::none << ']';
+             << assertion.location.line() << ':' << printer_.colors().red
+             << printer_.colors().fail << printer_.colors().none << " ["
+             << std::boolalpha << assertion.expr << printer_.colors().none
+             << ']';
     ++asserts_.fail;
   }
 
@@ -1146,16 +1160,17 @@ class reporter {
                "=="
                "=================\n"
             << "tests:   " << (tests_.pass + tests_.fail) << " | "
-            << printer::red << tests_.fail << " failed" << printer::none << '\n'
+            << printer_.colors().red << tests_.fail << " failed"
+            << printer_.colors().none << '\n'
             << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
             << asserts_.pass << " passed"
-            << " | " << printer::red << asserts_.fail << " failed"
-            << printer::none << '\n';
+            << " | " << printer_.colors().red << asserts_.fail << " failed"
+            << printer_.colors().none << '\n';
         std::cerr << printer_.str() << std::endl;
       } else {
-        std::cout << printer::green << "All tests passed" << printer::none
-                  << " (" << asserts_.pass << " asserts in " << tests_.pass
-                  << " tests)\n";
+        std::cout << printer_.colors().green << "All tests passed"
+                  << printer_.colors().none << " (" << asserts_.pass
+                  << " asserts in " << tests_.pass << " tests)\n";
 
         if (tests_.skip) {
           std::cout << tests_.skip << " tests skipped\n";
@@ -1165,8 +1180,6 @@ class reporter {
       }
     }
   }
-
-  void colors(bool colors) { printer_.colors(colors); }
 
  protected:
   struct {
@@ -1182,12 +1195,13 @@ class reporter {
 
   std::size_t fails_{};
   bool exception_{};
+
   TPrinter printer_{};
 };
 
 struct options {
   std::string_view filter{};
-  bool colors{true};
+  ut::colors colors{};
   bool dry_run{};
 };
 
@@ -1239,7 +1253,7 @@ class runner {
   constexpr auto operator=(options options) {
     filter_ = options.filter;
     dry_run_ = options.dry_run;
-    reporter_.colors(options.colors);
+    reporter_ = {options.colors};
   }
 
   template <class TSuite>

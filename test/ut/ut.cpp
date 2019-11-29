@@ -20,13 +20,7 @@
 namespace ut = boost::ut;
 
 constexpr auto to_string = [](const auto expr) {
-  struct fake_printer : ut::printer {
-    constexpr fake_printer() {
-      none = "";
-      red = "";
-      green = "";
-    }
-  } printer{};
+  ut::printer printer{{.none = "", .red = "", .green = ""}};
   printer << std::boolalpha << expr;
   return printer.str();
 };
@@ -318,6 +312,7 @@ int main() {
   struct test_reporter : reporter<printer> {
     using reporter::asserts_;
     using reporter::tests_;
+    using reporter::operator=;
   };
 
   {
@@ -471,7 +466,7 @@ int main() {
     test_assert(1 == reporter.tests_.skip);
     run = options{};
 
-    reporter = {};
+    reporter = printer{};
   }
 
   auto& test_cfg = ut::cfg<ut::override>;
