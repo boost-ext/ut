@@ -11,7 +11,8 @@ int main(int argc, const char** argv) {
   using namespace boost::ut;
 
   cfg<override> = {.filter = argc > 1 ? argv[1] : "",
-                   .dry_run = argc > 2 ? argv[2][0] == '1' : false};
+                   .colors = argc > 2 ? argv[2][0] == '1' : false,
+                   .dry_run = argc > 3 ? argv[3][0] == '1' : false};
 
   "cli"_test = [] {
     "pass"_test = [] { expect(42 == 42_i); };
