@@ -1123,7 +1123,7 @@ namespace boost::ut::inline v1_1_3 {
     * Parameterized tests - `"types"_test = []<class T>() {};`
 
   * [Concepts](https://eel.is/c++draft/concepts.lang)
-    * Operators - `Operator @ Opeartor`
+    * Operators - `Operator @ Operator`
 
   * [Modules](https://eel.is/c++draft/module)
     * `import boost.ut;`
