@@ -7,6 +7,7 @@
 //
 #include <boost/ut.hpp>
 #include <iostream>
+#include <utility>
 
 namespace ut = boost::ut;
 
@@ -14,7 +15,7 @@ namespace cfg {
 struct printer : ut::printer {
   template <class T>
   auto& operator<<(T&& t) {
-    std::cerr << t;
+    std::cerr << std::forward<T>(t);
     return *this;
   }
 };
