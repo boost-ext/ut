@@ -1152,7 +1152,7 @@ class reporter {
     ++asserts_.fail;
   }
 
-  auto on(events::fatal_assertion) -> void { ++asserts_.fail; }
+  auto on(events::fatal_assertion) -> void {}
 
   auto on(events::summary) -> void {
     if (static auto once = true; once) {
@@ -1288,6 +1288,7 @@ class runner {
 #endif
         test();
 #if defined(__cpp_exceptions)
+      } catch (const events::fatal_assertion&) {
       } catch (...) {
         reporter_.on(events::exception{});
         active_exception_ = true;
@@ -1344,11 +1345,21 @@ class runner {
   }
 #endif
 
-  [[noreturn]] auto on(events::fatal_assertion fatal_assertion) {
+  auto on(events::fatal_assertion fatal_assertion) {
     reporter_.on(fatal_assertion);
-    reporter_.on(events::test_end{});
+
+#if defined(__cpp_exceptions)
+    if (not level_) {
+      reporter_.on(events::summary{});
+    }
+    throw fatal_assertion;
+#else
+    if (level_) {
+      reporter_.on(events::test_end{});
+    }
     reporter_.on(events::summary{});
     std::abort();
+#endif
   }
 
   template <class TMsg>
@@ -1392,7 +1403,7 @@ extern void on(events::test<utility::function<void()>>);
 extern void on(events::skip<>);
 [[nodiscard]] extern auto on(
     events::assertion<reflection::source_location, events::expr>) -> bool;
-[[noreturn]] extern void on(events::fatal_assertion);
+extern void on(events::fatal_assertion);
 extern void on(events::log<utility::string_view>);
 #endif
 
@@ -1583,7 +1594,7 @@ class expect_ {
     return *this;
   }
 
-  ~expect_() {
+  ~expect_() noexcept(false) {
     if (not result_ and fatal_) {
       on<T>(events::fatal_assertion{});
     }

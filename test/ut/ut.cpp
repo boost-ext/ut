@@ -85,7 +85,7 @@ constexpr auto operator""_i() -> int {
   return sizeof...(Cs);
 }
 static auto f() -> int { return 0_i; }
-}  // namespace ns
+}  //  namespace ns
 static auto f() -> int {
   using namespace ns;
   return 42_i;
@@ -340,7 +340,7 @@ int main() {
     test_assert(std::empty(out.str()));
     test_assert(not std::empty(err.str()));
     test_assert(1 == reporter.asserts_.pass);
-    test_assert(2 == reporter.asserts_.fail);
+    test_assert(1 == reporter.asserts_.fail);
     test_assert(0 == reporter.tests_.skip);
     test_assert(1 == reporter.tests_.fail);
     test_assert(0 == reporter.tests_.pass);
@@ -390,17 +390,17 @@ int main() {
 
     run.on(events::test{
         "test", "pass", none{}, [&run] {
-          return run.on(events::assertion{reflection::source_location{}, true});
+          void(run.on(events::assertion{reflection::source_location{}, true}));
         }});
 
     test_assert(3 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::test{"test", "fail", none{}, [&run] {
-                          return run.on(events::assertion{
-                              reflection::source_location{}, false});
-                        }});
+    run.on(events::test{
+        "test", "fail", none{}, [&run] {
+          void(run.on(events::assertion{reflection::source_location{}, false}));
+        }});
     test_assert(3 == reporter.tests_.pass);
     test_assert(1 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
@@ -465,6 +465,24 @@ int main() {
     test_assert(5 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
     run = options{};
+
+    run.on(events::test{
+        "test", "fatal", none{}, [&run] {
+          void(run.on(events::assertion{reflection::source_location{}, false}));
+          run.on(events::fatal_assertion{});
+          void(run.on(events::assertion{reflection::source_location{}, true}));
+        }});
+    test_assert(5 == reporter.tests_.pass);
+    test_assert(6 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
+
+    run.on(events::test{
+        "test", "normal", none{}, [&run] {
+          void(run.on(events::assertion{reflection::source_location{}, true}));
+        }});
+    test_assert(6 == reporter.tests_.pass);
+    test_assert(6 == reporter.tests_.fail);
+    test_assert(1 == reporter.tests_.skip);
 
     reporter = printer{};
   }
