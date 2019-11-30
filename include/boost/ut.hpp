@@ -354,6 +354,10 @@ inline constexpr auto is_floating_point_v<double> = true;
 template <>
 inline constexpr auto is_floating_point_v<long double> = true;
 
+#if defined(__clang__) or defined(_MSC_VER)
+template <class From, class To>
+constexpr auto is_convertible_v = __is_convertible_to(From, To);
+#else
 template <class From, class To>
 constexpr auto is_convertible(int) -> decltype(bool(To(declval<From>()))) {
   return true;
@@ -364,6 +368,7 @@ constexpr auto is_convertible(...) {
 }
 template <class From, class To>
 constexpr auto is_convertible_v = is_convertible<From, To>(0);
+#endif
 
 template <bool>
 struct requires_ {};
@@ -1449,6 +1454,15 @@ struct test {
     return test;
   }
 
+  template <class Test,
+            type_traits::requires_t<
+                not type_traits::is_convertible_v<Test, void (*)()>> = 0>
+  constexpr auto operator=(Test test) ->
+      typename type_traits::identity<Test, decltype(test())>::type {
+    on<Test>(events::test{type, name, none{}, test});
+    return test;
+  }
+
   constexpr auto operator=(void (*test)(utility::string_view)) {
     return test(name);
   }
@@ -1459,15 +1473,6 @@ struct test {
   constexpr auto operator=(Test test)
       -> decltype(test(type_traits::declval<utility::string_view>())) {
     return test(name);
-  }
-
-  template <class Test,
-            type_traits::requires_t<
-                not type_traits::is_convertible_v<Test, void (*)()>> = 0>
-  constexpr auto operator=(Test test) ->
-      typename type_traits::identity<Test, decltype(test())>::type {
-    on<Test>(events::test{type, name, none{}, test});
-    return test;
   }
 };
 
