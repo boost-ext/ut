@@ -20,8 +20,6 @@ environment:
     CMAKE_GENERATOR: Visual Studio 16 2019
 
 install:
-  - cinst cmake
-  - refreshenv
   - call "%VSPATH%"\vcvarsall %PLATFORM%
 
 build_script:
