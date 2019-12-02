@@ -25,11 +25,75 @@
 * No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
-* Easy to use ([Minimal API](#api) - `suite, test, expect`)
+* Easy to use ([Minimal API](#api) - `expect, test, suite`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
 * Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 
 > `*` - Limitations may apply
+
+</p>
+</details>
+
+<a name="motivation"></a>
+<details><summary>Motivation</summary>
+<p>
+
+Testing is a very important part of the Software Development, however, C++ doesn't provide any good testing facilities out of the box,
+which often leads into a poor testing experience for develops and/or lack of tests/coverage in general.
+
+> One should treat testing code as production code!
+
+Additionally, well established testing practises such as [Test Driven Development (TDD)](https://en.wikipedia.org/wiki/Test-driven_development)/[Behaviour Driven Development (BDD)](https://en.wikipedia.org/wiki/Behavior-driven_development) are often not followed due to the same reasons.
+
+The following snippet is a common example of testing with projects in C++.
+
+```cpp
+int main() {
+  // should sum numbers test
+  assert(3 == sum(1, 2));
+}
+```
+
+There are quite a few problems with the approach above:
+
+* No names for tests (Hard to follow intentions by further readers)
+* No automatic registration of tests (No way to run specific tests)
+* Hard to debug (Assertions don't provide any information why it failed)
+* Hard to scale (No easy path forward for parameterized tests, multiple suites, etc...)
+* Hard to integrate (No easy way to have a custom output such as xml for CI integration)
+* Easy to make mistakes (With implicit casting, floating point comparison, pointer comparison for strings, etc...)
+* Hard to follow good practises such as TDD/BDD (Lack of support for sections and declarative expressions)
+* ...
+
+`[Boost].UT` is trying to address these issues by simplifying testing experience with a few simple steps:
+
+* Just get a single [header/module](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
+* Put it into your project
+* Learn a few simple concepts ([expect, test, suite](#api))
+
+And you good to go!
+
+Okay, great, but why I would use `[Boost].UT` over other/similar testing frameworks already available in C++?
+
+* [Boost.Test](https://github.com/boostorg/test)
+* [GoogleTest](https://github.com/google/googletest)
+* [Catch](https://github.com/catchorg/Catch2)
+* [...](https://en.wikipedia.org/wiki/List_of_unit_testing_frameworks#C++)
+
+Great question! There are a few unique features which makes `[Boost].UT` worth trying:
+
+* It supports all the basic testing framework features (Such as: Automatic registration of tests, assertions, suites, etc...)
+* It's easy to integrate (It's just one header/module file)
+* It's macro free which makes testing experience that much nicer (It uses modern C++ features instead, macros are opt-in rather than being mandatory - [Can I still use macros?](#macros))
+* It's faster to compile and execute than similar frameworks which makes it suitable for bigger projects without additional hassle ([Benchmarks](#benchmarks))
+* It supports TDD/BDD workflows
+* ...
+
+Sounds intriguing/interesting? Learn more at:
+
+* [Tutorial](#tutorial)
+* [Examples](#examples)
+* [User-Guide](#user-guide)
 
 </p>
 </details>
