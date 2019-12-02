@@ -11,11 +11,15 @@
 
 # [Boost].UT / μt
 
-> C++ **single header/single module, macro-free** μ(micro)/Unit Testing Framework
-
+<details open><summary>C++ <b>single header/single module, macro-free</b> μ(micro)/Unit Testing Framework</summary>
+<p>
+ 
 <p align="center">
   <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
 </p>
+
+</p>
+</details>
 
 <a name="overview"></a>
 <a name="quick-start"></a>
