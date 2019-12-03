@@ -1891,6 +1891,7 @@ struct suite {
 [[maybe_unused]] constexpr auto test = [](utility::string_view name) {
   return detail::test{"test", name};
 };
+[[maybe_unused]] constexpr auto should = test;
 [[maybe_unused]] constexpr auto skip = detail::skip{};
 [[maybe_unused]] constexpr auto given = [](utility::string_view name) {
   return detail::test{"given", name};
