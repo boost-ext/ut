@@ -48,6 +48,7 @@ example(should should)
 example(skip skip)
 example(suite suite)
 example(test _test)
+example(tmp tmp)
 example(using using)
 
 set(CMAKE_CXX_STANDARD 17)
