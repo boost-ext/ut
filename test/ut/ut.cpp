@@ -1207,6 +1207,26 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
+    test("name") = [] {};
+
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("name"sv == test_cfg.run_calls[0].name);
+    test_assert("test"sv == test_cfg.run_calls[0].type);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    should("name") = [] {};
+
+    test_assert(1 == std::size(test_cfg.run_calls));
+    test_assert("name"sv == test_cfg.run_calls[0].name);
+    test_assert("test"sv == test_cfg.run_calls[0].type);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
     "should disambiguate operators"_test = [] {
       expect(1_i == ns::f());
       expect(2_i == f());

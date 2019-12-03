@@ -13,7 +13,7 @@
 
 <details open><summary>C++ <b>single header/single module, macro-free</b> μ(micro)/Unit Testing Framework</summary>
 <p>
- 
+
 <p align="center">
   <a href="https://godbolt.org/z/uVDxkW"><img src="doc/images/ut.png"></a>
 </p>
@@ -291,7 +291,7 @@ asserts: 1 | 0 passed | 1 failed
 "hello world"_test = [] { };
 ```
 
-> Alternatively `test("hello world") = [] {}` can be used.
+> Alternatively `test("hello world") = [] {}` or `should("print hello world") = [] {}` can be used.
 
 ```
 All tests passed (0 asserts in 1 tests)
@@ -574,6 +574,8 @@ All tests passed (1 asserts in 1 tests)
 All tests passed (4 asserts in 1 tests)
 ```
 
+> Alternatively `should("resize bigger") = [=]() mutable { ... }` can be used.
+
 > https://godbolt.org/z/qKxsf9)
 
 </p>
@@ -848,10 +850,24 @@ namespace boost::ut::inline v1_1_3 {
 
   /**
    * Creates a test
-   * @example "test name"_test = [] {};
+   * @example "name"_test = [] {};
    * @return test object to be executed
    */
   constexpr auto operator""_test;
+
+  /**
+   * Creates a test
+   * @example test("name") = [] {};
+   * @return test object to be executed
+   */
+  constexpr auto test = [](auto name);
+
+  /**
+   * Creates a test
+   * @example should("name") = [] {};
+   * @return test object to be executed
+   */
+  constexpr auto should = [](auto name);
 
   /**
    * Behaviour Driven Development (BDD) helper functions
