@@ -252,16 +252,16 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 #### Suites - https://godbolt.org/z/F3xJcJ
 
 ```cpp
-suite _ = [] {
+suite errors = [] {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "throw"_test = [] { 
+  "exception"_test = [] { 
     expect(throws([] { throw 0; })) << "throws any exception";
   };
 
-  "abort"_test = [] {
+  "failure"_test = [] {
     expect(aborts([] { assert(false); }));
   };
 ```
