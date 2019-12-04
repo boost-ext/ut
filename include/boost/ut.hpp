@@ -1930,6 +1930,11 @@ template <class TLhs, class TRhs>
   return detail::le_{lhs, rhs};
 }
 
+template <class T>
+[[nodiscard]] constexpr auto mut(const T& t) noexcept -> T& {
+  return const_cast<T&>(t);
+}
+
 using literals::operator""_test;
 using literals::operator""_i;
 using literals::operator""_s;
