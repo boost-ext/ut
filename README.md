@@ -21,8 +21,19 @@
 </p>
 </details>
 
-<a name="overview"></a>
 <a name="quick-start"></a>
+
+<details><summary>Quick Start</summary>
+<p>
+
+<p align="center">
+  <a href="https://bit.ly/boost-ut-docs"><img src="doc/images/quick_start.png"></a>
+</p>
+
+</p>
+</details>
+
+<a name="overview"></a>
 <details open><summary>Overview</summary>
 <p>
 
