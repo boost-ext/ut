@@ -291,7 +291,7 @@ asserts: 1 | 0 passed | 1 failed
 "hello world"_test = [] { };
 ```
 
-> Alternatively `test("hello world") = [] {}` or `should("print hello world") = [] {}` can be used.
+> Alternatively `test("hello world") = [] {}` can be used.
 
 ```
 All tests passed (0 asserts in 1 tests)
@@ -337,14 +337,14 @@ int main() {
 
     !expect(5_ul == std::size(v));
 
-    "resize bigger"_test = [=]() mutable {
+    should("resize bigger") = [=]() mutable { // or "resize bigger"_test
       v.resize(10);
       expect(10_ul == std::size(v));
     };
 
     !expect(5_ul == std::size(v));
 
-    "resize smaller"_test = [=]() mutable {
+    should("resize smaller") = [=]() mutable { // or "resize smaller"_test
       v.resize(0);
       expect(0_ul == std::size(v));
     };
@@ -356,7 +356,7 @@ int main() {
 All tests passed (4 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/y9m5vF
+> https://godbolt.org/z/XWAdYt
 
 > Nice! That was easy, but I'm a believer into Behaviour Driven Development (BDD).
 > Is there a support for that?
@@ -556,14 +556,14 @@ All tests passed (1 asserts in 1 tests)
 
   !expect(5_ul == std::size(v));
 
-  "resize bigger"_test = [=]() mutable {
+  should("resize bigger") = [=]() mutable { // or "resize bigger"_test
     v.resize(10);
     expect(10_ul == std::size(v));
   };
 
   !expect(5_ul == std::size(v));
 
-  "resize smaller"_test = [=]() mutable {
+  should("resize smaller") = [=]() mutable { // or "resize smaller"_test
     v.resize(0);
     expect(0_ul == std::size(v));
   };
@@ -574,9 +574,7 @@ All tests passed (1 asserts in 1 tests)
 All tests passed (4 asserts in 1 tests)
 ```
 
-> Alternatively `should("resize bigger") = [=]() mutable { ... }` can be used.
-
-> https://godbolt.org/z/qKxsf9)
+> https://godbolt.org/z/XWAdYt
 
 </p>
 </details>
@@ -747,7 +745,7 @@ All tests passed (1 asserts in 1 tests)
 All tests passed (4 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/A2EehK)
+> https://godbolt.org/z/A2EehK
 
 </p>
 </details>
@@ -1340,6 +1338,22 @@ namespace boost::ut::inline v1_1_3 {
       return (os << op.lhs << " == " << op.rhs);
     }
   };
+  ```
+
+> `should/given/when/then`
+
+  ```cpp
+  /**
+   * Convenient aliases for creating test named object
+   * @example should("return true") = [] {};
+   * @example given("I have an object") = [] {};
+   * @example when("I call it") = [] {};
+   * @example then("I should get") = [] {};
+   */
+  constexpr auto should = [](auto name) { return test{name}; };
+  constexpr auto given  = [](auto name) { return test{name}; };
+  constexpr auto when   = [](auto name) { return test{name}; };
+  constexpr auto then   = [](auto name) { return test{name}; };
   ```
 
 </p>

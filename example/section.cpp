@@ -16,14 +16,14 @@ int main() {
 
     !expect(5_ul == std::size(v));
 
-    "resize bigger"_test = [=]() mutable {
+    should("resize bigger") = [=]() mutable { // or "resize bigger"_test
       v.resize(10);
       expect(10_ul == std::size(v));
     };
 
     !expect(5_ul == std::size(v));
 
-    "resize smaller"_test = [=]() mutable {
+    should("resize smaller") = [=]() mutable { // or "resize smaller"_test
       v.resize(0);
       expect(0_ul == std::size(v));
     };
