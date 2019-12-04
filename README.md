@@ -815,6 +815,36 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 </p>
 </details>
 
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Printer</summary>
+<p>
+
+```cpp
+namespace ut = boost::ut;
+
+namespace cfg {
+struct printer : ut::printer {
+  template <class T>
+  auto& operator<<(T&& t) {
+    std::cerr << std::forward<T>(t);
+    return *this;
+  }
+};
+}  // namespace cfg
+
+template <>
+auto ut::cfg<ut::override> = ut::runner<ut::reporter<cfg::printer>>{};
+
+int main() {
+  using namespace ut;
+  "printer"_test = [] {};
+}
+```
+
+> https://godbolt.org/z/XCscF9
+
+</p>
+</details>
+
 </p>
 </details>
 
