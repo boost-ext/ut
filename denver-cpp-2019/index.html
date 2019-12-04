@@ -140,10 +140,14 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 ```cpp
 "[vector]"_test = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
   std::vector<int> v(5);
   !expect(5_ul == std::size(v));
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
   should("resize bigger") = [=] { // or "resize bigger"_test
@@ -151,12 +155,12 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
     expect(10_ul == std::size(v));
   };
 ```
-<!-- .element: class="fragment" data-fragment-index="2" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
   !expect(5_ul == std::size(v));
 ```
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
   should("resize smaller") = [=] { // or "resize smaller"_test
@@ -164,7 +168,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
     expect(0_ul == std::size(v));
   };
 ```
-<!-- .element: class="fragment" data-fragment-index="4" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ```cpp
 };
@@ -188,7 +192,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-    when("I resize bigger") = [=]() mutable {
+    when("I resize bigger") = [=] {
       v.resize(10);
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
