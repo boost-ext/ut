@@ -122,7 +122,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 <pre><code class="line-numbers">expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre> <!-- .element: class="fragment" data-fragment-index="2" -->
 
-<pre><code class="line-numbers">expect(2 == 1_i) << "should equal";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
+<pre><code class="line-numbers">expect(2 == 1_i) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 <pre><code class="line-numbers"> std::vector v{1l, 2l, 3l};
@@ -257,11 +257,11 @@ suite _ = [] {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "should throw"_test = [] { 
+  "throw"_test = [] { 
     expect(throws([] { throw 0; })) << "throws any exception";
   };
 
-  "should abort"_test = [] {
+  "abort"_test = [] {
     expect(aborts([] { assert(false); }));
   };
 ```
