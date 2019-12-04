@@ -337,8 +337,8 @@ int main() {
 
     !expect(5_ul == std::size(v));
 
-    should("resize bigger") = [=]() mutable { // or "resize bigger"_test
-      v.resize(10);
+    should("resize bigger") = [v] { // or "resize bigger"_test
+      mut(v).resize(10);
       expect(10_ul == std::size(v));
     };
 
@@ -369,8 +369,8 @@ int main() {
       std::vector<int> v(5);
       !expect(5_ul == std::size(v));
 
-      when("I resize bigger") = [=]() mutable {
-        v.resize(10);
+      when("I resize bigger") = [=] {
+        mut(v).resize(10);
 
         then("The size should increase") = [=] {
           expect(10_ul == std::size(v));
@@ -527,6 +527,11 @@ skip | "don't run UDL"_test = [] {
 };
 ```
 
+```
+All tests passed (1 asserts in 1 tests)
+1 tests skipped
+```
+
 ```cpp
 test("run function") = [] {
   expect(42_i == 42);
@@ -556,8 +561,8 @@ All tests passed (1 asserts in 1 tests)
 
   !expect(5_ul == std::size(v));
 
-  should("resize bigger") = [=]() mutable { // or "resize bigger"_test
-    v.resize(10);
+  should("resize bigger") = [=] { // or "resize bigger"_test
+    mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
 

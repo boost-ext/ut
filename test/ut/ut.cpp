@@ -997,8 +997,8 @@ int main() {
 
       !expect(5_ul == std::size(v));
 
-      "resize bigger"_test = [=]() mutable {
-        v.resize(10);
+      "resize bigger"_test = [=] {
+        mut(v).resize(10);
         expect(10_ul == std::size(v));
       };
 
