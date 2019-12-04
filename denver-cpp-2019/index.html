@@ -150,7 +150,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [=] { // or "resize bigger"_test
+  should("resize bigger") = [=] {
     v.resize(10);
     expect(10_ul == std::size(v));
   };
@@ -163,7 +163,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
-  should("resize smaller") = [=] { // or "resize smaller"_test
+  should("resize smaller") = [=] {
     v.resize(0);
     expect(0_ul == std::size(v));
   };
