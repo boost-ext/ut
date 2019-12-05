@@ -21,34 +21,6 @@
 </p>
 </details>
 
-<a name="quick-start"></a>
-
-<details><summary>Quick Start</summary>
-<p>
-
-<p align="center">
-  <a href="https://bit.ly/boost-ut-docs"><img src="doc/images/quick_start.png"></a>
-</p>
-
-</p>
-</details>
-
-<a name="overview"></a>
-<details open><summary>Overview</summary>
-<p>
-
-* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
-* Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
-* Macro-free ([How does it work?](#how-it-works))
-* Easy to use ([Minimal API](#api) - `expect, test, suite`)
-* Fast to compile/execute ([Benchmarks](#benchmarks))
-* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
-
-> `*` - Limitations may apply
-
-</p>
-</details>
-
 <a name="motivation"></a>
 <details><summary>Motivation</summary>
 <p>
@@ -109,6 +81,33 @@ Sounds intriguing/interesting? Learn more at:
 * [Tutorial](#tutorial)
 * [Examples](#examples)
 * [User-Guide](#user-guide)
+
+</p>
+</details>
+
+<a name="quick-start"></a>
+<details><summary>Quick Start</summary>
+<p>
+
+<p align="center">
+  <a href="https://bit.ly/boost-ut-docs"><img src="doc/images/quick_start.png"></a>
+</p>
+
+</p>
+</details>
+
+<a name="overview"></a>
+<details open><summary>Overview</summary>
+<p>
+
+* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+* Macro-free ([How does it work?](#how-it-works))
+* Easy to use ([Minimal API](#api) - `expect, test, suite`)
+* Fast to compile/execute ([Benchmarks](#benchmarks))
+* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+
+> `*` - Limitations may apply
 
 </p>
 </details>
