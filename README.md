@@ -1053,12 +1053,19 @@ namespace boost::ut::inline v1_1_3 {
   } log{};
 
   /**
+   * Makes object mutable
+   * @example mut(object)
+   * @param t object to be mutated
+   */
+  template<class T> auto mut(const T& t) -> T&;
+
+  /**
    * Default execution flow policy
    */
   class runner {
    public:
     /**
-     * @example cfg<override> = { .filter = "test.section.*", .colors = false, .dry__run = true };
+     * @example cfg<override> = { .filter = "test.section.*", .colors = { .none = "" }, .dry__run = true };
      * @param options.filter {default: "*"} runs all tests which names matches test.section.* filter
      * @param options.colors {default: {
                                .none = "\033[0m",
