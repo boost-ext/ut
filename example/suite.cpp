@@ -9,13 +9,16 @@
 
 namespace ut = boost::ut;
 
-ut::suite _ = [] {
+ut::suite errors = [] {
   using namespace ut;
 
-  "equality"_test = [] {
-    "should be equal"_test = [] { expect(42_i == 42); };
-    "should not be equal "_test = [] { expect(1_i != 2); };
-  };
+   "exception"_test = [] {
+     expect(throws([] { throw 0; })) << "throws any exception";
+   };
+
+   "failure"_test = [] {
+     expect(nothrow([]{}));
+   };
 };
 
 int main() {}

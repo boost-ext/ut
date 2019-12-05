@@ -422,25 +422,28 @@ All tests passed (3 asserts in 3 tests)
 <p>
 
 > Okay, but my project is more complex than that. How can I scale?
-> `Test suites` will make that possible. By using `ut::suite` in translation units
+> `Test suites` will make that possible. By using `suite` in translation units
 > `tests` defined inside will be automatically registered 👍
 
 ```cpp
-boost::ut::suite _ = [] {
-  "suite"_test = [] {
-    "should be equal"_test = [] { expect(42_i == 42); };
-    "should not be equal "_test = [] { expect(1_i != 2); };
+suite errors = [] {
+  "exception"_test = [] {
+    expect(throws([] { throw 0; })) << "throws any exception";
   };
-}
+
+  "failure"_test = [] {
+    expect(aborts([] { assert(false); }));
+  };
+};
 
 int main() { }
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+All tests passed (2 asserts in 2 tests)
 ```
 
-> https://godbolt.org/z/F3xJcJ
+> https://godbolt.org/z/_ccGwZ
 
 ---
 
@@ -660,17 +663,15 @@ All tests passed (2 asserts in 1 tests)
 ```cpp
 namespace ut = boost::ut;
 
-ut::suite _ = [] {
+ut::suite errors = [] {
   using namespace ut;
 
-  "equality/exceptions"_test = [] {
-    "should equal"_test = [] {
-      expect(42_i == 42);
-    };
+  "throws"_test = [] {
+    expect(throws([] { throw 0; }));
+  };
 
-    "should throw"_test = [] {
-      expect(throws([]{throw 0;}));
-    };
+  "doesn't throw"_test = [] {
+    expect(nothrow([]{}));
   };
 };
 
@@ -678,7 +679,7 @@ int main() { }
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+All tests passed (2 asserts in 2 tests)
 ```
 
 > https://godbolt.org/z/CFbTP9
@@ -748,9 +749,9 @@ All tests passed (1 asserts in 1 tests)
 
 ```cpp
 "exceptions/aborts"_test = [] {
-  expect(throws<std::runtime_error>([]{throw std::runtime_error{""};}))
+  expect(throws<std::runtime_error>([] { throw std::runtime_error{""}; }))
     << "throws runtime_error";
-  expect(throws([]{throw 0;})) << "throws any exception";
+  expect(throws([] { throw 0; })) << "throws any exception";
   expect(nothrow([]{})) << "doesn't throw";
   expect(aborts([] { assert(false); }));
 };
