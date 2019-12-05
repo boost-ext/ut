@@ -1062,11 +1062,9 @@ namespace boost::ut::inline v1_1_3 {
      * @example cfg<override> = { .filter = "test.section.*", .colors = false, .dry__run = true };
      * @param options.filter {default: "*"} runs all tests which names matches test.section.* filter
      * @param options.colors {default: {
-                               .none  = "\033[0m",
-                               .red   = "\033[31m",
-                               .green = "\033[32m",
-                               .pass  = "✔️",
-                               .fail  = "❌"}
+                               .none = "\033[0m",
+                               .pass = "\033[32m",
+                               .fail  = "\033[31m"
               } if specified then overrides default color values
      * @param options.dry_run {default: false} if true then print test names to be
                                                executed without running them
