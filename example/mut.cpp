@@ -10,7 +10,7 @@
 int main() {
   using namespace boost::ut;
 
-  auto i = 0; // mutable
+  auto i = 0;  // mutable
 
   "mut"_test = [i] {
     !expect(i == 0_i);

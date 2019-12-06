@@ -73,7 +73,7 @@ export namespace boost::ut {
 namespace boost::ut {
 #endif
 
-inline namespace v1_1_3 {
+inline namespace v1_1_4 {
 namespace utility {
 class string_view {
  public:
@@ -1958,6 +1958,6 @@ using operators::operator and;
 using operators::operator or;
 using operators::operator not;
 using operators::operator|;
-}  // namespace v1_1_3
+}  // namespace v1_1_4
 }  // namespace boost::ut
 #endif
