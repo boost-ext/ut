@@ -12,13 +12,11 @@ namespace ut = boost::ut;
 ut::suite errors = [] {
   using namespace ut;
 
-   "exception"_test = [] {
-     expect(throws([] { throw 0; })) << "throws any exception";
-   };
+  "exception"_test = [] {
+    expect(throws([] { throw 0; })) << "throws any exception";
+  };
 
-   "failure"_test = [] {
-     expect(nothrow([]{}));
-   };
+  "failure"_test = [] { expect(nothrow([] {})); };
 };
 
 int main() {}
