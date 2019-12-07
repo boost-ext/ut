@@ -1534,6 +1534,17 @@ All tests passed (4 asserts in 3 tests)
 
   <tr>
     <td colspan="3" align="center">
+    <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Incremental Build - Suite+Assert+STL</b></a> / <i>1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)</i>
+    </td>
+  </tr>
+  <tr>
+    <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Compilation_incremental.suite+assert+stl.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Compilation_suite+assert+stl.png"></a></td>
+    <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Execution_incremental.suite+assert+stl.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/Execution_suite+assert+stl.png"></a></td>
+    <td><a href="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/BinarySize_incremental.suite+assert+stl.png"><img src="https://raw.githubusercontent.com/cpp-testing/ut-benchmark/master/results/BinarySize_suite+assert+stl.png"></a></td>
+  </tr>
+
+  <tr>
+    <td colspan="3" align="center">
     <a href="https://github.com/cpp-testing/ut-benchmark/tree/master/benchmarks"><b>Suite+Assert+STL</b></a> / <i>10'000 tests, 20'000 asserts, 100 cpp files<br/>(Headers vs Precompiled headers vs C++20 Modules)</i>
     </td>
   </tr>
