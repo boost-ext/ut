@@ -8,6 +8,5 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace boost::ut;
-  expect(1 != 2_i);
+  boost::ut::expect(true);
 }
