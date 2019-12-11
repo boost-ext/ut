@@ -28,7 +28,7 @@ endif()
 
 example(BDD BDD)
 example(cli cli_pass "cli.pass")
-example(cli cli_pass_no_colors "cli.pass" "0", "1")
+example(cli cli_pass_no_colors "cli.pass" "0" "1")
 example(cli cli_pass_dry_run "cli.pass" "1" "1")
 example(cli cli_pass_not_dry_run "cli.pass" "1" "0")
 example(cli cli_all_dry_run "\\*" "1" "1")
