@@ -237,9 +237,8 @@ template <class T>
   return t < T{} ? -t : t;
 }
 
-#undef min //prevents issues with min macros conflicts with this method declaration
 template <class T>
-[[nodiscard]] constexpr auto min(const T& lhs, const T& rhs) -> const T& {
+[[nodiscard]] constexpr auto min_value(const T& lhs, const T& rhs) -> const T& {
   return (rhs < lhs) ? rhs : lhs;
 }
 
@@ -564,7 +563,7 @@ class eq_ : op {
           } else if constexpr (type_traits::has_epsilon_v<TLhs> and
                                type_traits::has_epsilon_v<TRhs>) {
             return math::abs(get(lhs) - get(rhs)) <
-                   math::min(TLhs::epsilon, TRhs::epsilon);
+                   math::min_value(TLhs::epsilon, TRhs::epsilon);
           } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
             return math::abs(get(lhs) - get(rhs)) < TLhs::epsilon;
           } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
@@ -597,7 +596,7 @@ class neq_ : op {
           } else if constexpr (type_traits::has_epsilon_v<TLhs> and
                                type_traits::has_epsilon_v<TRhs>) {
             return math::abs(get(lhs_) - get(rhs_)) >
-                   math::min(TLhs::epsilon, TRhs::epsilon);
+                   math::min_value(TLhs::epsilon, TRhs::epsilon);
           } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
             return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
           } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
@@ -1221,7 +1220,7 @@ class runner {
     template <class TPath>
     constexpr auto operator()(const std::size_t level, const TPath& path) const
         -> bool {
-      for (auto i = 0u; i < math::min(level + 1, std::size(path_)); ++i) {
+      for (auto i = 0u; i < math::min_value(level + 1, std::size(path_)); ++i) {
         if (not utility::is_match(path[i], path_[i])) {
           return false;
         }
