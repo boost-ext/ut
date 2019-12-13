@@ -237,7 +237,6 @@ template <class T>
   return t < T{} ? -t : t;
 }
 
-#undef min //prevents issues with min macros conflicts with this method declaration
 template <class T>
 [[nodiscard]] constexpr auto min_value(const T& lhs, const T& rhs) -> const T& {
   return (rhs < lhs) ? rhs : lhs;
