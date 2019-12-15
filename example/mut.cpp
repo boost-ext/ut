@@ -13,16 +13,16 @@ int main() {
   auto i = 0;  // mutable
 
   "mut"_test = [i] {
-    !expect(i == 0_i); // immutable
+    !expect(i == 0_i);  // immutable
 
     should("++") = [i] {
-      expect(++mut(i) == 1_i); // mutable
-      expect(i == 1_i); // immutable
+      expect(++mut(i) == 1_i);  // mutable
+      expect(i == 1_i);         // immutable
     };
 
     should("--") = [i] {
-      expect(--mut(i) == -1_i); // mutable
-      expect(i == -1_i); // immutable
+      expect(--mut(i) == -1_i);  // mutable
+      expect(i == -1_i);         // immutable
     };
   };
 }

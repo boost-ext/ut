@@ -1126,6 +1126,19 @@ namespace boost::ut::inline v1_1_4 {
      */
     template<class TMsg>
     auto on(ut::events::log<TMsg>);
+
+    /**
+     * Explicitly runs registered test suites
+     * If not called directly test suites are executed with run's destructor
+     * @example return run({.report_errors = true})
+     * @param run_cfg.report_errors {default: false} if true it prints the summary after runnig
+     */
+    auto run(run_cfg);
+
+    /**
+     * Runs registered test suites if they haven't been explicilty executed already
+     */
+    ~run();
   };
 
   /**
