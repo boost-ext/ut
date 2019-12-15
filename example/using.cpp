@@ -8,11 +8,13 @@
 #include <boost/ut.hpp>
 
 int main() {
-  namespace ut = boost::ut;
-  using ut::operator""_test;
+  using boost::ut::operator""_test;
+  using boost::ut::expect;
+  using boost::ut::neq;
+  using boost::ut::eq;
 
   "using"_test = [] {
-    ut::expect(ut::eq(42, 42));
-    ut::expect(ut::neq(1, 2));
+    expect(eq(42, 42));
+    expect(neq(1, 2));
   };
 }
