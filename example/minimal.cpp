@@ -7,6 +7,4 @@
 //
 #include <boost/ut.hpp>
 
-int main() {
-  boost::ut::expect(true);
-}
+int main() { boost::ut::expect(true); }

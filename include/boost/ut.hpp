@@ -1208,6 +1208,10 @@ struct options {
   bool dry_run{};
 };
 
+struct run_cfg {
+  bool report_errors{false};
+};
+
 template <class TReporter = reporter<printer>, auto MaxPathSize = 16>
 class runner {
   class filter {
@@ -1367,12 +1371,16 @@ class runner {
     reporter_.on(l);
   }
 
-  [[nodiscard]] auto run() -> bool {
+  [[nodiscard]] auto run(run_cfg rc = {}) -> bool {
     run_ = true;
     for (auto& suite : suites_) {
       suite();
     }
     suites_.clear();
+
+    if (rc.report_errors) {
+      reporter_.on(events::summary{});
+    }
 
     return fails_ > 0;
   }
