@@ -942,7 +942,11 @@ struct log {
 template <class TMsg>
 log(TMsg)->log<TMsg>;
 struct fatal_assertion {};
+#if defined(__cpp_exceptions)
+using exception = std::exception;
+#else
 struct exception {};
+#endif
 struct summary {};
 }  // namespace events
 
@@ -1127,9 +1131,9 @@ class reporter {
     printer_ << l.msg;
   }
 
-  auto on(events::exception) -> void {
+  auto on(events::exception exception) -> void {
     exception_ = true;
-    printer_ << "\n  " << printer_.colors().fail << "Unexpected exception!"
+    printer_ << "\n  " << printer_.colors().fail << exception.what()
              << printer_.colors().none;
   }
 
@@ -1289,6 +1293,10 @@ class runner {
         test();
 #if defined(__cpp_exceptions)
       } catch (const events::fatal_assertion&) {
+      } catch (const std::exception& e) {
+        std::runtime_error errorMsg(e.what());
+        reporter_.on(errorMsg);
+        active_exception_ = true;
       } catch (...) {
         reporter_.on(events::exception{});
         active_exception_ = true;
