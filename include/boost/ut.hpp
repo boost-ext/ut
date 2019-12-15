@@ -65,6 +65,9 @@ auto operator>=(TLhs, TRhs) -> bool;
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
+#if defined(__cpp_exceptions)
+#include <exception>
+#endif
 #endif
 
 #if defined(__cpp_modules)
