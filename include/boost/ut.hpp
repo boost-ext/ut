@@ -1140,7 +1140,7 @@ class reporter {
 
   auto on(events::exception exception) -> void {
     exception_ = true;
-    printer_ << "\n  " << printer_.colors().fail << exception.what()
+    printer_ << "\n  " << printer_.colors().fail << "Unexpected exception with message:\n" << exception.what()
              << printer_.colors().none;
   }
 
