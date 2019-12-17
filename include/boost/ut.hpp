@@ -1652,7 +1652,7 @@ class matcher_ : op {
 }  // namespace detail
 
 namespace literals {
-[[nodiscard]] constexpr auto operator""_test(const char* name,
+[[nodiscard]] inline constexpr auto operator""_test(const char* name,
                                              decltype(sizeof("")) size) {
   return detail::test{"test", utility::string_view{name, size}};
 }
