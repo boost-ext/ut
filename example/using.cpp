@@ -9,9 +9,9 @@
 
 int main() {
   using boost::ut::operator""_test;
+  using boost::ut::eq;
   using boost::ut::expect;
   using boost::ut::neq;
-  using boost::ut::eq;
 
   "using"_test = [] {
     expect(eq(42, 42));
