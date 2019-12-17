@@ -65,9 +65,6 @@ auto operator>=(TLhs, TRhs) -> bool;
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
-#if defined(__cpp_exceptions)
-#include <exception>
-#endif
 #endif
 
 #if defined(__cpp_modules)
@@ -855,11 +852,13 @@ namespace events {
 struct test_begin {
   utility::string_view type{};
   utility::string_view name{};
+  utility::string_view filename{};
 };
 template <class Test, class TArg = none>
 struct test {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location location;
   TArg arg{};
   Test run{};
 
@@ -882,7 +881,7 @@ struct test {
   }
 };
 template <class Test, class TArg>
-test(utility::string_view, utility::string_view, TArg, Test)->test<Test, TArg>;
+test(utility::string_view, utility::string_view, reflection::source_location, TArg, Test)->test<Test, TArg>;
 template <class TSuite>
 struct suite {
   TSuite run{};
@@ -1281,7 +1280,8 @@ class runner {
 
     if (filter_(level_, path_)) {
       if (not level_++) {
-        reporter_.on(events::test_begin{test.type, test.name});
+          utility::string_view location(test.location.file_name(), strlen(test.location.file_name()));
+        reporter_.on(events::test_begin{test.type, test.name, location});
       } else {
         reporter_.on(events::test_run{test.type, test.name});
       }
@@ -1477,10 +1477,23 @@ template <class... Ts, class TEvent>
 struct test {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location location;
+
+  constexpr test(std::initializer_list<utility::string_view> l, const reflection::source_location& currentLocation =
+      reflection::source_location::current())
+  {
+      if (l.size() == 2) {
+          auto it = l.begin();
+          type = *it++;
+          name = *it;
+      }
+
+      location = currentLocation;
+  }
 
   template <class... Ts>
   constexpr auto operator=(void (*test)()) {
-    on<Ts...>(events::test{type, name, none{}, test});
+    on<Ts...>(events::test{type, name, location, none{}, test});
     return test;
   }
 
@@ -1489,7 +1502,7 @@ struct test {
                 not type_traits::is_convertible_v<Test, void (*)()>> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
-    on<Test>(events::test{type, name, none{}, test});
+    on<Test>(events::test{type, name, location, none{}, test});
     return test;
   }
 
