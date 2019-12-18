@@ -50,7 +50,12 @@ struct fake_cfg {
       run_calls.push_back({test.type, test.name, test.arg});
       try {
         test();
+      } catch (boost::ut::events::exception exception) {
+        exception_calls.push_back(exception.what());
+      } catch (const std::exception& exception) {
+        exception_calls.push_back(exception.what());
       } catch (...) {
+        exception_calls.push_back("Unknown exception");
       }
     }
   }
@@ -71,14 +76,10 @@ struct fake_cfg {
     log_calls.push_back(log.msg);
   }
 
-  auto on(boost::ut::events::exception exception) -> void {
-    exception_calls.push_back(exception.what());
-  }
-
   std::vector<test_call> run_calls{};
   std::vector<test_call> skip_calls{};
   std::vector<std::any> log_calls{};
-  std::vector<std::any> exception_calls{};
+  std::vector<std::string> exception_calls{};
   std::vector<assertion_call> assertion_calls{};
   std::size_t fatal_assertion_calls{};
   std::string test_filter{};
@@ -967,12 +968,12 @@ int main() {
       throw 0;
     };
 
-    test_assert(2 == std::size(test_cfg.run_calls));
+    test_assert(4 == std::size(test_cfg.run_calls));
     test_assert("should throw"sv == test_cfg.run_calls[1].name);
     test_assert("std::exception throw"sv == test_cfg.run_calls[2].name);
     test_assert("generic throw"sv == test_cfg.run_calls[3].name);
-    test_assert("Unexpected exception with message:\nmessage"sv == std::any_cast<std::string>(test_cfg.exception_calls[0]));
-    test_assert("Unexpected exception with message:\nUnknown exception"sv == std::any_cast<std::string>(test_cfg.exception_calls[1]));
+    test_assert("message"sv == test_cfg.exception_calls[1]);
+    test_assert("Unknown exception"sv == test_cfg.exception_calls[2]);
     test_assert(6 == std::size(test_cfg.assertion_calls));
   }
 
@@ -1259,3 +1260,4 @@ int main() {
     test_assert("2 == 2" == test_cfg.assertion_calls[1].str);
   }
 }
+
