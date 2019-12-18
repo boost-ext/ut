@@ -852,11 +852,13 @@ namespace events {
 struct test_begin {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location location;
 };
 template <class Test, class TArg = none>
 struct test {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location location;
   TArg arg{};
   Test run{};
 
@@ -879,7 +881,7 @@ struct test {
   }
 };
 template <class Test, class TArg>
-test(utility::string_view, utility::string_view, TArg, Test)->test<Test, TArg>;
+test(utility::string_view, utility::string_view, reflection::source_location, TArg, Test)->test<Test, TArg>;
 template <class TSuite>
 struct suite {
   TSuite run{};
@@ -1274,7 +1276,7 @@ class runner {
 
     if (filter_(level_, path_)) {
       if (not level_++) {
-        reporter_.on(events::test_begin{test.type, test.name});
+        reporter_.on(events::test_begin{test.type, test.name, test.location});
       } else {
         reporter_.on(events::test_run{test.type, test.name});
       }
@@ -1466,10 +1468,11 @@ template <class... Ts, class TEvent>
 struct test {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location location;
 
   template <class... Ts>
   constexpr auto operator=(void (*test)()) {
-    on<Ts...>(events::test{type, name, none{}, test});
+    on<Ts...>(events::test{type, name, location, none{}, test});
     return test;
   }
 
@@ -1478,7 +1481,7 @@ struct test {
                 not type_traits::is_convertible_v<Test, void (*)()>> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
-    on<Test>(events::test{type, name, none{}, test});
+    on<Test>(events::test{type, name, location, none{}, test});
     return test;
   }
 
@@ -1896,8 +1899,9 @@ struct suite {
 
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};
-[[maybe_unused]] constexpr auto test = [](utility::string_view name) {
-  return detail::test{"test", name};
+[[maybe_unused]] constexpr auto test = [](utility::string_view name, const reflection::source_location& currentLocation =
+    reflection::source_location::current()) {
+  return detail::test{"test", name, currentLocation};
 };
 [[maybe_unused]] constexpr auto should = test;
 [[maybe_unused]] constexpr auto skip = detail::skip{};
