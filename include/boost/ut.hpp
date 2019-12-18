@@ -852,6 +852,7 @@ namespace events {
 struct test_begin {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location sl{};
 };
 template <class Test, class TArg = none>
 struct test {
@@ -859,6 +860,7 @@ struct test {
   utility::string_view name{};
   TArg arg{};
   Test run{};
+  reflection::source_location sl{};
 
   constexpr auto operator()() { run_impl(static_cast<Test&&>(run), arg); }
   constexpr auto operator()() const { run_impl(static_cast<Test&&>(run), arg); }
@@ -879,7 +881,7 @@ struct test {
   }
 };
 template <class Test, class TArg>
-test(utility::string_view, utility::string_view, TArg, Test)->test<Test, TArg>;
+test(utility::string_view, utility::string_view, TArg, Test, reflection::source_location)->test<Test, TArg>;
 template <class TSuite>
 struct suite {
   TSuite run{};
@@ -1274,7 +1276,7 @@ class runner {
 
     if (filter_(level_, path_)) {
       if (not level_++) {
-        reporter_.on(events::test_begin{test.type, test.name});
+        reporter_.on(events::test_begin{test.type, test.name, test.sl});
       } else {
         reporter_.on(events::test_run{test.type, test.name});
       }
@@ -1463,13 +1465,33 @@ template <class... Ts, class TEvent>
 }
 #endif
 
+template<class Test>
+class wrapper {
+
+ public:
+  template<class T>
+  constexpr wrapper(T test, const reflection::source_location& location = reflection::source_location::current())
+    : test_{test}, location_{location}
+  { }
+
+  constexpr const auto& test() const {
+    return test_;
+  }
+
+  constexpr const auto& location() const  { return location_; }
+
+private:
+  Test test_;
+  reflection::source_location location_{};
+};
+
 struct test {
   utility::string_view type{};
   utility::string_view name{};
 
   template <class... Ts>
-  constexpr auto operator=(void (*test)()) {
-    on<Ts...>(events::test{type, name, none{}, test});
+  constexpr auto operator=(wrapper<void (*)()> test) {
+    on<Ts...>(events::test{type, name, none{}, test.test(), test.location()});
     return test;
   }
 

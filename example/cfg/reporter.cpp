@@ -7,13 +7,16 @@
 //
 #include <boost/ut.hpp>
 #include <string_view>
+#include <iostream>
 
 namespace ut = boost::ut;
 
 namespace cfg {
 class reporter {
  public:
-  auto on(ut::events::test_begin) -> void {}
+  auto on(ut::events::test_begin tb) -> void {
+    std::cout << tb.sl.file_name() << '\n';
+  }
   auto on(ut::events::test_run) -> void {}
   auto on(ut::events::test_skip) -> void {}
   auto on(ut::events::test_end) -> void {}
