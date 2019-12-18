@@ -364,7 +364,7 @@ int main() {
     auto& reporter = run.reporter_;
     run.run_ = true;
 
-    run.on(events::test{"test", "run", none{}, [] {}});
+    run.on(events::test{"test", "run", none{}, [] {}, {}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(0 == reporter.tests_.skip);
@@ -375,56 +375,72 @@ int main() {
     test_assert(1 == reporter.tests_.skip);
 
     run = {"unknown"};
-    run.on(events::test{"test", "filter", none{}, [] {}});
+    run.on(events::test{"test", "filter", none{}, [] {}, {}});
     test_assert(1 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
     run = options{};
 
     run = {"filter"};
-    run.on(events::test{"test", "filter", none{}, [] {}});
+    run.on(events::test{"test", "filter", none{}, [] {}, {}});
     test_assert(2 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
     run = options{};
 
     run.on(events::test{
-        "test", "pass", none{}, [&run] {
+        "test",
+        "pass",
+        none{},
+        [&run] {
           void(run.on(events::assertion{reflection::source_location{}, true}));
-        }});
+        },
+        {}});
 
     test_assert(3 == reporter.tests_.pass);
     test_assert(0 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
     run.on(events::test{
-        "test", "fail", none{}, [&run] {
+        "test",
+        "fail",
+        none{},
+        [&run] {
           void(run.on(events::assertion{reflection::source_location{}, false}));
-        }});
+        },
+        {}});
     test_assert(3 == reporter.tests_.pass);
     test_assert(1 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
-    run.on(events::test{"test", "exception", none{}, [] { throw 42; }});
+    run.on(events::test{"test", "exception", none{}, [] { throw 42; }, {}});
     test_assert(3 == reporter.tests_.pass);
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
     run.on(events::test{
-        "test", "section", none{}, [&run] {
-          run.on(events::test{"test", "sub-section", none{}, [] {}});
-        }});
+        "test",
+        "section",
+        none{},
+        [&run] {
+          run.on(events::test{"test", "sub-section", none{}, [] {}, {}});
+        },
+        {}});
     test_assert(4 == reporter.tests_.pass);
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
     run = {"section"};
     run.on(events::test{
-        "test", "section", none{}, [&run] {
-          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
-          run.on(
-              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
-        }});
+        "test",
+        "section",
+        none{},
+        [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}, {}});
+          run.on(events::test{
+              "test", "sub-section-2", none{}, [] { throw 0; }, {}});
+        },
+        {}});
     test_assert(4 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
@@ -432,11 +448,15 @@ int main() {
 
     run = {"section.sub-section-1"};
     run.on(events::test{
-        "test", "section", none{}, [&run] {
-          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
-          run.on(
-              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
-        }});
+        "test",
+        "section",
+        none{},
+        [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}, {}});
+          run.on(events::test{
+              "test", "sub-section-2", none{}, [] { throw 0; }, {}});
+        },
+        {}});
     test_assert(5 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
@@ -444,11 +464,15 @@ int main() {
 
     run = {"section.sub-section-2"};
     run.on(events::test{
-        "test", "section", none{}, [&run] {
-          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
-          run.on(
-              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
-        }});
+        "test",
+        "section",
+        none{},
+        [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}, {}});
+          run.on(events::test{
+              "test", "sub-section-2", none{}, [] { throw 0; }, {}});
+        },
+        {}});
     test_assert(5 == reporter.tests_.pass);
     test_assert(4 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
@@ -456,30 +480,42 @@ int main() {
 
     run = {"section.sub-section-*"};
     run.on(events::test{
-        "test", "section", none{}, [&run] {
-          run.on(events::test{"test", "sub-section-1", none{}, [] {}});
-          run.on(
-              events::test{"test", "sub-section-2", none{}, [] { throw 0; }});
-        }});
+        "test",
+        "section",
+        none{},
+        [&run] {
+          run.on(events::test{"test", "sub-section-1", none{}, [] {}, {}});
+          run.on(events::test{
+              "test", "sub-section-2", none{}, [] { throw 0; }, {}});
+        },
+        {}});
     test_assert(5 == reporter.tests_.pass);
     test_assert(5 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
     run = options{};
 
     run.on(events::test{
-        "test", "fatal", none{}, [&run] {
+        "test",
+        "fatal",
+        none{},
+        [&run] {
           void(run.on(events::assertion{reflection::source_location{}, false}));
           run.on(events::fatal_assertion{});
           void(run.on(events::assertion{reflection::source_location{}, true}));
-        }});
+        },
+        {}});
     test_assert(5 == reporter.tests_.pass);
     test_assert(6 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
 
     run.on(events::test{
-        "test", "normal", none{}, [&run] {
+        "test",
+        "normal",
+        none{},
+        [&run] {
           void(run.on(events::assertion{reflection::source_location{}, true}));
-        }});
+        },
+        {}});
     test_assert(6 == reporter.tests_.pass);
     test_assert(6 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);

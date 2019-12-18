@@ -852,6 +852,7 @@ namespace events {
 struct test_begin {
   utility::string_view type{};
   utility::string_view name{};
+  reflection::source_location location{};
 };
 template <class Test, class TArg = none>
 struct test {
@@ -859,6 +860,7 @@ struct test {
   utility::string_view name{};
   TArg arg{};
   Test run{};
+  reflection::source_location location{};
 
   constexpr auto operator()() { run_impl(static_cast<Test&&>(run), arg); }
   constexpr auto operator()() const { run_impl(static_cast<Test&&>(run), arg); }
@@ -879,7 +881,9 @@ struct test {
   }
 };
 template <class Test, class TArg>
-test(utility::string_view, utility::string_view, TArg, Test)->test<Test, TArg>;
+test(utility::string_view, utility::string_view, TArg, Test,
+     reflection::source_location)
+    ->test<Test, TArg>;
 template <class TSuite>
 struct suite {
   TSuite run{};
@@ -1274,7 +1278,7 @@ class runner {
 
     if (filter_(level_, path_)) {
       if (not level_++) {
-        reporter_.on(events::test_begin{test.type, test.name});
+        reporter_.on(events::test_begin{test.type, test.name, test.location});
       } else {
         reporter_.on(events::test_run{test.type, test.name});
       }
@@ -1463,13 +1467,24 @@ template <class... Ts, class TEvent>
 }
 #endif
 
+template <class Test>
+struct test_location {
+  template <class T>
+  constexpr test_location(T t, const reflection::source_location& sl =
+                                   reflection::source_location::current())
+      : test{t}, location{sl} {}
+
+  Test test{};
+  reflection::source_location location{};
+};
+
 struct test {
   utility::string_view type{};
   utility::string_view name{};
 
   template <class... Ts>
-  constexpr auto operator=(void (*test)()) {
-    on<Ts...>(events::test{type, name, none{}, test});
+  constexpr auto operator=(test_location<void (*)()> test) {
+    on<Ts...>(events::test{type, name, none{}, test.test, test.location});
     return test;
   }
 
@@ -1478,7 +1493,7 @@ struct test {
                 not type_traits::is_convertible_v<Test, void (*)()>> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
-    on<Test>(events::test{type, name, none{}, test});
+    on<Test>(events::test{type, name, none{}, test, {}});
     return test;
   }
 
@@ -1799,7 +1814,7 @@ template <class F, class T,
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
   return [f, t](auto name) {
     for (const auto& arg : t) {
-      detail::on<F>(events::test{"test", name, arg, f});
+      detail::on<F>(events::test{"test", name, arg, f, {}});
     }
   };
 }
@@ -1811,7 +1826,7 @@ template <
   return [f, t](auto name) {
     apply(
         [f, name](const auto&... args) {
-          (detail::on<F>(events::test{"test", name, args, f}), ...);
+          (detail::on<F>(events::test{"test", name, args, f, {}}), ...);
         },
         t);
   };
@@ -1822,10 +1837,9 @@ template <class TExpr, type_traits::requires_t<
                            type_traits::is_op_v<TExpr> or
                            type_traits::is_convertible_v<TExpr, bool>> = 0>
 constexpr auto expect(const TExpr& expr,
-                      const reflection::source_location& location =
+                      const reflection::source_location& sl =
                           reflection::source_location::current()) {
-  return detail::expect_<TExpr>{
-      detail::on<TExpr>(events::assertion{location, expr})};
+  return detail::expect_<TExpr>{detail::on<TExpr>(events::assertion{sl, expr})};
 }
 
 #if defined(__cpp_nontype_template_parameter_class)
