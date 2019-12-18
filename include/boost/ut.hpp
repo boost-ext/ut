@@ -949,11 +949,10 @@ struct log {
 template <class TMsg>
 log(TMsg)->log<TMsg>;
 struct fatal_assertion {};
-#if defined(__cpp_exceptions)
-using exception = std::exception;
-#else
-struct exception {};
-#endif
+struct exception {
+  const char *msg = "Unknown exception";
+  char const* what() { return msg; }
+};
 struct summary {};
 }  // namespace events
 
@@ -1305,11 +1304,10 @@ class runner {
 #if defined(__cpp_exceptions)
       } catch (const events::fatal_assertion&) {
       } catch (const std::exception& e) {
-        std::runtime_error errorMsg(e.what());
-        reporter_.on(errorMsg);
+        reporter_.on(events::exception{e.what()});
         active_exception_ = true;
       } catch (...) {
-        reporter_.on(events::exception{});
+        reporter_.on(events::exception{"Unknown exception"});
         active_exception_ = true;
       }
 #endif
