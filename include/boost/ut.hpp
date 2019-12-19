@@ -1137,6 +1137,7 @@ class reporter {
     exception_ = true;
     printer_ << "\n  " << printer_.colors().fail << "Unexpected exception with message:\n" << exception.what()
              << printer_.colors().none;
+    ++tests_.except;
   }
 
   template <class TLocation, class TExpr>
@@ -1195,6 +1196,7 @@ class reporter {
     std::size_t pass{};
     std::size_t fail{};
     std::size_t skip{};
+    std::size_t except{};
   } tests_{};
 
   struct {
