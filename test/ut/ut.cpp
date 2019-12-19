@@ -961,19 +961,25 @@ int main() {
     };
 
     "std::exception throw"_test = [] {
-      throw std::runtime_error("message");
+      throw std::runtime_error("std::exception message");
+    };
+
+    "events::exception throw"_test = [] {
+      throw events::exception{"events::exception message"};
     };
 
     "generic throw"_test = [] {
       throw 0;
     };
 
-    test_assert(4 == std::size(test_cfg.run_calls));
+    test_assert(5 == std::size(test_cfg.run_calls));
     test_assert("should throw"sv == test_cfg.run_calls[1].name);
     test_assert("std::exception throw"sv == test_cfg.run_calls[2].name);
-    test_assert("generic throw"sv == test_cfg.run_calls[3].name);
-    test_assert("message"sv == test_cfg.exception_calls[1]);
-    test_assert("Unknown exception"sv == test_cfg.exception_calls[2]);
+    test_assert("events::exception throw"sv == test_cfg.run_calls[3].name);
+    test_assert("generic throw"sv == test_cfg.run_calls[4].name);
+    test_assert("std::exception message"sv == test_cfg.exception_calls[1]);
+    test_assert("events::exception message"sv == test_cfg.exception_calls[2]);
+    test_assert("Unknown exception"sv == test_cfg.exception_calls[3]);
     test_assert(6 == std::size(test_cfg.assertion_calls));
   }
 
