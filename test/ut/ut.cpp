@@ -425,7 +425,8 @@ int main() {
     test_assert(1 == reporter.tests_.skip);
     test_assert(1 == reporter.tests_.except);
 
-    run.on(events::test{"test", "exception", none{}, [] { throw std::runtime_error("exception"); }});
+    run.on(events::test{"test", "exception", none{},
+                        [] { throw std::runtime_error("exception"); }, {}});
     test_assert(3 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
@@ -1011,9 +1012,7 @@ int main() {
       throw events::exception{"events::exception message"};
     };
 
-    "generic throw"_test = [] {
-      throw 0;
-    };
+    "generic throw"_test = [] { throw 0; };
 
     test_assert(5 == std::size(test_cfg.run_calls));
     test_assert("should throw"sv == test_cfg.run_calls[1].name);
@@ -1309,4 +1308,3 @@ int main() {
     test_assert("2 == 2" == test_cfg.assertion_calls[1].str);
   }
 }
-
