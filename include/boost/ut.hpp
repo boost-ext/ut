@@ -950,8 +950,8 @@ template <class TMsg>
 log(TMsg)->log<TMsg>;
 struct fatal_assertion {};
 struct exception {
-  const char *msg = "Unknown exception";
-  char const* what() { return msg; }
+  const char* msg{};
+  auto what() const -> const char* { return msg; }
 };
 struct summary {};
 }  // namespace events
@@ -1139,8 +1139,9 @@ class reporter {
 
   auto on(events::exception exception) -> void {
     exception_ = true;
-    printer_ << "\n  " << printer_.colors().fail << "Unexpected exception with message:\n" << exception.what()
-             << printer_.colors().none;
+    printer_ << "\n  " << printer_.colors().fail
+             << "Unexpected exception with message:\n"
+             << exception.what() << printer_.colors().none;
     ++tests_.except;
   }
 
