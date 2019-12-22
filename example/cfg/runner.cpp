@@ -18,8 +18,8 @@ class runner {
   }
   template <class... Ts>
   auto on(ut::events::skip<Ts...>) {}
-  template <class TLocation, class TExpr>
-  auto on(ut::events::assertion<TLocation, TExpr>) -> bool {
+  template <class TExpr>
+  auto on(ut::events::assertion<TExpr>) -> bool {
     return true;
   }
   auto on(ut::events::fatal_assertion) {}

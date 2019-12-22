@@ -106,6 +106,7 @@ Sounds intriguing/interesting? Learn more at:
 * Easy to use ([Minimal API](#api) - `expect, test, suite`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
 * Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+* Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
 
 > `*` - Limitations may apply
 
@@ -783,8 +784,8 @@ namespace cfg {
    public:
     template <class... Ts> auto on(ut::events::test<Ts...> test) { test(); }
     template <class... Ts> auto on(ut::events::skip<Ts...>) {}
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion<TLocation, TExpr>) -> bool { return true; }
+    template <class TExpr>
+    auto on(ut::events::assertion<TExpr>) -> bool { return true; }
     auto on(ut::events::fatal_assertion) {}
     template <class TMsg> auto on(ut::events::log<TMsg>) {}
   };
@@ -812,10 +813,10 @@ namespace cfg {
     auto on(ut::events::test_skip) -> void {}
     auto on(ut::events::test_end) -> void {}
     template <class TMsg> auto on(ut::events::log<TMsg>) -> void {}
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+    template <class TExpr>
+    auto on(ut::events::assertion_pass<TExpr>) -> void {}
+    template <class TExpr>
+    auto on(ut::events::assertion_fail<TExpr>) -> void {}
     auto on(ut::events::fatal_assertion) -> void {}
     auto on(ut::events::exception) -> void {}
     auto on(ut::events::summary) -> void {}
@@ -1066,7 +1067,11 @@ namespace boost::ut::inline v1_1_4 {
   class runner {
    public:
     /**
-     * @example cfg<override> = { .filter = "test.section.*", .colors = { .none = "" }, .dry__run = true };
+     * @example cfg<override> = {
+        .filter  = "test.section.*",
+        .colors  = { .none = "" },
+        .dry__run = true
+       };
      * @param options.filter {default: "*"} runs all tests which names matches test.section.* filter
      * @param options.colors {default: {
                                .none = "\033[0m",
@@ -1106,12 +1111,12 @@ namespace boost::ut::inline v1_1_4 {
 
     /**
      * @example file.cpp:42: expect(42_i == 42);
-     * @param assertion.location { "file.cpp", 42 }
      * @param assertion.expr 42_i == 42
+     * @param assertion.location { "file.cpp", 42 }
      * @return true if expr passes, false otherwise
      */
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion<TLocation, TExpr>) -> bool;
+    template <class TExpr>
+    auto on(ut::events::assertion<TExpr>) -> bool;
 
     /**
      * @example !expect(2_i == 1)
@@ -1147,9 +1152,10 @@ namespace boost::ut::inline v1_1_4 {
   class reporter {
    public:
     /**
-     * @example "name"_test = [] {};
+     * @example file.cpp:42: "name"_test = [] {};
      * @param test_begin.type ["test", "given", "when", "then"]
      * @param test_begin.name "name"
+     * @param test_begin.location { "file.cpp", 42 }
      */
     auto on(ut::events::test_begin) -> void;
 
@@ -1183,19 +1189,19 @@ namespace boost::ut::inline v1_1_4 {
 
     /**
      * @example file.cpp:42: expect(42_i == 42);
-     * @param assertion_pass.location { "file.cpp", 42 }
      * @param assertion_pass.expr 42_i == 42
+     * @param assertion_pass.location { "file.cpp", 42 }
      */
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void;
+    template <class TExpr>
+    auto on(ut::events::assertion_pass<TExpr>) -> void;
 
     /**
      * @example file.cpp:42: expect(42_i != 42);
-     * @param assertion_fail.location { "file.cpp", 42 }
      * @param assertion_fail.expr 42_i != 42
+     * @param assertion_fail.location { "file.cpp", 42 }
      */
-    template <class TLocation, class TExpr>
-    auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void;
+    template <class TExpr>
+    auto on(ut::events::assertion_fail<TExpr>) -> void;
 
     /**
      * @example !expect(2_i == 1)
@@ -1460,6 +1466,34 @@ All tests passed (4 asserts in 3 tests)
 ```
 
 > https://godbolt.org/z/tvy-nP
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Standardization?</summary>
+<p>
+
+Personally, I believe that C++ standard could benefit from common testing primitives (`expect`, `""_test`) because:
+
+* It lowers the entry-level to the language (no need for third-party libraries)
+* It improves the education aspect (one standard way of doing it)
+* It makes the language more coherent/stable (consistent design with other features, stable API)
+* It makes the testing a first class citizen (shows that the community cares about this aspect of the language)
+* It allows to publish tests for the Standard Library (STL) in the standard way (coherency, easier to extend)
+* It allows to act as additional documentation as a way to verify whether a particular implementation is conforming (quality, self-verification)
+* It helps with establishing standard vocabulary for testing (common across STL and other projects)
+
+</p>
+</details>
+
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Mocks/Stubs/Fakes?</summary>
+<p>
+
+Consider integrating one of the following frameworks:
+
+* https://github.com/cpp-testing/GUnit/blob/master/docs/GMock.md
+* https://github.com/eranpeer/FakeIt
+* https://github.com/dascandy/hippomocks
 
 </p>
 </details>

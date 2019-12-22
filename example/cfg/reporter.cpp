@@ -19,10 +19,10 @@ class reporter {
   auto on(ut::events::test_end) -> void {}
   template <class TMsg>
   auto on(ut::events::log<TMsg>) -> void {}
-  template <class TLocation, class TExpr>
-  auto on(ut::events::assertion_pass<TLocation, TExpr>) -> void {}
-  template <class TLocation, class TExpr>
-  auto on(ut::events::assertion_fail<TLocation, TExpr>) -> void {}
+  template <class TExpr>
+  auto on(ut::events::assertion_pass<TExpr>) -> void {}
+  template <class TExpr>
+  auto on(ut::events::assertion_fail<TExpr>) -> void {}
   auto on(ut::events::fatal_assertion) -> void {}
   auto on(ut::events::exception) -> void {}
   auto on(ut::events::summary) -> void {}
