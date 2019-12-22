@@ -636,7 +636,7 @@ All tests passed (11 asserts in 7 tests)
 <p>
 
 ```cpp
-"scenario"_test = [] {
+"Scenario"_test = [] {
   given("I have...") = [] {
     when("I run...") = [] {
       then("I expect...") = [] { expect(1_i == 1); };
