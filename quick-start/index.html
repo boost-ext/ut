@@ -7,9 +7,9 @@
     <title>[Boost].UT - Unit Testing Framework</title>
 
     <link rel="stylesheet" href="reveal.js/css/reveal.css">
-    <link rel="stylesheet" href="reveal.js/css/theme/league.css" id="theme">
+    <link rel="stylesheet" href="reveal.js/css/theme/white.css" id="theme">
     <link rel="stylesheet" href="extensions/plugin/line-numbers/line-numbers.css">
-    <link rel="stylesheet" href="extensions/css/highlight-styles/zenburn.css">
+    <link rel="stylesheet" href="extensions/css/highlight-styles/xcode.css">
     <link rel="stylesheet" href="extensions/css/custom.css">
 
     <script>
@@ -108,7 +108,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-<pre><code>./hello_world</code> -> <font color="lime">All tests passed</font> (1 asserts in 1 tests)</pre>
+<pre><code>./hello_world</code> -> <font color="green">All tests passed</font> (1 asserts in 1 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
@@ -129,7 +129,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 </code>  -> assertions.cpp:2:<font color="salmon">FAILED</font> [<font color="salmon">4 == 3</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-<pre><code class="line-numbers">expect(41.10_d == 42.101 and "a" == "b"sv);</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
+<pre><code class="line-numbers">expect(41.10_d == 42.101 and "a" == "b"sv);</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="green">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
@@ -228,7 +228,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-<pre><code>| std::vector{1, 2, 3};</code> -> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
+<pre><code>| std::vector{1, 2, 3};</code> -> <font color="green">All tests passed</font> (3 asserts in 3 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ---
@@ -242,7 +242,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
-<pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
+<pre><code>| std::tuple{true, 42};</code> -> <font color="green">All tests passed</font> (4 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
@@ -272,7 +272,7 @@ suite errors = [] {
 
 ---
 
-<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
+<pre><code>int main() { }</code> -> <font color="green">All tests passed</font> (2 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
