@@ -36,8 +36,10 @@ The following snippet is a common example of testing with projects in C++.
 
 ```cpp
 int main() {
-  // should sum numbers test
-  assert(3 == sum(1, 2));
+  // should sum numbers
+  {
+    assert(3 == sum(1, 2));
+  }
 }
 ```
 
@@ -1268,6 +1270,9 @@ namespace boost::ut::inline v1_1_4 {
   * [Source Location](https://eel.is/c++draft/support.srcloc#source.location.syn)
     * Assertions - `expect(false)` - ` __FILE__:__LINE__:FAILED [false]`
 
+  * [Designated initializers](https://eel.is/c++draft/dcl.init#nt:designated-initializer-list)
+    * Configuration - `cfg<override> = {.filter = "test"}`
+
   * [Non-Type Template Parameter](https://eel.is/c++draft/temp.arg.nontype)
     * Constant matchers - `constant<42_i == 42>`
 
@@ -1432,6 +1437,8 @@ namespace boost::ut::inline v1_1_4 {
 <details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Can I still use macros?</summary>
 <p>
 
+> Sure, however, be aware that they will be exposed in the `global scope`
+
 ```cpp
 #define EXPECT(...) ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
 #define SUITE       ::boost::ut::suite _ = []
@@ -1470,10 +1477,10 @@ All tests passed (4 asserts in 3 tests)
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Standardization?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Is standardization an option?</summary>
 <p>
 
-Personally, I believe that C++ standard could benefit from common testing primitives (`expect`, `""_test`) because:
+> Personally, I believe that C++ standard could benefit from common testing primitives (`expect`, `""_test`) because
 
 * It lowers the entry-level to the language (no need for third-party libraries)
 * It improves the education aspect (one standard way of doing it)
@@ -1486,10 +1493,10 @@ Personally, I believe that C++ standard could benefit from common testing primit
 </p>
 </details>
 
-<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Mocks/Stubs/Fakes?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;What about Mocks/Stubs/Fakes?</summary>
 <p>
 
-Consider integrating one of the following frameworks:
+> Consider integrating one of the following frameworks
 
 * https://github.com/cpp-testing/GUnit/blob/master/docs/GMock.md
 * https://github.com/eranpeer/FakeIt
