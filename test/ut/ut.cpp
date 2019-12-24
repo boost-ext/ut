@@ -63,11 +63,13 @@ struct fake_cfg {
       }
     }
   }
+
   template <class... Ts>
   auto on(ut::events::skip<Ts...> test) {
     skip_calls.push_back(
         {.type = test.type, .name = test.name, .arg = test.arg});
   }
+
   template <class TExpr>
   auto on(ut::events::assertion<TExpr> assertion) -> bool {
     assertion_calls.push_back({.expr = to_string(assertion.expr),
@@ -75,6 +77,7 @@ struct fake_cfg {
                                .result = assertion.expr});
     return assertion.expr;
   }
+
   auto on(ut::events::fatal_assertion) { ++fatal_assertion_calls; }
 
   template <class TMsg>

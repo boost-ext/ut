@@ -14,7 +14,6 @@ int main() {
   !expect(i == 0_i);
 
   should("return increased number for ++") = [i] { expect(++mut(i) == 1_i); };
-
   should("return decreased number for --") = [i]() mutable {
     expect(--i == -1_i);
   };
