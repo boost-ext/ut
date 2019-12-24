@@ -22,7 +22,7 @@
 </details>
 
 <a name="motivation"></a>
-<details open><summary>Motivation</summary>
+<details><summary>Motivation</summary>
 <p>
 
 Testing is a very important part of the Software Development, however, C++ doesn't provide any good testing facilities out of the box,
@@ -88,7 +88,7 @@ Sounds intriguing/interesting? Learn more at:
 </details>
 
 <a name="quick-start"></a>
-<details open><summary>Quick Start</summary>
+<details><summary>Quick Start</summary>
 <p>
 
 <p align="center">
@@ -119,7 +119,7 @@ Sounds intriguing/interesting? Learn more at:
 <details open><summary>Tutorial</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 0: Get it...</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 0: Get it...</summary>
 <p>
 
 > Get the latest latest header/module from [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
@@ -154,7 +154,7 @@ cd build && make install # install
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 1: Expect it...</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 1: Expect it...</summary>
 <p>
 
 > Let's write our first assertion, shall we?
@@ -294,7 +294,7 @@ asserts: 1 | 0 passed | 1 failed
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Group it...</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 2: Group it...</summary>
 <p>
 
 > Assertions are great, but how to combine them into more cohesive units?
@@ -421,7 +421,7 @@ All tests passed (3 asserts in 3 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 3: Scale it...</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 3: Scale it...</summary>
 <p>
 
 > Okay, but my project is more complex than that. How can I scale?
@@ -464,7 +464,7 @@ All tests passed (2 asserts in 2 tests)
 <details open><summary>Examples</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Assertions</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Assertions</summary>
 <p>
 
 ```cpp
@@ -527,10 +527,10 @@ asserts: 24 | 22 passed | 2 failed
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run/Skip</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run/Skip</summary>
 <p>
 
 ```cpp
@@ -568,7 +568,7 @@ All tests passed (1 asserts in 1 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sections</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sections</summary>
 <p>
 
 ```cpp
@@ -600,7 +600,7 @@ All tests passed (4 asserts in 1 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Parameterized</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Parameterized</summary>
 <p>
 
 ```cpp
@@ -634,7 +634,7 @@ All tests passed (11 asserts in 7 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
 <p>
 
 ```cpp
@@ -660,7 +660,7 @@ All tests passed (2 asserts in 1 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Suites</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Suites</summary>
 <p>
 
 ```cpp
@@ -690,10 +690,10 @@ All tests passed (2 asserts in 2 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Misc</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Misc</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging</summary>
 <p>
 
 ```cpp
@@ -722,7 +722,7 @@ asserts: 1 | 0 passed | 1 failed
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Matchers</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Matchers</summary>
 <p>
 
 ```cpp
@@ -747,7 +747,7 @@ All tests passed (1 asserts in 1 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exceptions/Aborts</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exceptions/Aborts</summary>
 <p>
 
 ```cpp
@@ -772,10 +772,10 @@ All tests passed (4 asserts in 1 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Config</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Config</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Runner</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Runner</summary>
 <p>
 
 ```cpp
@@ -801,7 +801,7 @@ template<> auto ut::cfg<ut::override> = cfg::runner{};
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reporter</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reporter</summary>
 <p>
 
 ```cpp
@@ -834,7 +834,7 @@ auto ut::cfg<ut::override> = ut::runner<cfg::reporter>{};
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Printer</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Printer</summary>
 <p>
 
 ```cpp
@@ -876,7 +876,7 @@ int main() {
 <details open><summary>User Guide</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;API</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;API</summary>
 <p>
 
 ```cpp
@@ -1240,7 +1240,7 @@ namespace boost::ut::inline v1_1_4 {
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Configuration</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Configuration</summary>
 <p>
 
 | Option | Description | Example |
@@ -1259,10 +1259,10 @@ namespace boost::ut::inline v1_1_4 {
 <a name="cpp-20"></a>
 <a name="how-it-works"></a>
 <a name="macro"></a>
-<details open><summary>FAQ</summary>
+<details><summary>FAQ</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++20 features?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++20 features?</summary>
 <p>
 
 * API
@@ -1288,7 +1288,7 @@ namespace boost::ut::inline v1_1_4 {
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;How does it work?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;How does it work?</summary>
 <p>
 
 > `suite`
@@ -1434,7 +1434,7 @@ namespace boost::ut::inline v1_1_4 {
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Can I still use macros?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Can I still use macros?</summary>
 <p>
 
 > Sure, however, be aware that they will be exposed in the `global scope`
@@ -1477,7 +1477,7 @@ All tests passed (4 asserts in 3 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Is standardization an option?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;Is standardization an option?</summary>
 <p>
 
 > Personally, I believe that C++ standard could benefit from common testing primitives (`expect`, `""_test`) because
@@ -1493,7 +1493,7 @@ All tests passed (4 asserts in 3 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;What about Mocks/Stubs/Fakes?</summary>
+<details><summary>&nbsp;&nbsp;&nbsp;&nbsp;What about Mocks/Stubs/Fakes?</summary>
 <p>
 
 > Consider integrating one of the following frameworks
