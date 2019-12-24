@@ -20,9 +20,6 @@
   <a href="https://godbolt.org/z/dfMGbE"><img src="doc/images/ut.png"></a>
 </p>
 
-</p>
-</details>
-
 <a name="motivation"></a>
 <details open><summary>Motivation</summary>
 <p>
@@ -1612,6 +1609,9 @@ All tests passed (4 asserts in 3 tests)
 </table>
 
 > https://github.com/cpp-testing/ut-benchmark
+
+</p>
+</details>
 
 </p>
 </details>
