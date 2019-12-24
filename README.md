@@ -91,7 +91,7 @@ Sounds intriguing/interesting? Learn more at:
 <p>
 
 <p align="center">
-  <a href="https://bit.ly/boost-ut-quick-start"><img src="doc/images/quick_start.png"></a>
+  <a href="https://bit.ly/boost-ut-quick-start"><img width="80%" src="doc/images/quick_start.png"></a>
 </p>
 
 </p>
