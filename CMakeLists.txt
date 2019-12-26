@@ -5,8 +5,12 @@
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 cmake_minimum_required(VERSION 3.0)
-project(Boost.UT CXX)
+project(boost.ut CXX)
 set(CMAKE_CXX_STANDARD 20)
+
+add_library(boost.ut INTERFACE)
+target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_options(-Weverything
                       -Werror
