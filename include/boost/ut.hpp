@@ -1509,7 +1509,7 @@ struct test {
                                        .location = test.location,
                                        .arg = none{},
                                        .run = test.test});
-    return test;
+    return test.test;
   }
 
   template <class Test,

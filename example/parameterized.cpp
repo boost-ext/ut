@@ -6,6 +6,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <string>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -13,22 +14,40 @@
 int main() {
   using namespace boost::ut;
 
-  for (const auto& i : std::vector{1, 2, 3}) {
-    test("parameterized " + std::to_string(i)) = [i] {  // 3 tests
-      expect(that % i > 0);                             // 3 asserts
+  /// Language syntax
+  for (auto i : std::vector{1, 2, 3}) {
+    test("args / " + std::to_string(i)) = [i] {  // 3 tests
+      expect(that % i > 0);                      // 3 asserts
     };
   }
 
-  "args"_test = [](const auto& arg) {
+  /// Alternative syntax
+  "args"_test = [](auto arg) {
     expect(arg > 0_i) << "all values greater than 0";
   } | std::vector{1, 2, 3};
 
+  /// Alternative syntax
   "types"_test = []<class T>() {
     expect(std::is_integral_v<T>) << "all types are integrals";
   }
   | std::tuple<bool, int>{};
 
-  "args and types"_test = []<class TArg>(const TArg& arg) {
+  /// Language syntax
+  std::apply(
+      [](auto... args) {
+        ((test("args and types / " + std::to_string(args)) =
+              [&] {
+                using TArgs = decltype(args);
+                !expect(std::is_integral_v<TArgs>);
+                expect(42_i == static_cast<int>(args) or args);
+                expect(type<TArgs> == type<int> or type<TArgs> == type<bool>);
+              }),
+         ...);
+      },
+      std::tuple{42, true});
+
+  /// Alternative syntax
+  "args and types"_test = []<class TArg>(TArg arg) {
     !expect(std::is_integral_v<TArg>);
     expect(42_i == static_cast<int>(arg) or arg);
     expect(type<TArg> == type<int> or type<TArg> == type<bool>);
