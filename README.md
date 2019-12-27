@@ -403,7 +403,7 @@ All tests passed (2 asserts in 1 tests)
 
 ```cpp
 int main() {
-  for (const auto& i : std::vector{1, 2, 3}) {
+  for (auto i : std::vector{1, 2, 3}) {
     test("parameterized " + std::to_string(i)) = [i] { // 3 tests
       expect(that % i > 0); // 3 asserts
     };
@@ -622,14 +622,14 @@ All tests passed (4 asserts in 1 tests)
 <p>
 
 ```cpp
-for (const auto& i : std::vector{1, 2, 3}) {
+for (auto i : std::vector{1, 2, 3}) {
   test("parameterized " + std::to_string(i)) = [i] {
     expect(that % i > 0);
   };
 }
 
 "args"_test =
-   [](const auto& arg) {
+   [](auto arg) {
       expect(arg >= 1_i);
     }
   | std::vector{1, 2, 3};
@@ -641,7 +641,7 @@ for (const auto& i : std::vector{1, 2, 3}) {
   | std::tuple<bool, int>{};
 
 "args and types"_test =
-    []<class TArg>(const TArg& arg) {
+    []<class TArg>(TArg arg) {
       !expect(std::is_integral_v<TArg>);
        expect(42_i == arg or true_b == arg);
        expect(type<TArg> == type<int> or type<TArg> == type<bool>);
@@ -1279,38 +1279,10 @@ namespace boost::ut::inline v1_1_4 {
 </details>
 
 <a name="faq"></a>
-<a name="cpp-20"></a>
-<a name="how-it-works"></a>
-<a name="macro"></a>
 <details open><summary>FAQ</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++20 features?</summary>
-<p>
-
-* API
-
-  * [Source Location](https://eel.is/c++draft/support.srcloc#source.location.syn)
-    * Assertions - `expect(false)` - ` __FILE__:__LINE__:FAILED [false]`
-
-  * [Designated initializers](https://eel.is/c++draft/dcl.init#nt:designated-initializer-list)
-    * Configuration - `cfg<override> = {.filter = "test"}`
-
-  * [Non-Type Template Parameter](https://eel.is/c++draft/temp.arg.nontype)
-    * Constant matchers - `constant<42_i == 42>`
-
-  * [Template Parameter List for generic lambdas](https://eel.is/c++draft/expr.prim.lambda)
-    * Parameterized tests - `"types"_test = []<class T>() {};`
-
-  * [Concepts](https://eel.is/c++draft/concepts.lang)
-    * Operators - `Operator @ Operator`
-
-  * [Modules](https://eel.is/c++draft/module)
-    * `import boost.ut;`
-
-</p>
-</details>
-
+<a name="how-it-works"></a>
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;How does it work?</summary>
 <p>
 
@@ -1457,6 +1429,74 @@ namespace boost::ut::inline v1_1_4 {
 </p>
 </details>
 
+<a name="cpp-20"></a>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++20 features?</summary>
+<p>
+
+* API
+
+  * [Source Location](https://eel.is/c++draft/support.srcloc#source.location.syn)
+    * Assertions - `expect(false)` - ` __FILE__:__LINE__:FAILED [false]`
+
+  * [Designated initializers](https://eel.is/c++draft/dcl.init#nt:designated-initializer-list)
+    * Configuration - `cfg<override> = {.filter = "test"}`
+
+  * [Non-Type Template Parameter](https://eel.is/c++draft/temp.arg.nontype)
+    * Constant matchers - `constant<42_i == 42>`
+
+  * [Template Parameter List for generic lambdas](https://eel.is/c++draft/expr.prim.lambda)
+    * Parameterized tests - `"types"_test = []<class T>() {};`
+
+  * [Concepts](https://eel.is/c++draft/concepts.lang)
+    * Operators - `Operator @ Operator`
+
+  * [Modules](https://eel.is/c++draft/module)
+    * `import boost.ut;`
+
+</p>
+</details>
+
+<a name="cpp-2x"></a>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++2X integration?</summary>
+<p>
+
+> Parameterized tests with Expansion statements (http://wg21.link/P1306r1)
+
+```cpp
+template for (auto arg : std::tuple<int, double>{}) {
+  test("types " + std::to_string(arg)) = [arg] {
+    expect(type(arg) == type<int> or type(arg) == type<double>);
+  };
+}
+```
+
+```
+All tests passed (2 asserts in 2 tests)
+```
+
+> https://cppx.godbolt.org/z/dMmqmM
+
+</p>
+</details>
+
+<a name="std"></a>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Is standardization an option?</summary>
+<p>
+
+> Personally, I believe that C++ standard could benefit from common testing primitives (`expect`, `""_test`) because
+
+* It lowers the entry-level to the language (no need for third-party libraries)
+* It improves the education aspect (one standard way of doing it)
+* It makes the language more coherent/stable (consistent design with other features, stable API)
+* It makes the testing a first class citizen (shows that the community cares about this aspect of the language)
+* It allows to publish tests for the Standard Library (STL) in the standard way (coherency, easier to extend)
+* It allows to act as additional documentation as a way to verify whether a particular implementation is conforming (quality, self-verification)
+* It helps with establishing standard vocabulary for testing (common across STL and other projects)
+
+</p>
+</details>
+
+<a name="macros"></a>
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Can I still use macros?</summary>
 <p>
 
@@ -1496,22 +1536,6 @@ All tests passed (4 asserts in 3 tests)
 ```
 
 > https://godbolt.org/z/tvy-nP
-
-</p>
-</details>
-
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Is standardization an option?</summary>
-<p>
-
-> Personally, I believe that C++ standard could benefit from common testing primitives (`expect`, `""_test`) because
-
-* It lowers the entry-level to the language (no need for third-party libraries)
-* It improves the education aspect (one standard way of doing it)
-* It makes the language more coherent/stable (consistent design with other features, stable API)
-* It makes the testing a first class citizen (shows that the community cares about this aspect of the language)
-* It allows to publish tests for the Standard Library (STL) in the standard way (coherency, easier to extend)
-* It allows to act as additional documentation as a way to verify whether a particular implementation is conforming (quality, self-verification)
-* It helps with establishing standard vocabulary for testing (common across STL and other projects)
 
 </p>
 </details>
