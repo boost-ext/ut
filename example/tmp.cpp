@@ -18,5 +18,7 @@ int main() {
   "tmp"_test = [] {
     expect(constant<42_i == i> and type<void> == type<void> and
            type<list<void, int>> == type<list<void, int>>);
+
+    expect(type<>(i) == type<int>);
   };
 }

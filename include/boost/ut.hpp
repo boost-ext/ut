@@ -489,6 +489,10 @@ template <class T>
 
 template <class T>
 struct type_ : op {
+  template <class TOther>
+  [[nodiscard]] constexpr auto operator()(TOther) const -> const type_<TOther> {
+    return {};
+  }
   [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
   template <class TOther>
   [[nodiscard]] constexpr auto operator==(type_<TOther>) -> bool {
@@ -1953,7 +1957,7 @@ struct suite {
 [[maybe_unused]] constexpr auto then = [](const auto name) {
   return detail::test{"then", name};
 };
-template <class T>
+template <class T = void>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
 
 template <class TLhs, class TRhs>
