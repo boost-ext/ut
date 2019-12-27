@@ -82,9 +82,16 @@ class string_view {
  public:
   constexpr string_view() = default;
   template <class TStr>
-  constexpr explicit string_view(const TStr& str)
+  constexpr /*explicit(false)*/ string_view(const TStr& str)
       : data_{str.c_str()}, size_{str.size()} {}
-  constexpr string_view(const char* data, decltype(sizeof("")) size)
+  constexpr /*explicit(false)*/ string_view(const char* const data)
+      : data_{data}, size_{[data] {
+          decltype(sizeof("")) size{};
+          for (size = {}; data[size] != '\0'; ++size)
+            ;
+          return size;
+        }()} {}
+  constexpr string_view(const char* const data, decltype(sizeof("")) size)
       : data_{data}, size_{size} {}
   template <auto N>
   constexpr string_view(const char (&data)[N]) : data_{data}, size_{N - 1} {}
@@ -401,7 +408,6 @@ extern auto operator<<(ostream& os, float) -> ostream&;
 extern auto operator<<(ostream& os, double) -> ostream&;
 extern auto operator<<(ostream& os, long double) -> ostream&;
 extern auto operator<<(ostream& os, char const*) -> ostream&;
-extern auto operator<<(ostream& os, const utility::string_view) -> ostream&;
 #elif defined(BOOST_UT_IMPLEMENTATION)
 struct ostream : std::ostream {
   using std::ostream::ostream;
@@ -460,10 +466,6 @@ auto operator<<(ostream& os, long double ld) -> ostream& {
 }
 auto operator<<(ostream& os, char const* s) -> ostream& {
   static_cast<std::ostream&>(os) << s;
-  return os;
-}
-auto operator<<(ostream& os, const utility::string_view sv) -> ostream& {
-  static_cast<std::ostream&>(os) << std::string_view{sv};
   return os;
 }
 #endif
@@ -1831,7 +1833,7 @@ template <class T>
 template <class F, class T,
           type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
-  return [f, t](auto name) {
+  return [f, t](const auto name) {
     for (const auto& arg : t) {
       detail::on<F>(events::test<F, typename T::value_type>{
           .type = "test", .name = name, .location = {}, .arg = arg, .run = f});
@@ -1843,7 +1845,7 @@ template <
     class F, template <class...> class T, class... Ts,
     type_traits::requires_t<not type_traits::is_container_v<T<Ts...>>> = 0>
 [[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t) {
-  return [f, t](auto name) {
+  return [f, t](const auto name) {
     apply(
         [f, name](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
@@ -1937,18 +1939,18 @@ struct suite {
 
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};
-[[maybe_unused]] constexpr auto test = [](utility::string_view name) {
+[[maybe_unused]] constexpr auto test = [](const auto name) {
   return detail::test{"test", name};
 };
 [[maybe_unused]] constexpr auto should = test;
 [[maybe_unused]] constexpr auto skip = detail::skip{};
-[[maybe_unused]] constexpr auto given = [](utility::string_view name) {
+[[maybe_unused]] constexpr auto given = [](const auto name) {
   return detail::test{"given", name};
 };
-[[maybe_unused]] constexpr auto when = [](utility::string_view name) {
+[[maybe_unused]] constexpr auto when = [](const auto name) {
   return detail::test{"when", name};
 };
-[[maybe_unused]] constexpr auto then = [](utility::string_view name) {
+[[maybe_unused]] constexpr auto then = [](const auto name) {
   return detail::test{"then", name};
 };
 template <class T>
