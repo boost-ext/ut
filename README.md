@@ -403,6 +403,25 @@ All tests passed (2 asserts in 1 tests)
 
 ```cpp
 int main() {
+  for (const auto& i : std::vector{1, 2, 3}) {
+    test("parameterized " + std::to_string(i)) = [i] { // 3 tests
+      expect(that % i > 0); // 3 asserts
+    };
+  }
+}
+```
+
+```
+All tests passed (3 asserts in 3 tests)
+```
+
+> https://godbolt.org/z/Utnd6X
+
+> That's it 😮!
+> Alternatively, a convenient test syntax is also provided 👍
+
+```cpp
+int main() {
   "args"_test = [](const auto& arg) {
     expect(arg > 0_i) << "all values greater than 0";
   } | std::vector{1, 2, 3};
@@ -603,6 +622,12 @@ All tests passed (4 asserts in 1 tests)
 <p>
 
 ```cpp
+for (const auto& i : std::vector{1, 2, 3}) {
+  test("parameterized " + std::to_string(i)) = [i] {
+    expect(that % i > 0);
+  };
+}
+
 "args"_test =
    [](const auto& arg) {
       expect(arg >= 1_i);
@@ -625,10 +650,9 @@ All tests passed (4 asserts in 1 tests)
 ```
 
 ```
-All tests passed (11 asserts in 7 tests)
+All tests passed (14 asserts in 10 tests)
 ```
-
-> https://godbolt.org/z/WCqggN
+> https://godbolt.org/z/Achv68
 
 </p>
 </details>
