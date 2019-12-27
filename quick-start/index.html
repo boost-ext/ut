@@ -149,7 +149,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 ```cpp
   should("resize bigger") = [=] {
-    v.resize(10);
+    mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
 ```
@@ -162,7 +162,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 ```cpp
   should("resize smaller") = [=] {
-    v.resize(0);
+    mut(v).resize(0);
     expect(0_ul == std::size(v));
   };
 ```
@@ -222,28 +222,30 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 #### Parameterized - https://godbolt.org/z/6FHtpq
 
 ```cpp
-"args"_test = [](const auto& arg) {
-  expect(arg > 0_i) << "all values greater than 0";
+for (auto i : std::vector{1, 2, 3}) {
+  test("args " + std::to_string(i)) = [i] {
+    expect(arg > 0_i) << "all values greater than 0";
+  };
 }
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="0" -->
 
-<pre><code>| std::vector{1, 2, 3};</code> -> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="2" -->
+<pre>-> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ---
 
 ```cpp
 "args and types"_test =
-  []<class TArg>(const TArg& arg) {
+  []<class TArg>(TArg arg) {
     expect(std::is_integral_v<TArg>);
     expect(type<TArg> == type<int> or type<TArg> == type<bool>);
   }
 ```
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
 <pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="4" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
