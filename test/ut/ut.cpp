@@ -309,6 +309,7 @@ int main() {
     test_assert("42 != 42" == to_string(42_i != 42));
     test_assert("42 > 0" == to_string(42_ul > 0_ul));
     test_assert("int == float" == to_string(type<int> == type<float>));
+    test_assert("int == float" == to_string(type<>(int{}) == type<float>));
     test_assert("void != double" == to_string(type<void> != type<double>));
     test_assert("(true or 42.42 == 12.34)" ==
                 to_string(true_b or (42.42_d == 12.34)));
