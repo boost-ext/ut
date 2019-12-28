@@ -48,7 +48,7 @@ There are quite a few problems with the approach above:
 * No automatic registration of tests (No way to run specific tests)
 * Hard to debug (Assertions don't provide any information why it failed)
 * Hard to scale (No easy path forward for parameterized tests, multiple suites, etc...)
-* Hard to integrate (No easy way to have a custom output such as xml for CI integration)
+* Hard to integrate (No easy way to have a custom output such as XML for CI integration)
 * Easy to make mistakes (With implicit casting, floating point comparison, pointer comparison for strings, etc...)
 * Hard to follow good practises such as TDD/BDD (Lack of support for sections and declarative expressions)
 * ...
@@ -56,7 +56,7 @@ There are quite a few problems with the approach above:
 `[Boost].UT` is trying to address these issues by simplifying testing experience with a few simple steps:
 
 * Just get a single [header/module](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
-* Put it into your project
+* Integrate it into your project
 * Learn a few simple concepts ([expect, test, suite](#api))
 
 And you good to go!
@@ -68,13 +68,16 @@ Okay, great, but why I would use `[Boost].UT` over other/similar testing framewo
 * [Catch](https://github.com/catchorg/Catch2)
 * [...](https://en.wikipedia.org/wiki/List_of_unit_testing_frameworks#C++)
 
-Great question! There are a few unique features which makes `[Boost].UT` worth trying:
+Great question! There are a few unique features which makes `[Boost].UT` worth trying
 
-* It supports all the basic testing framework features (Such as: Automatic registration of tests, assertions, suites, etc...)
-* It's easy to integrate (It's just one header/module file)
-* It's macro free which makes testing experience that much nicer (It uses modern C++ features instead, macros are opt-in rather than being mandatory - [Can I still use macros?](#macros))
+* Firstly, it supports all the basic Unit Testing Framework features (automatic registration of tests, assertions, suites, etc...)
+* It's easy to integrate (it's just one [header/module](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+* It's macro free which makes testing experience that much nicer (it uses modern C++ features instead, macros are opt-in rather than being compulsory - [Can I still use macros?](#macros))
+* It's flexible (all parts of the framework such as: [runner, reporter, printer](#examples) can be customized, basically most other Unit Testing Frameworks can be implemented on top of UT primitives)
+* It has smaller learning curve (just a few simple concepts ([expect, test, suite](#api)))
+* It leverages C++ features to support more complex testing ([parameterized](#examples))
 * It's faster to compile and execute than similar frameworks which makes it suitable for bigger projects without additional hassle ([Benchmarks](#benchmarks))
-* It supports TDD/BDD workflows
+* It supports [TDD/BDD](#examples) workflows
 * ...
 
 Sounds intriguing/interesting? Learn more at:
