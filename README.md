@@ -42,7 +42,7 @@ int main() {
 }
 ```
 
-There are quite a few problems with the approach above:
+There are quite a few problems with the approach above
 
 * No names for tests (Hard to follow intentions by further readers)
 * No automatic registration of tests (No way to run specific tests)
@@ -80,7 +80,7 @@ Great question! There are a few unique features which makes `[Boost].UT` worth t
 * It supports [TDD/BDD](#examples) workflows
 * ...
 
-Sounds intriguing/interesting? Learn more at:
+Sounds intriguing/interesting? Learn more at
 
 * [Tutorial](#tutorial)
 * [Examples](#examples)
@@ -94,8 +94,10 @@ Sounds intriguing/interesting? Learn more at:
 <p>
 
 <p align="center">
-  <a href="https://bit.ly/boost-ut-quick-start"><img width="80%" src="doc/images/quick_start.png"></a>
+  <a href="https://bit.ly/boost-ut-quick-start"><img width="90%" src="doc/images/quick_start.png"></a>
 </p>
+
+> https://bit.ly/boost-ut-quick-start (slides)
 
 </p>
 </details>
