@@ -39,22 +39,7 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'5
 
-#if defined(BOOST_UT_FORWARD)
-namespace std {
-template <class TLhs, class TRhs>
-auto operator==(TLhs, TRhs) -> bool;
-template <class TLhs, class TRhs>
-auto operator<(TLhs, TRhs) -> bool;
-template <class TLhs, class TRhs>
-auto operator<=(TLhs, TRhs) -> bool;
-template <class TLhs, class TRhs>
-auto operator!=(TLhs, TRhs) -> bool;
-template <class TLhs, class TRhs>
-auto operator>(TLhs, TRhs) -> bool;
-template <class TLhs, class TRhs>
-auto operator>=(TLhs, TRhs) -> bool;
-}  // namespace std
-#else
+#if not defined(BOOST_UT_FORWARD)
 #include <array>
 #include <iostream>
 #include <sstream>
@@ -564,8 +549,6 @@ class eq_ : op {
  public:
   constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-          using std::operator==;
-          using std::operator<;
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value == TRhs::value;
@@ -597,8 +580,6 @@ class neq_ : op {
  public:
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-          using std::operator!=;
-          using std::operator>;
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value != TRhs::value;
@@ -630,7 +611,6 @@ class gt_ : op {
  public:
   constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-          using std::operator>;
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value > TRhs::value;
@@ -654,7 +634,6 @@ class ge_ : op {
  public:
   constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-          using std::operator>=;
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value >= TRhs::value;
@@ -678,7 +657,6 @@ class lt_ : op {
  public:
   constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-          using std::operator<;
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value < TRhs::value;
@@ -702,7 +680,6 @@ class le_ : op {
  public:
   constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-          using std::operator<=;
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value <= TRhs::value;
