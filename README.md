@@ -11,6 +11,8 @@
 
 # [Boost].UT / μt
 
+[![Join the chat at https://gitter.im/boost-experimental/ut](https://badges.gitter.im/boost-experimental/ut.svg)](https://gitter.im/boost-experimental/ut?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 | [Motivation](#motivation) | [Quick Start](#quick-start) | [Overview](#overview) | [Tutorial](#tutorial) | [Examples](#examples) | [User Guide](#user-guide) | [FAQ](#faq) | [Benchmarks](#benchmarks) |
 
 <details open><summary>C++ <b>single header/single module, macro-free</b> μ(micro)/Unit Testing Framework</summary>
