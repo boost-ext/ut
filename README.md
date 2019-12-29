@@ -767,10 +767,10 @@ asserts: 1 | 0 passed | 1 failed
 ```
 
 ```
-All tests passed (1 asserts in 1 tests)
+All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/nrJyV-
+> https://godbolt.org/z/oEzRsi
 
 </p>
 </details>
@@ -910,7 +910,7 @@ int main() {
 ```cpp
 export module boost.ut; /// __cpp_modules
 
-namespace boost::ut::inline v1_1_4 {
+namespace boost::ut::inline v1_1_5 {
   /**
    * Represents test suite object
    */
@@ -1425,10 +1425,10 @@ namespace boost::ut::inline v1_1_4 {
    * @example when("I call it") = [] {};
    * @example then("I should get") = [] {};
    */
-  constexpr auto should = [](auto name) { return test{name}; };
-  constexpr auto given  = [](auto name) { return test{name}; };
-  constexpr auto when   = [](auto name) { return test{name}; };
-  constexpr auto then   = [](auto name) { return test{name}; };
+  constexpr auto should = [](const auto name) { return test{name}; };
+  constexpr auto given  = [](const auto name) { return test{name}; };
+  constexpr auto when   = [](const auto name) { return test{name}; };
+  constexpr auto then   = [](const auto name) { return test{name}; };
   ```
 
 </p>
@@ -1505,7 +1505,11 @@ All tests passed (2 asserts in 2 tests)
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Can I still use macros?</summary>
 <p>
 
-> Sure, however, be aware that they will be exposed in the `global scope`
+> Sure, although please notice that there are negatives of using macros such as
+
+* Error messages might be not clear and/or point to the wrong line
+* Global scope will be polluted
+* Type safety will be ignored
 
 ```cpp
 #define EXPECT(...) ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
@@ -1548,7 +1552,7 @@ All tests passed (4 asserts in 3 tests)
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;What about Mocks/Stubs/Fakes?</summary>
 <p>
 
-> Consider integrating one of the following frameworks
+> Consider using one of the following frameworks
 
 * https://github.com/cpp-testing/GUnit/blob/master/docs/GMock.md
 * https://github.com/eranpeer/FakeIt
