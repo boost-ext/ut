@@ -1459,8 +1459,8 @@ struct skip {};
 
 #if defined(BOOST_UT_FORWARD)
 template <class..., class TEvent>
-constexpr auto on(const TEvent& event) {
-  link::on(event);
+constexpr auto on(TEvent&& event) {
+  link::on(static_cast<TEvent&&>(event));
 }
 
 template <class..., class Test, class TArg>
@@ -1481,9 +1481,9 @@ template <class..., class TExpr>
 }
 #else
 template <class... Ts, class TEvent>
-[[nodiscard]] constexpr decltype(auto) on(const TEvent& event) {
+[[nodiscard]] constexpr decltype(auto) on(TEvent&& event) {
   return ut::cfg<typename type_traits::identity<override, Ts...>::type>.on(
-      event);
+      static_cast<TEvent&&>(event));
 }
 #endif
 
@@ -1517,8 +1517,11 @@ struct test {
                 not type_traits::is_convertible_v<Test, void (*)()>> = 0>
   constexpr auto operator=(Test test) ->
       typename type_traits::identity<Test, decltype(test())>::type {
-    on<Test>(events::test<Test>{
-        .type = type, .name = name, .location = {}, .arg = {}, .run = test});
+    on<Test>(events::test<Test>{.type = type,
+                                .name = name,
+                                .location = {},
+                                .arg = {},
+                                .run = static_cast<Test&&>(test)});
     return test;
   }
 
