@@ -6,6 +6,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <sstream>
+#include <string_view>
 #include <vector>
 
 int main() {
@@ -27,5 +29,19 @@ int main() {
       v.resize(0);
       expect(0_ul == std::size(v));
     };
+  };
+
+  using namespace std::literals;
+
+  std::stringstream str{};
+
+  "[str1]"_test = [str{std::move(str)}] {
+    mut(str) << '1';
+    expect(str.str() == "1"sv);
+  };
+
+  "[str2]"_test = [str{std::move(str)}] {
+    mut(str) << '2';
+    expect(str.str() == "2"sv);
   };
 }
