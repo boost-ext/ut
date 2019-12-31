@@ -541,7 +541,7 @@ expect(sum() == 1_i or 2_i == sum()) << "sum?";
 assertions.cpp:53:FAILED [1 == 2] should fail
 assertions.cpp:54:FAILED [(0 == 1 or 2 == 0)] sum?
 ===============================================================================
-tests:   0 | 0 failed
+tests:   0  | 0 failed
 asserts: 24 | 22 passed | 2 failed
 ```
 
@@ -935,23 +935,23 @@ namespace boost::ut::inline v1_1_5 {
    * @example test("name") = [] {};
    * @return test object to be executed
    */
-  constexpr auto test = [](auto name);
+  constexpr auto test = [](const auto name);
 
   /**
    * Creates a test
    * @example should("name") = [] {};
    * @return test object to be executed
    */
-  constexpr auto should = [](auto name);
+  constexpr auto should = [](const auto name);
 
   /**
    * Behaviour Driven Development (BDD) helper functions
    * @param name step name
    * @return test object to be executed
    */
-  constexpr auto given = [](auto name);
-  constexpr auto when  = [](auto name);
-  constexpr auto then  = [](auto name);
+  constexpr auto given = [](const auto name);
+  constexpr auto when  = [](const auto name);
+  constexpr auto then  = [](const auto name);
 
   /**
    * Evaluates an expression
@@ -980,7 +980,7 @@ namespace boost::ut::inline v1_1_5 {
     /**
      * @param expr matcher expression
      */
-    constexpr explicit(true) matcher_(Expression expr);
+    constexpr explicit(true) matcher(Expression expr);
 
     /**
      * Executes matcher expression
