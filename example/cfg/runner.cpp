@@ -6,6 +6,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <stdexcept>
 
 namespace ut = boost::ut;
 
@@ -36,7 +37,7 @@ int main() {
   using namespace ut;
 
   "should be ignored"_test = [] {
-    expect(throws([] { throw std::runtime_error{{}}; }));
+    expect(throws([] { throw std::runtime_error{"exception!"}; }));
     expect(1_i == 2) << "doesn't fire";
   };
 }
