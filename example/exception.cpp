@@ -12,8 +12,9 @@ int main() {
   using namespace boost::ut;
 
   "exceptions"_test = [] {
-    expect(throws<std::runtime_error>([] { throw std::runtime_error{""}; }))
-        << "throws runtime_error";
+    expect(throws<std::runtime_error>([] {
+      throw std::runtime_error{"exception!"};
+    })) << "throws runtime_error";
     expect(throws([] { throw 0; })) << "throws any exception";
     expect(nothrow([] {})) << "doesn't throw";
   };
