@@ -61,6 +61,10 @@ matrix:
           - g++-9
           - libstdc++-9-dev
 
+  - os: osx
+    osx_image: xcode11.3
+    env: CXX=clang++ VARIANT=valgrind
+
 script:
   - if [ "${VARIANT}" == "valgrind" ]; then (
       cmake -Bbuild/debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_MEMCHECK=ON -H. && cmake --build build/debug &&

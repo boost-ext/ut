@@ -37,6 +37,10 @@ export import std;
 #elif not defined(__cpp_static_assert)
 #error "[Boost].UT requires support for static assert";
 #else
+#if not defined(__has_builtin)
+#define __has_builtin(...) 0
+#endif
+
 #define BOOST_UT_VERSION 1'1'5
 
 #if defined(BOOST_UT_FORWARD)
@@ -210,10 +214,10 @@ namespace reflection {
 class source_location {
  public:
   [[nodiscard]] static constexpr auto current(
-#if (__GNUC__ >= 9 or __clang_major__ >= 9)
+#if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
       const char* file = __builtin_FILE(), int line = __builtin_LINE()
 #else
-      const char* file = {}, int line = {}
+      const char* file = "unknown", int line = {}
 #endif
           ) noexcept {
     source_location sl{};
@@ -1749,7 +1753,8 @@ constexpr auto is_op_v = __is_base_of(detail::op, T);
 }  // namespace type_traits
 
 namespace operators {
-#if defined(__cpp_lib_string_view)
+#if not defined(BOOST_UT_FORWARD) and \
+    (defined(__cpp_lib_string_view) or defined(__APPLE__))
 [[nodiscard]] constexpr auto operator==(std::string_view lhs,
                                         std::string_view rhs) {
   return detail::eq_{lhs, rhs};

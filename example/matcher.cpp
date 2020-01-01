@@ -13,7 +13,7 @@ struct expr {
   const bool result{};
   const std::string str{};
 
-  constexpr explicit(true) operator bool() const { return result; }
+  constexpr explicit operator bool() const { return result; }
   friend auto operator<<(std::ostream& os, const expr& self) -> std::ostream& {
     return (os << self.str);
   }
