@@ -25,11 +25,15 @@ constexpr auto to_string = [](const auto expr) {
   return printer.str();
 };
 
-constexpr auto test_assert = [](const bool result) {
-  if (not result) {
-    throw;
-  }
-};
+constexpr auto test_assert =
+    [](const bool result, const ut::reflection::source_location& sl =
+                              ut::reflection::source_location::current()) {
+      if (not result) {
+        std::cerr << sl.file_name() << ':' << sl.line() << ":FAILED"
+                  << std::endl;
+        throw;
+      }
+    };
 
 struct fake_cfg {
   struct assertion_call {
@@ -1217,6 +1221,7 @@ int main() {
     test_assert("2 > 0" == test_cfg.assertion_calls[3].expr);
   }
 
+#if not defined(__APPLE__)
   {
     test_cfg = fake_cfg{};
 
@@ -1269,6 +1274,7 @@ int main() {
     test_assert("(char == int or char == char)" ==
                 test_cfg.assertion_calls[3].expr);
   }
+#endif
 
   {
     test_cfg = fake_cfg{};
@@ -1337,7 +1343,7 @@ int main() {
     test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
   }
 
-#if (__GNUC__ >= 9 or __clang_major__ >= 9)
+#if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
   {
     test_cfg = fake_cfg{};
 

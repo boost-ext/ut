@@ -106,7 +106,7 @@ Sounds intriguing/interesting? Learn more at
 <details open><summary>Overview</summary>
 <p>
 
-* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `expect, test, suite`)
