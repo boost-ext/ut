@@ -1398,7 +1398,7 @@ class runner {
 
   [[nodiscard]] auto run(run_cfg rc = {}) -> bool {
     run_ = true;
-    for (auto& suite : suites_) {
+    for (const auto& suite : suites_) {
       suite();
     }
     suites_.clear();
