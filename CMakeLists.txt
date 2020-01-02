@@ -12,7 +12,8 @@ add_library(boost.ut INTERFACE)
 target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  add_compile_options(-Weverything
+  target_compile_options(boost.ut INTERFACE
+                      -Weverything
                       -Werror
                       -pedantic
                       -pedantic-errors
@@ -27,7 +28,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
                       -Wno-missing-prototypes
                       -Wno-ctad-maybe-unsupported)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  add_compile_options(-Wall
+  target_compile_options(boost.ut INTERFACE
+                      -Wall
                       -Wextra
                       -Werror
                       -pedantic
@@ -56,7 +58,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
                       -Wmissing-include-dirs
                       -Wno-missing-declarations)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  add_compile_options(/W4
+  target_compile_options(boost.ut INTERFACE
+                      /W4
                       /WX)
 endif()
 
