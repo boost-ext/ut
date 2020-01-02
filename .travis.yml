@@ -66,6 +66,8 @@ matrix:
     env: CXX=clang++ VARIANT=valgrind
 
 script:
+  - git clone --depth 1 https://github.com/intel/tbb.git
+  - export TBB_ROOT="$PWD/tbb"
   - if [ "${VARIANT}" == "valgrind" ]; then (
       cmake -Bbuild/debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_MEMCHECK=ON -H. && cmake --build build/debug &&
       cmake -Bbuild/release -DCMAKE_BUILD_TYPE=Release -DENABLE_MEMCHECK=ON -H. && cmake --build build/release

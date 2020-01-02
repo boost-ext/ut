@@ -47,7 +47,7 @@ There are quite a few problems with the approach above
 * No names for tests (Hard to follow intentions by further readers)
 * No automatic registration of tests (No way to run specific tests)
 * Hard to debug (Assertions don't provide any information why it failed)
-* Hard to scale (No easy path forward for parameterized tests, multiple suites, etc...)
+* Hard to scale (No easy path forward for parameterized tests, multiple suites, parallel execution, etc...)
 * Hard to integrate (No easy way to have a custom output such as XML for CI integration)
 * Easy to make mistakes (With implicit casting, floating point comparison, pointer comparison for strings, etc...)
 * Hard to follow good practises such as TDD/BDD (Lack of support for sections and declarative expressions)
