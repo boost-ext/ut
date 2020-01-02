@@ -12,6 +12,11 @@ add_library(boost.ut INTERFACE)
 target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  if(WIN32) # clang-cl
+  target_compile_options(boost.ut INTERFACE
+                      -Weverything
+                      -Werror)
+  else()
   target_compile_options(boost.ut INTERFACE
                       -Weverything
                       -Werror
@@ -27,6 +32,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
                       -Wno-padded
                       -Wno-missing-prototypes
                       -Wno-ctad-maybe-unsupported)
+  endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   target_compile_options(boost.ut INTERFACE
                       -Wall
