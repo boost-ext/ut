@@ -9,18 +9,27 @@ environment:
   fast_finish: true
 
   matrix:
-  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
-    PLATFORM: amd64
-    CMAKE_GENERATOR: Visual Studio 16 2019
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
+      PLATFORM: amd64
+      CMAKE_GENERATOR: Visual Studio 16 2019
 
-  - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
-    VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build
-    PLATFORM: amd64
-    CMAKE_GENERATOR: Visual Studio 16 2019
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
+      VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build
+      PLATFORM: amd64
+      CMAKE_GENERATOR: Visual Studio 16 2019
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
+      PLATFORM: amd64
+      CMAKE_GENERATOR: Ninja
 
 install:
+  - ps: choco info llvm
+  - ps: choco install ninja --yes --no-progress
+  - cmd: set CXX=clang-cl
   - call "%VSPATH%"\vcvarsall %PLATFORM%
 
 build_script:
-  - cmake -G "%CMAKE_GENERATOR%" -Bbuild -H. && cmake --build build
+  - cmake -G "%CMAKE_GENERATOR%" -Bbuild -H.
+  - cmake --build build
