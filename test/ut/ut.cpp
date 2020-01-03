@@ -156,7 +156,8 @@ int main() {
   {
     static_assert("void"sv == std::string_view{reflection::type_name<void>()});
     static_assert("int"sv == std::string_view{reflection::type_name<int>()});
-#if defined(_MSC_VER)
+
+#if defined(_MSC_VER) and not defined(__clang__)
     static_assert("struct fake_cfg"sv ==
                   std::string_view{reflection::type_name<fake_cfg>()});
 #else
