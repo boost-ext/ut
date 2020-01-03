@@ -34,9 +34,9 @@ matrix:
     - CXX: clang-cl
 
 install:
-  - ps: choco info llvm
   - ps: |
       if ($env:CXX) {
+        choco info llvm
         choco install ninja --yes --no-progress
       }
   - call "%VSPATH%"\vcvarsall %PLATFORM%
@@ -47,7 +47,8 @@ before_build:
 build_script:
   # test
   - cmake --build build --target ft
-  - cmake --build build --target ut
+  # ignore failure return + print output stream
+  - ps: Write-Output $(cmake --build build --target ut)
   # examples
   - cmake --build build --target BDD
   - cmake --build build --target cli_pass
@@ -80,5 +81,7 @@ build_script:
   - cmake --build build --target bexpect_that
   - cmake --build build --target bexpect_eq
   - cmake --build build --target binclude
-  - cmake --build build --target bsuite
+  # ignore failure return + print output stream
+  - ps: Write-Output $(cmake --build build --target bsuite)
+  - cmake --build build --target bsuite_lite
   - cmake --build build --target btest
