@@ -5,10 +5,20 @@
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 shallow_clone: true
+
+platform:
+  - x64
+
 environment:
   fast_finish: true
 
   matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
+      PLATFORM: amd64
+      CMAKE_GENERATOR: Ninja
+      CXX: clang-cl
+
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
       PLATFORM: amd64
@@ -19,17 +29,56 @@ environment:
       PLATFORM: amd64
       CMAKE_GENERATOR: Visual Studio 16 2019
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
-      PLATFORM: amd64
-      CMAKE_GENERATOR: Ninja
+matrix:
+  allow_failures:
+    - CXX: clang-cl
 
 install:
   - ps: choco info llvm
-  - ps: choco install ninja --yes --no-progress
-  - cmd: set CXX=clang-cl
+  - ps: |
+      if ($env:CXX) {
+        choco install ninja --yes --no-progress
+      }
   - call "%VSPATH%"\vcvarsall %PLATFORM%
 
-build_script:
+before_build:
   - cmake -G "%CMAKE_GENERATOR%" -Bbuild -H.
-  - cmake --build build
+
+build_script:
+  # test
+  - cmake --build build --target ft
+  - cmake --build build --target ut
+  # examples
+  - cmake --build build --target BDD
+  - cmake --build build --target cli_pass
+  - cmake --build build --target cli_pass_no_colors
+  - cmake --build build --target cli_pass_dry_run
+  - cmake --build build --target cli_pass_not_dry_run
+  - cmake --build build --target cli_all_dry_run
+  - cmake --build build --target cli_fail_dry_run
+  - cmake --build build --target exception
+  - cmake --build build --target expect
+  - cmake --build build --target filter
+  - cmake --build build --target hello_world
+  - cmake --build build --target log
+  - cmake --build build --target macro
+  - cmake --build build --target minimal
+  - cmake --build build --target mut
+  - cmake --build build --target matcher
+  - cmake --build build --target parameterized
+  - cmake --build build --target run
+  - cmake --build build --target run_report
+  - cmake --build build --target section
+  - cmake --build build --target should
+  - cmake --build build --target skip
+  - cmake --build build --target suite
+  - cmake --build build --target _test
+  - cmake --build build --target tmp
+  - cmake --build build --target using
+  # benchmark
+  - cmake --build build --target bexpect_udl
+  - cmake --build build --target bexpect_that
+  - cmake --build build --target bexpect_eq
+  - cmake --build build --target binclude
+  - cmake --build build --target bsuite
+  - cmake --build build --target btest

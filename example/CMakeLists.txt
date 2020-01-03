@@ -65,7 +65,7 @@ example(test _test)
 example(tmp tmp)
 example(using using)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_STANDARD 17)
   example(expect expect_cpp17)
   example(test test_cpp17)

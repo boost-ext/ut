@@ -11,27 +11,33 @@ set(CMAKE_CXX_STANDARD 20)
 add_library(boost.ut INTERFACE)
 target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   if(WIN32) # clang-cl
-  target_compile_options(boost.ut INTERFACE
-                      -Weverything
-                      -Werror)
+    target_compile_options(boost.ut INTERFACE
+                        -Weverything
+                        -Werror
+                        -pedantic
+                        -pedantic-errors
+                        -Wno-c++98-compat
+                        -Wno-c++98-compat-pedantic
+                        -Wno-c99-extensions
+                        )
   else()
-  target_compile_options(boost.ut INTERFACE
-                      -Weverything
-                      -Werror
-                      -pedantic
-                      -pedantic-errors
-                      -Wno-c++98-compat
-                      -Wno-c++98-compat-pedantic
-                      -Wno-c99-extensions
-                      -Wno-global-constructors
-                      -Wno-exit-time-destructors
-                      -Wno-missing-variable-declarations
-                      -Wno-class-varargs
-                      -Wno-padded
-                      -Wno-missing-prototypes
-                      -Wno-ctad-maybe-unsupported)
+    target_compile_options(boost.ut INTERFACE
+                        -Weverything
+                        -Werror
+                        -pedantic
+                        -pedantic-errors
+                        -Wno-c++98-compat
+                        -Wno-c++98-compat-pedantic
+                        -Wno-c99-extensions
+                        -Wno-global-constructors
+                        -Wno-exit-time-destructors
+                        -Wno-missing-variable-declarations
+                        -Wno-class-varargs
+                        -Wno-padded
+                        -Wno-missing-prototypes
+                        -Wno-ctad-maybe-unsupported)
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   target_compile_options(boost.ut INTERFACE
