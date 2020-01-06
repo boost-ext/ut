@@ -11,14 +11,18 @@
 #include <tuple>
 #include <type_traits>
 
-struct expr {
-  const bool result{};
-  const std::string str{};
-
-  constexpr explicit operator bool() const { return result; }
-  friend auto operator<<(std::ostream& os, const expr& self) -> std::ostream& {
-    return (os << self.str);
+class matcher : boost::ut::detail::op {
+ public:
+  matcher(bool result, const std::string& str) : result_{result}, str_{str} {}
+  constexpr explicit operator bool() const { return result_; }
+  friend auto operator<<(std::ostream& os, const matcher& self)
+      -> std::ostream& {
+    return (os << self.str_);
   }
+
+ private:
+  const bool result_{};
+  const std::string str_{};
 };
 
 template <class... Ts>
@@ -50,26 +54,26 @@ int main() {
 
   "matcher"_test = [] {
     constexpr auto is_between = [](auto lhs, auto rhs) {
-      return matcher([=](auto value) {
+      return [=](auto value) {
         return that % value >= lhs and that % value <= rhs;
-      });
+      };
     };
 
-    constexpr auto ends_with = matcher([](const auto& arg, const auto& ext) {
+    constexpr auto ends_with = [](const auto& arg, const auto& ext) {
       std::stringstream str{};
       str << '(' << arg << " ends with " << ext << ')';
       if (ext.size() > arg.size()) {
-        return expr{{}, str.str()};
+        return matcher{{}, str.str()};
       }
-      return expr{std::equal(ext.rbegin(), ext.rend(), arg.rbegin()),
-                  str.str()};
-    });
+      return matcher{std::equal(ext.rbegin(), ext.rend(), arg.rbegin()),
+                      str.str()};
+    };
 
     auto value = 42;
     auto str = "example.test"sv;
 
-    expect(is_between(1, 100)(value) and ends_with(str, ".test"sv));
-    expect(not is_between(1, 100)(0));
+    expect(is_between(1, 100)(value) and not is_between(1, 100)(0));
+    expect(ends_with(str, ".test"sv));
     expect(any_of{1, 2, 3} == 2 or any_of{42, 43} == 44);
   };
 }

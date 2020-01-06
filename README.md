@@ -756,9 +756,9 @@ asserts: 1 | 0 passed | 1 failed
 ```cpp
 "matchers"_test = [] {
   constexpr auto is_between = [](auto lhs, auto rhs) {
-    return matcher([=](auto value) {
+    return [=](auto value) {
       return that % value >= lhs and that % value <= rhs;
-    });
+    };
   };
 
   expect(is_between(1, 100)(42));
@@ -972,22 +972,6 @@ namespace boost::ut::inline v1_1_5 {
      */
     [[nodiscard]] constexpr auto operator%(Expression expr) const;
   } that{};
-
-  /**
-   * @example auto gt_0 = matcher([](auto arg){ return that % arg > 0; })
-   */
-  struct matcher {
-    /**
-     * @param expr matcher expression
-     */
-    constexpr explicit(true) matcher(Expression expr);
-
-    /**
-     * Executes matcher expression
-     * @param args arguments to be passed to a matcher expression
-     */
-    [[nodiscard]] constexpr auto operator()(const Args&... args) const;
-  };
 
   inline namespace literals {
     /**

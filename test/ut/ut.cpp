@@ -31,7 +31,7 @@ constexpr auto test_assert =
       if (not result) {
         std::cerr << sl.file_name() << ':' << sl.line() << ":FAILED"
                   << std::endl;
-        throw;
+        std::abort();
       }
     };
 
@@ -788,7 +788,7 @@ int main() {
     test_cfg = fake_cfg{};
 
     constexpr auto is_gt = [](auto N) {
-      return matcher([=](auto value) { return that % value > N; });
+      return [=](auto value) { return that % value > N; };
     };
 
     expect(is_gt(42)(99));
