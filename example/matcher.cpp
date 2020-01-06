@@ -66,7 +66,7 @@ int main() {
         return matcher{{}, str.str()};
       }
       return matcher{std::equal(ext.rbegin(), ext.rend(), arg.rbegin()),
-                      str.str()};
+                     str.str()};
     };
 
     auto value = 42;
