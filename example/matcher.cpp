@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <boost/ut.hpp>
 #include <string_view>
+#include <tuple>
+#include <type_traits>
 
 struct expr {
   const bool result{};
@@ -17,6 +19,29 @@ struct expr {
   friend auto operator<<(std::ostream& os, const expr& self) -> std::ostream& {
     return (os << self.str);
   }
+};
+
+template <class... Ts>
+class any_of {
+ public:
+  constexpr explicit any_of(Ts... ts) : ts_{ts...} {}
+
+  constexpr auto operator==(std::common_type_t<Ts...> t) const {
+    return std::apply([t](auto... args) { return eq(t, args...); }, ts_);
+  }
+
+ private:
+  template <class T, class U, class... TArgs>
+  static constexpr auto eq(const T& t, const U& u, const TArgs&... args) {
+    using namespace boost::ut;
+    if constexpr (sizeof...(args) > 0) {
+      return (that % detail::value{u} == t) or eq(t, args...);
+    } else {
+      return (that % detail::value{u} == t);
+    }
+  }
+
+  std::tuple<Ts...> ts_;
 };
 
 int main() {
@@ -45,5 +70,6 @@ int main() {
 
     expect(is_between(1, 100)(value) and ends_with(str, ".test"sv));
     expect(not is_between(1, 100)(0));
+    expect(any_of{1, 2, 3} == 2 or any_of{42, 43} == 44);
   };
 }
