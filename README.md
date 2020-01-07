@@ -770,7 +770,7 @@ asserts: 1 | 0 passed | 1 failed
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/oEzRsi
+> https://godbolt.org/z/4qwrCi
 
 </p>
 </details>
