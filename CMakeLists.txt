@@ -12,7 +12,7 @@ add_library(boost.ut INTERFACE)
 target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  if(WIN32) # clang-cl
+  if (WIN32) # clang-cl
     target_compile_options(boost.ut INTERFACE
                         -Weverything
                         -Werror
@@ -20,8 +20,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
                         -pedantic-errors
                         -Wno-c++98-compat
                         -Wno-c++98-compat-pedantic
-                        -Wno-c99-extensions
-                        )
+                        -Wno-c99-extensions)
   else()
     target_compile_options(boost.ut INTERFACE
                         -Weverything
@@ -39,7 +38,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
                         -Wno-missing-prototypes
                         -Wno-ctad-maybe-unsupported)
   endif()
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   target_compile_options(boost.ut INTERFACE
                       -Wall
                       -Wextra

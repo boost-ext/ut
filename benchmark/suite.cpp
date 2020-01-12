@@ -65,6 +65,7 @@ ut::suite _4 = [] {
   "4.10"_test = [] {};
 };
 
+#if not defined(WIN32)
 ut::suite _5 = [] {
   using namespace ut;
   "5.1"_test = [] {};
@@ -148,5 +149,6 @@ ut::suite _10 = [] {
   "10.9"_test = [] {};
   "10.10"_test = [] {};
 };
+#endif
 
 int main() {}
