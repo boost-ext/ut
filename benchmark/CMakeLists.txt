@@ -7,7 +7,9 @@
 function(benchmark name file)
   add_executable(b${name} ${file}.cpp)
   target_compile_options(b${name} PRIVATE ${ARGN})
-  add_custom_command(TARGET b${name} COMMAND b${name})
+  if (ENABLE_RUN_AFTER_BUILD)
+    add_custom_command(TARGET b${name} COMMAND b${name})
+  endif()
 endfunction()
 
 benchmark(expect_udl expect "-DEXPECT_UDL")
