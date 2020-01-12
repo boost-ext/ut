@@ -32,7 +32,8 @@ if (DEFINED ENV{TBB_ROOT})
 endif()
 
 example(cfg/reporter reporter)
-if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+
+if (NOT WIN32)
   example(abort abort)
 endif()
 
@@ -52,9 +53,11 @@ example(macro macro)
 example(minimal minimal)
 example(mut mut)
 example(matcher matcher)
-if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-example(parameterized parameterized)
+
+if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "AppleClang")
+  example(parameterized parameterized)
 endif()
+
 example(run run)
 example(run_report run_report)
 example(section section)
