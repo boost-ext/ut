@@ -273,7 +273,7 @@ int main() {
     test_assert(111111.42f == 111111.42_f);
     test_assert(1111111111.42 == 1111111111.42_d);
     test_assert(42_i == 42);
-    test_assert(42 == 42_i);
+    test_assert(43 == 43_i);
     test_assert(not(1_i == 2));
     test_assert(not(2 == 1_i));
   }
@@ -291,7 +291,7 @@ int main() {
     test_assert(43 >= 42_i);
     test_assert(42 <= 42_i);
     test_assert(42 <= 43_i);
-    test_assert(not false_b);
+    test_assert(not true_b == false_b);
   }
 
   {
@@ -725,7 +725,7 @@ int main() {
     test_cfg = fake_cfg{};
 
     expect(1 == 2_i);
-    expect(42 == 42_i);
+    expect(2 == 2_i);
     expect(1 != 2_i);
     expect(-42 != -42_i);
     expect(-1.1_d == -1.1);
@@ -737,7 +737,7 @@ int main() {
     test_assert("1 == 2" == test_cfg.assertion_calls[0].expr);
     test_assert(not test_cfg.assertion_calls[0].result);
 
-    test_assert("42 == 42" == test_cfg.assertion_calls[1].expr);
+    test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
     test_assert(test_cfg.assertion_calls[1].result);
 
     test_assert("1 != 2" == test_cfg.assertion_calls[2].expr);
@@ -1002,7 +1002,7 @@ int main() {
     test_assert("exceptions"sv == test_cfg.run_calls[0].name);
     test_assert(6 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.assertion_calls[0].result);
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) and not defined(__clang__)
     test_assert("throws<class std::runtime_error>" ==
                 test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[1].result);
