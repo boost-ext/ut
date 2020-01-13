@@ -23,6 +23,4 @@ else()
   endfunction()
 endif()
 
-if (NOT WIN32 OR (WIN32 AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC"))
-  ut(ut)
-endif()
+ut(ut)
