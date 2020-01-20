@@ -39,6 +39,14 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'6
 
+#if not defined(__has_builtin)
+#if (__GNUC__ >= 9)
+#define __has___builtin_FILE 1
+#define __has___builtin_LINE 1
+#endif
+#define __has_builtin(...) __has_##__VA_ARGS__
+#endif
+
 #if defined(BOOST_UT_FORWARD)
 namespace std {
 template <class TLhs, class TRhs>
@@ -210,7 +218,8 @@ namespace reflection {
 class source_location {
  public:
   [[nodiscard]] static constexpr auto current(
-#if ((__GNUC__ >= 9 or __clang_major__ >= 9) and not defined(__APPLE__))
+
+#if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
       const char* file = __builtin_FILE(), int line = __builtin_LINE()
 #else
       const char* file = "unknown", int line = {}

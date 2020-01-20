@@ -1344,7 +1344,7 @@ int main() {
     test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
   }
 
-#if ((__GNUC__ >= 9 or __clang_major__ >= 9) and not defined(__APPLE__))
+#if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
   {
     test_cfg = fake_cfg{};
 
