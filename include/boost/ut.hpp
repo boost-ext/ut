@@ -47,7 +47,7 @@ export import std;
 #define __has_builtin(...) __has_##__VA_ARGS__
 #endif
 
-#if defined(BOOST_UT_FORWARD)
+#if defined(BOOST_UT_FORWARD) and (__GNUC__ < 10)
 namespace std {
 template <class TLhs, class TRhs>
 auto operator==(TLhs, TRhs) -> bool;
@@ -573,8 +573,10 @@ class eq_ : op {
  public:
   constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
           using std::operator==;
           using std::operator<;
+#endif
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value == TRhs::value;
@@ -589,7 +591,8 @@ class eq_ : op {
           } else {
             return get(lhs) == get(rhs);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -606,8 +609,10 @@ class neq_ : op {
  public:
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
           using std::operator!=;
           using std::operator>;
+#endif
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value != TRhs::value;
@@ -622,7 +627,8 @@ class neq_ : op {
           } else {
             return get(lhs_) != get(rhs_);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -639,14 +645,17 @@ class gt_ : op {
  public:
   constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
           using std::operator>;
+#endif
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value > TRhs::value;
           } else {
             return get(lhs_) > get(rhs_);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -663,14 +672,17 @@ class ge_ : op {
  public:
   constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
           using std::operator>=;
+#endif
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value >= TRhs::value;
           } else {
             return get(lhs_) >= get(rhs_);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -687,14 +699,17 @@ class lt_ : op {
  public:
   constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
           using std::operator<;
+#endif
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value < TRhs::value;
           } else {
             return get(lhs_) < get(rhs_);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -711,14 +726,17 @@ class le_ : op {
  public:
   constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
           using std::operator<=;
+#endif
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value <= TRhs::value;
           } else {
             return get(lhs_) <= get(rhs_);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
