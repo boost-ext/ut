@@ -39,7 +39,7 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'6
 
-#if not defined(__has_builtin)
+#if not defined(__has_builtin) or (defined(__has_builtin) and (__GNUC__ == 9))
 #if (__GNUC__ >= 9)
 #define __has___builtin_FILE 1
 #define __has___builtin_LINE 1
