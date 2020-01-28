@@ -1347,9 +1347,11 @@ class runner {
       } catch (const std::exception& e) {
         reporter_.on(events::exception{e.what()});
         active_exception_ = true;
+        ++fails_;
       } catch (...) {
         reporter_.on(events::exception{"Unknown exception"});
         active_exception_ = true;
+        ++fails_;
       }
 #endif
 
