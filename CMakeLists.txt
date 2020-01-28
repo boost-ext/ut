@@ -82,7 +82,7 @@ add_custom_command(TARGET style COMMAND find ${CMAKE_CURRENT_LIST_DIR}/benchmark
 option(ENABLE_MEMCHECK "Run the unit tests and examples under valgrind if it is found" OFF)
 option(ENABLE_COVERAGE "Run coverage" OFF)
 option(ENABLE_SANITIZERS "Run static analysis" OFF)
-option(ENABLE_RUN_AFTER_BUILD "Automatically run built artifacts" ON)
+option(ENABLE_RUN_AFTER_BUILD "Automatically run built artifacts. If disabled, the tests can be run with ctest instead" ON)
 option(BUILD_BENCHMARKS "Enable building the benchmarks" ON)
 option(BUILD_EXAMPLES "Enable building the examples" ON)
 option(BUILD_TESTS "Enable building the tests" ON)
@@ -95,6 +95,29 @@ endif()
 if (ENABLE_SANITIZERS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak -fsanitize=undefined")
 endif()
+
+function(ut_add_custom_command_or_test)
+  # Define the supported set of keywords
+  set(prefix "PARSE")
+  set(noValues "")
+  set(singleValues TARGET)
+  set(multiValues COMMAND)
+
+  # Process the arguments passed in
+  include(CMakeParseArguments)
+  cmake_parse_arguments(
+          "${prefix}"
+          "${noValues}"
+          "${singleValues}"
+          "${multiValues}"
+          ${ARGN})
+
+  if (ENABLE_RUN_AFTER_BUILD)
+    add_custom_command(TARGET ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
+  else()
+    add_test(NAME ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
+  endif()
+endfunction()
 
 enable_testing()
 include_directories(include)
