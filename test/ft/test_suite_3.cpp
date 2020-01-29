@@ -9,5 +9,6 @@
 
 static test::suite _ = [] {
   using namespace test;
+  test::log << "suite:" << int() << double() << '\n';
   expect(type<int> == type<int>);
 };

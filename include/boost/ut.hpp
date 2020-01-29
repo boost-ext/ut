@@ -1467,6 +1467,20 @@ extern void on(events::test<utility::function<void()>>);
 extern void on(events::skip<>);
 [[nodiscard]] extern auto on(events::assertion<events::expr>) -> bool;
 extern void on(events::fatal_assertion);
+extern void on(events::log<bool>);
+extern void on(events::log<char>);
+extern void on(events::log<short>);
+extern void on(events::log<int>);
+extern void on(events::log<long>);
+extern void on(events::log<long long>);
+extern void on(events::log<unsigned>);
+extern void on(events::log<unsigned char>);
+extern void on(events::log<unsigned short>);
+extern void on(events::log<unsigned long>);
+extern void on(events::log<float>);
+extern void on(events::log<double>);
+extern void on(events::log<long double>);
+extern void on(events::log<const char*>);
 extern void on(events::log<utility::string_view>);
 #endif
 
@@ -1481,6 +1495,20 @@ void on(events::skip<> skip) { cfg<override>.on(skip); }
   return cfg<override>.on(static_cast<decltype(assertion)&&>(assertion));
 }
 void on(events::fatal_assertion assertion) { cfg<override>.on(assertion); }
+void on(events::log<bool> l) { cfg<override>.on(l); }
+void on(events::log<char> l) { cfg<override>.on(l); }
+void on(events::log<short> l) { cfg<override>.on(l); }
+void on(events::log<int> l) { cfg<override>.on(l); }
+void on(events::log<long> l) { cfg<override>.on(l); }
+void on(events::log<long long> l) { cfg<override>.on(l); }
+void on(events::log<unsigned> l) { cfg<override>.on(l); }
+void on(events::log<unsigned char> l) { cfg<override>.on(l); }
+void on(events::log<unsigned short> l) { cfg<override>.on(l); }
+void on(events::log<unsigned long> l) { cfg<override>.on(l); }
+void on(events::log<float> l) { cfg<override>.on(l); }
+void on(events::log<double> l) { cfg<override>.on(l); }
+void on(events::log<long double> l) { cfg<override>.on(l); }
+void on(events::log<const char*> l) { cfg<override>.on(l); }
 void on(events::log<utility::string_view> l) { cfg<override>.on(l); }
 #endif
 }  // namespace link
