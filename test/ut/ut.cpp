@@ -373,7 +373,6 @@ int main() {
 
   {
     struct test_runner : runner<test_reporter> {
-      using runner::active_exception_;
       using runner::reporter_;
       using runner::run_;
       using runner::operator=;
@@ -456,7 +455,6 @@ int main() {
     test_assert(3 == reporter.tests_.pass);
     test_assert(2 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    test_assert(1 == reporter.tests_.except);
 
     const auto test_throw_runtime_error = [] {
       throw std::runtime_error("exception");
@@ -470,7 +468,6 @@ int main() {
     test_assert(3 == reporter.tests_.pass);
     test_assert(3 == reporter.tests_.fail);
     test_assert(1 == reporter.tests_.skip);
-    test_assert(2 == reporter.tests_.except);
 
     const auto test_sub_section = [&run, test_empty] {
       run.on(events::test<decltype(test_empty)>{.type = "test",
