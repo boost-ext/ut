@@ -1144,7 +1144,6 @@ class reporter {
   auto on(events::test_begin test_begin) -> void {
     printer_ << "Running \"" << test_begin.name << "\"...";
     fails_ = asserts_.fail;
-    exception_ = false;
   }
 
   auto on(events::test_run test_run) -> void {
@@ -1157,7 +1156,7 @@ class reporter {
   }
 
   auto on(events::test_end) -> void {
-    if (asserts_.fail > fails_ or exception_) {
+    if (asserts_.fail > fails_) {
       ++tests_.fail;
       printer_ << '\n'
                << printer_.colors().fail << "FAILED" << printer_.colors().none
@@ -1175,11 +1174,10 @@ class reporter {
   }
 
   auto on(events::exception exception) -> void {
-    exception_ = true;
     printer_ << "\n  " << printer_.colors().fail
              << "Unexpected exception with message:\n"
              << exception.what() << printer_.colors().none;
-    ++tests_.except;
+    ++asserts_.fail;
   }
 
   template <class TExpr>
@@ -1238,7 +1236,6 @@ class reporter {
     std::size_t pass{};
     std::size_t fail{};
     std::size_t skip{};
-    std::size_t except{};
   } tests_{};
 
   struct {
@@ -1247,7 +1244,6 @@ class reporter {
   } asserts_{};
 
   std::size_t fails_{};
-  bool exception_{};
 
   TPrinter printer_{};
 };
@@ -1337,7 +1333,6 @@ class runner {
         std::cout << '\n';
       }
 
-      active_exception_ = false;
 #if defined(__cpp_exceptions)
       try {
 #endif
@@ -1345,11 +1340,11 @@ class runner {
 #if defined(__cpp_exceptions)
       } catch (const events::fatal_assertion&) {
       } catch (const std::exception& e) {
+        ++fails_;
         reporter_.on(events::exception{e.what()});
-        active_exception_ = true;
       } catch (...) {
+        ++fails_;
         reporter_.on(events::exception{"Unknown exception"});
-        active_exception_ = true;
       }
 #endif
 
@@ -1446,7 +1441,6 @@ class runner {
   std::vector<void (*)()> suites_{};
   std::size_t level_{};
   bool run_{};
-  bool active_exception_{};
   std::size_t fails_{};
   std::array<std::string_view, MaxPathSize> path_{};
   filter filter_{};
