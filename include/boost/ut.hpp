@@ -178,9 +178,7 @@ class function<R(TArgs...)> {
   }
 
   if (std::empty(input)) {
-    return std::empty(pattern) or pattern[0] == '*'
-               ? is_match(input, pattern.substr(1))
-               : false;
+    return pattern[0] == '*' ? is_match(input, pattern.substr(1)) : false;
   }
 
   if (pattern[0] != '?' and pattern[0] != '*' and pattern[0] != input[0]) {
