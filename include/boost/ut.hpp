@@ -188,7 +188,7 @@ class function<R(TArgs...)> {
   }
 
   if (pattern[0] == '*') {
-    for (auto i = 0u; i <= std::size(input); ++i) {
+    for (decltype(std::size(input)) i = 0u; i <= std::size(input); ++i) {
       if (is_match(input.substr(i), pattern.substr(1))) {
         return true;
       }
