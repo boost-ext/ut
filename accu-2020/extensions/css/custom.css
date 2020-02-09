@@ -1,0 +1,50 @@
+/* Make sure code appearing in headers is not capitalized */
+.reveal h1 code, .reveal h2 code, .reveal h3 code, .reveal h4 code {
+    text-transform: none;
+}
+
+/* Allow code boxes to be longer */
+.reveal pre code {
+    max-height: 550px;
+}
+
+/* And also wider */
+.reveal pre {
+  width: 100%;
+}
+
+/* Remove the border and the background from images */
+.reveal section img {
+  background:none;
+  border:none;
+  box-shadow:none;
+}
+
+/* Hide navigation arrows, which don't add anything since we don't even use transitions */
+.reveal .controls .navigate-down,
+.reveal .controls .navigate-up,
+.reveal .controls .navigate-right,
+.reveal .controls .navigate-left {
+  /*display: none;*/
+}
+
+/* Used to write unordered lists with custom images for good and bad points */
+li.strength {
+  margin: 0;
+  padding: 36px 0 36px 84px;
+  list-style: none;
+  background-image: url("img/green-checkmark.png");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 40px;
+}
+
+li.weakness {
+  margin: 0;
+  padding: 36px 0 36px 84px;
+  list-style: none;
+  background-image: url("img/red-x.png");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 40px;
+}
