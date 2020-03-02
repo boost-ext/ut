@@ -1415,6 +1415,8 @@ namespace boost::ut::inline v1_1_6 {
   constexpr auto then   = [](const auto name) { return test{name}; };
   ```
 
+> https://godbolt.org/z/6Nk5Mi
+
 </p>
 </details>
 
