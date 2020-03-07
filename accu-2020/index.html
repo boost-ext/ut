@@ -86,21 +86,10 @@
 * #### Benchmarks
 <!-- .element: class="fragment" -->
 
-----
-
-### Agenda
-
-* #### FAQ
-<!-- .element: class="fragment" -->
-  * #### Performance
-<!-- .element: class="fragment" -->
-  * #### Macros
-<!-- .element: class="fragment" -->
-  * #### Standarization?
-<!-- .element: class="fragment" -->
-
 * #### Summary
 <!-- .element: class="fragment" -->
+  * #### Standarization?
+  <!-- .element: class="fragment" -->
 
 ---
 
@@ -267,34 +256,6 @@ struct test final {
 
 ----
 
-#### Test - https://godbolt.org/z/6Nk5Mi
-
-```cpp
-int main() {
-  "sum"_test = [] {};
-}
-```
-<!-- .element: class="fragment" -->
-
-```cpp
-Running... sum
-```
-<!-- .element: class="fragment" -->
-
-----
-
-#### Concepts
-
-```cpp
-template<class T>
-concept Test = true;
-```
-<!-- .element: class="fragment" -->
-
-<!-- .slide: data-background="darkblue" -->
-
-----
-
 #### expect
 
 ```cpp
@@ -324,6 +285,16 @@ constexpr auto& expect(Expression auto expr,
 
 <!-- .slide: data-background="darkblue" -->
 
+----
+
+#### Source Location
+
+```cpp
+gotcha and solution
+operator== and source_location
+```
+
+<!-- .slide: data-background="darkblue" -->
 ----
 
 #### expect - https://godbolt.org/z/6Nk5Mi
@@ -393,10 +364,41 @@ main.cpp:02:FAILED: [false]
 ```cpp
 template <char... Cs>
 [[nodiscard]] constexpr auto operator""_i() {
-  return std::integral_constant<int, 42>{}; // TODO parsing
+  return []<auto... Ns>(std::index_sequence<Ns...>) {
+    return std::integral_constant<int, ((int(std::pow(10, sizeof...(Ns) - Ns - 1)) * (Cs - '0')) + ...)>{};
+  }(std::make_index_sequence<sizeof...(Cs)>{});
 }
 ```
 <!-- .element: class="fragment" -->
+
+```cpp
+static_assert(0_i  == 0);
+static_assert(42_i == 42);
+```
+<!-- .element: class="fragment" -->
+
+#### https://godbolt.org/z/cZsSK3
+<!-- .element: class="fragment" -->
+
+----
+
+#### Immediately-invoked function expression (IIFE) / Familiar template syntax for generic lambdas
+
+```cpp
+template<auto N>
+constexpr auto iife = []<auto... Ns>(std::index_sequence<Ns...>) {
+  return (Ns + ...);
+}(std::make_index_sequence<N>{});
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+static_assert(0 == iife<0>);
+static_assert(0 + 1 + 2 == iife<3>);
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
 
 ----
 
@@ -426,6 +428,53 @@ main.cpp:02:FAILED: [42 == 43]
 ```
 
 ----
+
+#### Test - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+int main() {
+  "sum"_test = [] {};
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+Running... sum
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Concepts
+
+```cpp
+template<class T>
+concept Test = true;
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### Performance
+
+```cpp
+  template <class... Ts>
+  constexpr auto operator=(void (*test)()); // this path compiles 5x faster than the next one as it doesn't introduce a new type for each lambda
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+  template <class Test> requires not type_traits::is_convertible_v<Test, void (*)()>>
+  constexpr auto operator=(Test test) -> typename type_traits::identity<Test, decltype(test())>::type;
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
 
 #### Test / Operators / UDL
 
@@ -729,6 +778,48 @@ suite errors = [] {
 <pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
+----
+
+#### Macros - https://godbolt.org/z/tvy-nP
+
+```cpp
+#define EXPECT(...) expect(that % __VA_ARGS__)
+#define TEST(name)  test{"test", name} = [=]() mutable
+```
+
+```cpp
+int main() {
+  TEST("equal") {
+    EXPECT(1 != 2);
+  };
+
+  TEST("vector") {
+    std::vector<int> v(5);
+
+   !EXPECT(5u == std::size(v)) << "fatal";
+
+    TEST("resize bigger") {
+      v.resize(10);
+      EXPECT(10u == std::size(v));
+    };
+  };
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+passed...
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Primitives
+
+Macro based Unit Testing Frameworks can be built on top of Unit-Testing primitivies
+
+<!-- .slide: data-background="darkblue" -->
+
 ==============================================================================
 
 ### Benchmarks
@@ -756,6 +847,7 @@ suite errors = [] {
 <a href="images/Compilation_assert.png"><img src="images/Compilation_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_assert.png"><img src="images/Execution_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/BinarySize_assert.png"><img src="images/BinarySize_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 ##### 1 test, 1'000'000 asserts, 1 cpp file
 
@@ -766,6 +858,7 @@ suite errors = [] {
 <a href="images/Compilation_test.png"><img src="images/Compilation_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_test.png"><img src="images/Execution_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/BinarySize_test.png"><img src="images/BinarySize_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 1'000 tests, 0 asserts, 1 cpp file
 
@@ -776,6 +869,7 @@ suite errors = [] {
 <a href="images/Compilation_suite.png"><img src="images/Compilation_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_suite.png"><img src="images/Execution_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/BinarySize_suite.png"><img src="images/BinarySize_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 10'000 tests, 0 asserts, 100 cpp files
 
@@ -786,6 +880,7 @@ suite errors = [] {
 <a href="images/Compilation_suite+assert.png"><img src="images/Compilation_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_suite+assert.png"><img src="images/Execution_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/BinarySize_suite+assert.png"><img src="images/BinarySize_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 10'000 tests, 40'000 asserts, 100 cpp files
 
@@ -796,6 +891,7 @@ suite errors = [] {
 <a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 10'000 tests, 20'000 asserts, 100 cpp files
 
@@ -806,6 +902,7 @@ suite errors = [] {
 <a href="images/Compilation_incremental.suite+assert+stl.png"><img src="images/Compilation_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_incremental.suite+assert+stl.png"><img src="images/Execution_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/BinarySize_incremental.suite+assert+stl.png"><img src="images/BinarySize_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)
 
@@ -816,98 +913,39 @@ suite errors = [] {
 <a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 10'000 tests, 20'000 asserts, 100 cpp files
 
 ==============================================================================
 
-### FAQ
-
-----
-
-#### Performance
-
-* Type erasure for lambdas
-* Modern TMP
-
-----
-
-#### Macros - https://godbolt.org/z/tvy-nP
-
-```cpp
-#define EXPECT(...) expect(that % __VA_ARGS__)
-#define SUITE       suite _ = []
-#define TEST(name)  test{"test", name} = [=]() mutable
-```
-<!-- .element: class="fragment" -->
-
-```cpp
-SUITE {
-  TEST("suite") {
-    EXPECT(42 == 42);
-  };
-};
-```
-<!-- .element: class="fragment" -->
-
-----
-
-#### Macros - https://godbolt.org/z/tvy-nP
-
-```cpp
-int main() {
-  TEST("macro") {
-    EXPECT(1 != 2);
-  };
-
-  TEST("vector") {
-    std::vector<int> v(5);
-
-   !EXPECT(5u == std::size(v)) << "fatal";
-
-    TEST("resize bigger") {
-      v.resize(10);
-      EXPECT(10u == std::size(v));
-    };
-  };
-}
-```
-<!-- .element: class="fragment" -->
-
-```cpp
-passed...
-```
-<!-- .element: class="fragment" -->
-
-----
-
-#### Standarization?
-
-* #### It lowers the entry-level to the language
-<!-- .element: class="fragment" -->
-* #### It improves the education aspect
-<!-- .element: class="fragment" -->
-* #### It makes the language more coherent/stable
-<!-- .element: class="fragment" -->
-* #### It makes the testing a first class citizen
-<!-- .element: class="fragment" -->
-* #### It allows to publish tests for the Standard Library (STL) in the standard way
-<!-- .element: class="fragment" -->
-* #### It allows to act as additional documentation
-<!-- .element: class="fragment" -->
-* #### It helps with establishing standard vocabulary for testing
-<!-- .element: class="fragment" -->
-
-==============================================================================
-
 ### Summary
 
-* #### Leavarging C++20 features allows for cleaner design
-<!-- .element: class="fragment" -->
-* #### [Boost].UT is an example of cuting edge Unit Testing Framework
-<!-- .element: class="fragment" -->
-* #### Possible standardization of Unit Testing primitives?
-<!-- .element: class="fragment" -->
+----
+
+#### Leavarging C++20 features allows for cleaner design
+
+----
+
+#### [Boost].UT is an example of cuting edge Unit Testing Framework
+
+----
+
+#### Possible standardization of Unit Testing primitives?
+  * #### It lowers the entry-level to the language
+  <!-- .element: class="fragment" -->
+  * #### It improves the education aspect
+  <!-- .element: class="fragment" -->
+  * #### It makes the language more coherent/stable
+  <!-- .element: class="fragment" -->
+  * #### It makes the testing a first class citizen
+  <!-- .element: class="fragment" -->
+  * #### It allows to publish tests for the Standard Library (STL) in the standard way
+  <!-- .element: class="fragment" -->
+  * #### It allows to act as additional documentation
+  <!-- .element: class="fragment" -->
+  * #### It helps with establishing standard vocabulary for testing
+  <!-- .element: class="fragment" -->
 
 ==============================================================================
 
