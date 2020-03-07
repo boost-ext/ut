@@ -51,11 +51,462 @@
 
 #### [kris@jusiak.net](mailto:kris@jusiak.net) | [@krisjusiak](https://twitter.com/krisjusiak) | [linkedin.com/in/kris-jusiak](https://www.linkedin.com/in/kris-jusiak)
 
+
+==============================================================================
+
+### Agenda
+
+* #### Motivation
+<!-- .element: class="fragment" -->
+  * #### Existing solutions
+<!-- .element: class="fragment" -->
+  * #### The goal
+<!-- .element: class="fragment" -->
+
+* #### Implementation
+<!-- .element: class="fragment" -->
+  * #### Test
+<!-- .element: class="fragment" -->
+  * #### Assert
+<!-- .element: class="fragment" -->
+  * #### Suite
+<!-- .element: class="fragment" -->
+
 ----
 
-#### Overview
+### Agenda
 
-* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* #### [Boost].UT - Unit Testing Framework
+<!-- .element: class="fragment" -->
+  * #### Overview
+<!-- .element: class="fragment" -->
+  * #### Features
+<!-- .element: class="fragment" -->
+
+* #### Benchmarks
+<!-- .element: class="fragment" -->
+
+----
+
+### Agenda
+
+* #### FAQ
+<!-- .element: class="fragment" -->
+  * #### Performance
+<!-- .element: class="fragment" -->
+  * #### Macros
+<!-- .element: class="fragment" -->
+  * #### Standarization?
+<!-- .element: class="fragment" -->
+
+* #### Summary
+<!-- .element: class="fragment" -->
+
+---
+
+##### <p style="background-color:darkblue">`darkblue background - something to remember ✓`</p>
+<!-- .element: class="fragment" -->
+
+==============================================================================
+
+### Motivation
+
+```cpp
+constexpr auto sum(auto... args) { return (args + ...); }
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+int main() {
+  // should sum numbers
+  {
+    assert(3 == sum(1, 2));
+  }
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+### Motivation - Problems
+
+* #### No names for tests
+<!-- .element: class="fragment" -->
+* #### No automatic registration of tests
+<!-- .element: class="fragment" -->
+* #### Hard to debug
+<!-- .element: class="fragment" -->
+* #### Hard to scale
+<!-- .element: class="fragment" -->
+* #### Hard to integrate
+<!-- .element: class="fragment" -->
+* #### Easy to make mistakes
+<!-- .element: class="fragment" -->
+* #### Hard to follow good practises such as TDD/BDD
+<!-- .element: class="fragment" -->
+* #### ...
+<!-- .element: class="fragment" -->
+
+----
+
+### Existing Solutions
+
+* #### [GoogleTest](https://github.com/google/googletest)
+<!-- .element: class="fragment" -->
+* #### [Boost.Test](https://github.com/boostorg/test)
+<!-- .element: class="fragment" -->
+* #### [Catch](https://github.com/catchorg/Catch2)
+<!-- .element: class="fragment" -->
+* #### [DocTest](https://github.com/onqtam/doctest)
+<!-- .element: class="fragment" -->
+* ...
+<!-- .element: class="fragment" -->
+
+----
+
+### Existing Solutions - Problems
+
+* #### Macro based*
+<!-- .element: class="fragment" -->
+* #### Boilerplate*
+<!-- .element: class="fragment" -->
+* #### Slow to compile*
+<!-- .element: class="fragment" -->
+* #### Hard to integrate*
+<!-- .element: class="fragment" -->
+* ...
+<!-- .element: class="fragment" -->
+
+> \* Generalized
+<!-- .element: class="fragment" -->
+
+----
+
+### Future (C++20)?
+
+* #### No macros
+<!-- .element: class="fragment" -->
+* #### Minimal boilerpalte
+<!-- .element: class="fragment" -->
+* #### Minimal learning curve
+<!-- .element: class="fragment" -->
+* #### Easy integration
+<!-- .element: class="fragment" -->
+* #### Flexible/Scalable
+<!-- .element: class="fragment" -->
+* #### Fast to compile/execute
+<!-- .element: class="fragment" -->
+
+----
+
+### The Goal
+
+```cpp
+constexpr auto sum(auto... args) { return (args + ...); }
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+01 import ut;
+02
+03 int main() {
+04   "sum"_test = [] {      // Running "sum"...
+05      sum(1, 2) == 42_i;  // sum.cpp:5:FAILED [ 3 == 42 ]
+06   };                     // tests:   1 | 1 failed
+07 }                        // asserts: 1 | 0 passed | 1 failed
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+01 import ut;
+02
+03 suite _ = [] {
+04   "sum empty"_test  = [] { sum()     == 0_i;  };
+05   "sum single"_test = [] { sum(42)   == 42_i; };
+06   "sum many"_test   = [] { sum(1, 2) == 3_i;  };
+07 };
+08
+09 int main() {              // tests:   3 | 0 failed
+10 }                         // asserts: 3 | 3 passed | 0 failed
+```
+<!-- .element: class="fragment" -->
+
+==============================================================================
+
+### Implementation*
+
+> \* Simplified
+
+----
+
+#### Test
+
+```cpp
+[[nodiscard]] constexpr Test auto operator ""_test(
+  const char* name, std::size_t size) {
+  return test{{name, size}};
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Test
+
+```cpp
+struct test final {
+  std::string_view name{};
+
+  constexpr auto operator=(const auto& test) {
+    std::cout << "Running... " << name << '\n';
+    test();
+  }
+};
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Test - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+int main() {
+  "sum"_test = [] {};
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+Running... sum
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Concepts
+
+```cpp
+template<class T>
+concept Test = true;
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### expect
+
+```cpp
+constexpr auto& expect(Expression auto expr,
+  const auto& location = std::source_location::current()) {
+  if (not static_cast<bool>(expr)) {
+    std::cerr << location.file_name()
+              << ':'
+              << location.line()
+              << ":FAILED: "
+              << expr
+              << '\n';
+  }
+  return std::cerr;
+}
+```
+
+----
+
+#### Source Location
+
+<img src="images/source_location.png" style="width: 50%; background:none; border:none; box-shadow:none;" />
+<!-- .element: class="fragment" -->
+
+#### http://eel.is/c++draft/support.srcloc#source.location.syn
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### expect - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+01 int main() {
+02   expect(false);
+03 }
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+main.cpp:02:FAILED: [false]
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Operators
+
+```cpp
+[[nodiscard]] constexpr auto operator==(auto lhs, auto rhs) {
+  return eq{lhs, rhs};
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Operators - equality
+
+```cpp
+template <class TLhs, class TRhs>
+struct eq final {
+  TLhs lhs{};
+  TRhs rhs{};
+
+  [[nodiscard]] constexpr explicit operator bool() const {
+    return lhs == rhs;
+  }
+
+  friend auto& operator<<(auto& os, const eq& op) {
+    return (os << op.lhs << " == " << op.rhs);
+  }
+};
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Operators
+
+```cpp
+01 int main() {
+02  expect(sum(1, 2) == 43);
+03 }
+```
+
+```cpp
+main.cpp:02:FAILED: [false]
+```
+
+----
+
+#### User Defined Literals (UDL)
+
+```cpp
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_i() {
+  return std::integral_constant<int, 42>{}; // TODO parsing
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### User Defined Literals (UDL)
+
+```cpp
+""_i
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### Expect / Operators / UDL
+
+```cpp
+01 int main() {
+02  expect(42_i == 43);
+03  42_i == 43;
+03 }
+```
+
+```cpp
+main.cpp:02:FAILED: [42 == 43]
+main.cpp:02:FAILED: [42 == 43]
+```
+
+----
+
+#### Test / Operators / UDL
+
+```cpp
+01 int main() {
+02   "sum"_test = [] {
+03     42_i == 43;
+04   };
+05 }
+```
+
+```cpp
+Running... sum
+main.cpp:02:FAILED: [42 == 43]
+```
+
+----
+
+#### Suite
+
+```cpp
+struct suite final {
+  [[nodiscard]] constexpr explicit(false)
+  suite(Suite auto suite) {
+    suite();
+  }
+};
+```
+
+----
+
+#### Suite
+
+```cpp
+suite errors = [] {
+  "exception"_test = [] {
+    2 == 1_i;
+  };
+};
+```
+
+```cpp
+int main() {}
+```
+
+```cpp
+FAILED:...
+```
+
+----
+
+#### Modules
+
+```cpp
+export modules
+```
+
+----
+
+#### Modules
+
+Modules
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+### UT - https://godbolt.org/z/6Nk5Mi
+
+==============================================================================
+
+### [Boost].UT - Unit Testing Framework
+
+#### https://github.com/boost-experimental/ut
+
+----
+
+#### [Boost].UT - Overview
+
+* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 <!-- .element: class="fragment" -->
 
 * #### Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
@@ -258,7 +709,7 @@ suite errors = [] {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "exception"_test = [] { 
+  "exception"_test = [] {
     expect(throws([] { throw 0; })) << "throws any exception";
   };
 
@@ -278,27 +729,187 @@ suite errors = [] {
 <pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
+==============================================================================
+
+### Benchmarks
+
+#### https://github.com/cpp-testing/ut-benchmark
+
 ----
 
-#### Benchmarks - https://github.com/cpp-testing/ut-benchmark
+#### Benchmarks - Frameworks
+
+<img src="images/frameworks.png" style="width: 90%; background:none; border:none; box-shadow:none;" />
+
+----
+
+#### Benchmarks - [Include](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_include.png"><img src="images/Compilation_include.png" style="width: 50%; background:none; border:none; box-shadow:none;" /></a>
+
+##### 0 tests, 0 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Assert](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_assert.png"><img src="images/Compilation_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_assert.png"><img src="images/Execution_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_assert.png"><img src="images/BinarySize_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+
+##### 1 test, 1'000'000 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Test](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_test.png"><img src="images/Compilation_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_test.png"><img src="images/Execution_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_test.png"><img src="images/BinarySize_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+
+#### 1'000 tests, 0 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Suite](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_suite.png"><img src="images/Compilation_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite.png"><img src="images/Execution_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite.png"><img src="images/BinarySize_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+
+#### 10'000 tests, 0 asserts, 100 cpp files
+
+----
+
+#### Benchmarks - [Suite+Assert](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_suite+assert.png"><img src="images/Compilation_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite+assert.png"><img src="images/Execution_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert.png"><img src="images/BinarySize_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+
+#### 10'000 tests, 40'000 asserts, 100 cpp files
+
+----
+
+#### Benchmarks - [Suite+Assert+STL](https://github.com/cpp-testing/ut-benchmark)
 
 <a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 
-##### Suite+Assert+STL / 10'000 tests, 20'000 asserts, 100 cpp files
+#### 10'000 tests, 20'000 asserts, 100 cpp files
 
 ----
 
-#### Benchmarks - C++20 Modules - https://github.com/cpp-testing/ut-benchmark
+#### Benchmarks - [Incremental Build](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_incremental.suite+assert+stl.png"><img src="images/Compilation_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_incremental.suite+assert+stl.png"><img src="images/Execution_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_incremental.suite+assert+stl.png"><img src="images/BinarySize_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+
+#### 1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)
+
+----
+
+#### Benchmarks - [Headers vs Precompiled headers vs C++20 Modules](https://github.com/cpp-testing/ut-benchmark)
 
 <a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 <a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
 
-##### Suite+Assert+STL / 10'000 tests, 20'000 asserts, 100 cpp files
+#### 10'000 tests, 20'000 asserts, 100 cpp files
+
+==============================================================================
+
+### FAQ
 
 ----
+
+#### Performance
+
+* Type erasure for lambdas
+* Modern TMP
+
+----
+
+#### Macros - https://godbolt.org/z/tvy-nP
+
+```cpp
+#define EXPECT(...) expect(that % __VA_ARGS__)
+#define SUITE       suite _ = []
+#define TEST(name)  test{"test", name} = [=]() mutable
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+SUITE {
+  TEST("suite") {
+    EXPECT(42 == 42);
+  };
+};
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Macros - https://godbolt.org/z/tvy-nP
+
+```cpp
+int main() {
+  TEST("macro") {
+    EXPECT(1 != 2);
+  };
+
+  TEST("vector") {
+    std::vector<int> v(5);
+
+   !EXPECT(5u == std::size(v)) << "fatal";
+
+    TEST("resize bigger") {
+      v.resize(10);
+      EXPECT(10u == std::size(v));
+    };
+  };
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+passed...
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Standarization?
+
+* #### It lowers the entry-level to the language
+<!-- .element: class="fragment" -->
+* #### It improves the education aspect
+<!-- .element: class="fragment" -->
+* #### It makes the language more coherent/stable
+<!-- .element: class="fragment" -->
+* #### It makes the testing a first class citizen
+<!-- .element: class="fragment" -->
+* #### It allows to publish tests for the Standard Library (STL) in the standard way
+<!-- .element: class="fragment" -->
+* #### It allows to act as additional documentation
+<!-- .element: class="fragment" -->
+* #### It helps with establishing standard vocabulary for testing
+<!-- .element: class="fragment" -->
+
+==============================================================================
+
+### Summary
+
+* #### Leavarging C++20 features allows for cleaner design
+<!-- .element: class="fragment" -->
+* #### [Boost].UT is an example of cuting edge Unit Testing Framework
+<!-- .element: class="fragment" -->
+* #### Possible standardization of Unit Testing primitives?
+<!-- .element: class="fragment" -->
+
+==============================================================================
 
 #### https://github.com/boost-experimental/ut
 
