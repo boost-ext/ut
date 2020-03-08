@@ -1678,13 +1678,13 @@ struct that_ {
 };
 
 template <class T>
-class expect_ {
+class expect_ : op {
  public:
-  constexpr explicit expect_(bool result) : result_{result} {}
+  constexpr explicit expect_(bool value) : value_{value} {}
 
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {
-    if (not result_) {
+    if (not value_) {
       on<T>(events::log{' '});
       on<T>(events::log{msg});
     }
@@ -1697,13 +1697,13 @@ class expect_ {
   }
 
   ~expect_() noexcept(false) {
-    if (not result_ and fatal_) {
+    if (not value_ and fatal_) {
       on<T>(events::fatal_assertion{});
     }
   }
 
  private:
-  bool result_{}, fatal_{};
+  bool value_{}, fatal_{};
 };
 }  // namespace detail
 
