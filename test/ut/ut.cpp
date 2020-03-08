@@ -197,6 +197,7 @@ int main() {
   {
     static_assert(true_b);
     static_assert(not false_b);
+    static_assert("named"_b);
     static_assert(42 == 42_i);
     static_assert(0u == 0_u);
     static_assert(42u == 42_u);
