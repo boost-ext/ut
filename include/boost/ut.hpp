@@ -1976,6 +1976,9 @@ struct suite {
 
 [[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
 [[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
+constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
+  return true_b;
+}
 
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};

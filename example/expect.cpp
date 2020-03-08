@@ -102,4 +102,10 @@ int main() {
     expect(bool(std::make_unique<int>()));
     expect(not bool(std::unique_ptr<int>{}));
   };
+
+  "boolean"_test = [] {
+    expect("true"_b);
+    expect("true"_b and not false_b);
+    expect(not"true"_b == false_b);
+  };
 }
