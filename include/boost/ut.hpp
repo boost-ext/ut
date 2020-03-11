@@ -1987,15 +1987,6 @@ constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
 };
 [[maybe_unused]] constexpr auto should = test;
 [[maybe_unused]] constexpr auto skip = detail::skip{};
-[[maybe_unused]] constexpr auto given = [](const auto name) {
-  return detail::test{"given", name};
-};
-[[maybe_unused]] constexpr auto when = [](const auto name) {
-  return detail::test{"when", name};
-};
-[[maybe_unused]] constexpr auto then = [](const auto name) {
-  return detail::test{"then", name};
-};
 template <class T = void>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
 
@@ -2028,6 +2019,27 @@ template <class T>
 [[nodiscard]] constexpr auto mut(const T& t) noexcept -> T& {
   return const_cast<T&>(t);
 }
+
+namespace bdd {
+[[maybe_unused]] constexpr auto given = [](const auto name) {
+  return detail::test{"given", name};
+};
+[[maybe_unused]] constexpr auto when = [](const auto name) {
+  return detail::test{"when", name};
+};
+[[maybe_unused]] constexpr auto then = [](const auto name) {
+  return detail::test{"then", name};
+};
+}  // namespace bdd
+
+namespace spec {
+[[maybe_unused]] constexpr auto describe = [](const auto name) {
+  return detail::test{"describe", name};
+};
+[[maybe_unused]] constexpr auto it = [](const auto name) {
+  return detail::test{"it", name};
+};
+}  // namespace spec
 
 using literals::operator""_test;
 using literals::operator""_i;
