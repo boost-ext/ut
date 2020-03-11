@@ -1278,6 +1278,8 @@ int main() {
   {
     test_cfg = fake_cfg{};
 
+    using namespace ut::bdd;
+
     "scenario"_test = [] {
       given("I have...") = [] {
         when("I run...") = [] {
@@ -1302,6 +1304,20 @@ int main() {
     test_assert("1 == 1" == test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[1].result);
     test_assert("1 == 1" == test_cfg.assertion_calls[1].expr);
+  }
+
+  {
+    test_cfg = fake_cfg{};
+
+    using namespace ut::spec;
+
+    describe("describe") = [] { it("it") = [] { expect(1_u == 1u); }; };
+
+    test_assert(2 == std::size(test_cfg.run_calls));
+    test_assert("describe"sv == test_cfg.run_calls[0].name);
+    test_assert("it"sv == test_cfg.run_calls[1].type);
+    test_assert(test_cfg.assertion_calls[0].result);
+    test_assert("1 == 1" == test_cfg.assertion_calls[0].expr);
   }
 
   {
@@ -1344,6 +1360,8 @@ int main() {
 
 #if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
   {
+    using namespace ut::bdd;
+
     test_cfg = fake_cfg{};
 
     constexpr auto file = std::string_view{__FILE__};

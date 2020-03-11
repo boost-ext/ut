@@ -7,16 +7,15 @@
 //
 #include <boost/ut.hpp>
 
+constexpr auto sum = [](auto... args) { return (0 + ... + args); };
+
 int main() {
   using namespace boost::ut;
-  using namespace boost::ut::bdd;
+  using namespace boost::ut::spec;
 
-  "Scenario"_test = [] {
-    given("I have...") = [] {
-      when("I run...") = [] {
-        then("I expect...") = [] { expect(1_u == 1u); };
-        then("I expect...") = [] { expect(1u == 1_u); };
-      };
-    };
+  describe("sum") = [] {
+    it("should be 0") = [] { expect(sum() == 0_i); };
+
+    it("should sum args...") = [] { expect(sum(1, 2, 3) == 6_i); };
   };
 }
