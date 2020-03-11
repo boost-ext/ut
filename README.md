@@ -50,7 +50,7 @@ There are quite a few problems with the approach above
 * Hard to scale (No easy path forward for parameterized tests, multiple suites, parallel execution, etc...)
 * Hard to integrate (No easy way to have a custom output such as XML for CI integration)
 * Easy to make mistakes (With implicit casting, floating point comparison, pointer comparison for strings, etc...)
-* Hard to follow good practises such as TDD/BDD (Lack of support for sections and declarative expressions)
+* Hard to follow good practises such as `TDD/BDD` (Lack of support for sections and declarative expressions)
 * ...
 
 `[Boost].UT` is trying to address these issues by simplifying testing experience with a few simple steps:
@@ -78,6 +78,7 @@ Great question! There are a few unique features which makes `[Boost].UT` worth t
 * It leverages C++ features to support more complex testing ([parameterized](#examples))
 * It's faster to compile and execute than similar frameworks which makes it suitable for bigger projects without additional hassle ([Benchmarks](#benchmarks))
 * It supports [TDD/BDD](#examples) workflows
+* It supports [Spec](#examples)
 * ...
 
 Sounds intriguing/interesting? Learn more at
@@ -111,7 +112,7 @@ Sounds intriguing/interesting? Learn more at
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `expect, test, suite`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
-* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 * Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
 
 > `*` - Limitations may apply
@@ -375,9 +376,9 @@ All tests passed (4 asserts in 1 tests)
 
 > https://godbolt.org/z/XWAdYt
 
-> Nice! That was easy, but I'm a believer into Behaviour Driven Development (BDD).
+> Nice! That was easy, but I'm a believer into Behaviour Driven Development (`BDD`).
 > Is there a support for that?
-> Yes! Same example as above just with the BDD syntax.
+> Yes! Same example as above just with the `BDD` syntax.
 
 ```cpp
 int main() {
@@ -401,7 +402,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/ps9_EQ
+> https://godbolt.org/z/xNSGpr
 
 > That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
 > Parameterized tests to the rescue!
@@ -680,7 +681,28 @@ All tests passed (14 asserts in 10 tests)
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/5nhdyn
+> https://godbolt.org/z/mNBySr
+
+</p>
+</details>
+
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Spec</summary>
+<p>
+
+```cpp
+int main() {
+  describe("equality") = [] {
+    it("should be equal")     = [] { expect(0_i == 0_i); };
+    it("should not be equal") = [] { expect(1_i != 0_i); };
+  };
+}
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/BXYJ3a
 
 </p>
 </details>

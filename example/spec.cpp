@@ -15,7 +15,6 @@ int main() {
 
   describe("sum") = [] {
     it("should be 0") = [] { expect(sum() == 0_i); };
-
-    it("should sum args...") = [] { expect(sum(1, 2, 3) == 6_i); };
+    it("should add all args") = [] { expect(sum(1, 2, 3) == 6_i); };
   };
 }
