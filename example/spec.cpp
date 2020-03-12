@@ -10,11 +10,12 @@
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
 int main() {
-  using namespace boost::ut;
+  using namespace boost::ut::operators;
+  using namespace boost::ut::literals;
   using namespace boost::ut::spec;
 
   describe("sum") = [] {
-    it("should be 0") = [] { expect(sum() == 0_i); };
-    it("should add all args") = [] { expect(sum(1, 2, 3) == 6_i); };
+    it("should be 0") = [] { sum() == 0_i; };
+    it("should add all args") = [] { sum(1, 2, 3) == 6_i; };
   };
 }

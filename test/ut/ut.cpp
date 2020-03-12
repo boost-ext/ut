@@ -310,7 +310,7 @@ int main() {
     test_assert("0 >= 0" == to_string(0_s >= _s(0)));
     test_assert("0 <= 0" == to_string(0_s <= _s(0)));
     test_assert("0 != 0" == to_string(0_s != _s(0)));
-    test_assert("not 0" == to_string(!0_s));
+    test_assert("not true" == to_string(!"true"_b));
     test_assert("42 == 42" == to_string(42_i == 42));
     test_assert("42 != 42" == to_string(42_i != 42));
     test_assert("42 > 0" == to_string(42_ul > 0_ul));
@@ -1266,10 +1266,10 @@ int main() {
     test_assert(test_cfg.assertion_calls[1].result);
     test_assert(test_cfg.assertion_calls[2].result);
     test_assert(test_cfg.assertion_calls[3].result);
-    test_assert("(42 == 42 or 42 == x)" == test_cfg.assertion_calls[0].expr);
+    test_assert("(42 == 42 or * == x)" == test_cfg.assertion_calls[0].expr);
     test_assert("(int == int or int == char)" ==
                 test_cfg.assertion_calls[1].expr);
-    test_assert("(42 == x or x == x)" == test_cfg.assertion_calls[2].expr);
+    test_assert("(42 == 120 or x == x)" == test_cfg.assertion_calls[2].expr);
     test_assert("(char == int or char == char)" ==
                 test_cfg.assertion_calls[3].expr);
   }

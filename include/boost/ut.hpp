@@ -214,13 +214,21 @@ class function<R(TArgs...)> {
   return output;
 }
 #endif
+template <class TCtor, class TDtor>
+class scope_guard {
+ public:
+  constexpr scope_guard(TCtor ctor, TDtor dtor) : dtor_{dtor} { ctor(); }
+  ~scope_guard() { dtor_(); };
+
+ private:
+  TDtor dtor_{};
+};
 }  // namespace utility
 
 namespace reflection {
 class source_location {
  public:
   [[nodiscard]] static constexpr auto current(
-
 #if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
       const char* file = __builtin_FILE(), int line = __builtin_LINE()
 #else
@@ -482,408 +490,6 @@ auto operator<<(ostream& os, char const* s) -> ostream& {
 #endif
 }  // namespace io
 
-namespace detail {
-struct op {};
-
-template <class T>
-[[nodiscard]] constexpr auto get_impl(const T& t, int) -> decltype(t.get()) {
-  return t.get();
-}
-template <class T>
-[[nodiscard]] constexpr auto get_impl(const T& t, ...) -> decltype(auto) {
-  return t;
-}
-template <class T>
-[[nodiscard]] constexpr auto get(const T& t) {
-  return get_impl(t, 0);
-}
-
-template <class T>
-struct type_ : op {
-  template <class TOther>
-  [[nodiscard]] constexpr auto operator()(TOther) const -> const type_<TOther> {
-    return {};
-  }
-  [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
-  template <class TOther>
-  [[nodiscard]] constexpr auto operator==(type_<TOther>) -> bool {
-    return false;
-  }
-  [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return true; }
-  template <class TOther>
-  [[nodiscard]] constexpr auto operator!=(type_<TOther>) -> bool {
-    return true;
-  }
-};
-
-template <class T, class = int>
-class value : op {
- public:
-  constexpr explicit value(const T& value) : value_(value) {}
-  [[nodiscard]] constexpr operator T() const { return value_; }
-  [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
-
- private:
-  T value_{};
-};
-
-template <class T>
-class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
-    : op {
- public:
-  static inline auto epsilon = T{};
-
-  constexpr value(const T& value, const T precision) : value_{value} {
-    epsilon = precision;
-  }
-
-  constexpr explicit value(const T& val)
-      : value{val, T(1) / math::pow(10, math::den_size<int>(val))} {}
-  [[nodiscard]] constexpr operator T() const { return value_; }
-  [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
-
- private:
-  T value_{};
-};
-
-template <auto N>
-class integral_constant : op {
- public:
-  static constexpr auto value = N;
-
-  [[nodiscard]] constexpr auto operator-() const {
-    return integral_constant<-N>{};
-  }
-  [[nodiscard]] constexpr operator decltype(N)() const { return N; }
-  [[nodiscard]] constexpr auto get() const { return N; }
-};
-
-template <class T, auto N, auto D, auto Size, auto P = 1>
-struct floating_point_constant : op {
-  static constexpr auto epsilon = T(1) / math::pow(10, Size - 1);
-  static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
-
-  [[nodiscard]] constexpr auto operator-() const {
-    return floating_point_constant<T, N, D, Size, -1>{};
-  }
-  [[nodiscard]] constexpr operator T() const { return value; }
-  [[nodiscard]] constexpr auto get() const { return value; }
-};
-
-template <class TLhs, class TRhs>
-class eq_ : op {
- public:
-  constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
-          using std::operator==;
-          using std::operator<;
-#endif
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
-            return TLhs::value == TRhs::value;
-          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
-                               type_traits::has_epsilon_v<TRhs>) {
-            return math::abs(get(lhs) - get(rhs)) <
-                   math::min_value(TLhs::epsilon, TRhs::epsilon);
-          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
-            return math::abs(get(lhs) - get(rhs)) < TLhs::epsilon;
-          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
-            return math::abs(get(lhs) - get(rhs)) < TRhs::epsilon;
-          } else {
-            return get(lhs) == get(rhs);
-          }
-        }()} {
-  }
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class neq_ : op {
- public:
-  constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
-          using std::operator!=;
-          using std::operator>;
-#endif
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
-            return TLhs::value != TRhs::value;
-          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
-                               type_traits::has_epsilon_v<TRhs>) {
-            return math::abs(get(lhs_) - get(rhs_)) >
-                   math::min_value(TLhs::epsilon, TRhs::epsilon);
-          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
-            return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
-          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
-            return math::abs(get(lhs_) - get(rhs_)) > TRhs::epsilon;
-          } else {
-            return get(lhs_) != get(rhs_);
-          }
-        }()} {
-  }
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class gt_ : op {
- public:
-  constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
-          using std::operator>;
-#endif
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
-            return TLhs::value > TRhs::value;
-          } else {
-            return get(lhs_) > get(rhs_);
-          }
-        }()} {
-  }
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class ge_ : op {
- public:
-  constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
-          using std::operator>=;
-#endif
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
-            return TLhs::value >= TRhs::value;
-          } else {
-            return get(lhs_) >= get(rhs_);
-          }
-        }()} {
-  }
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class lt_ : op {
- public:
-  constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
-          using std::operator<;
-#endif
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
-            return TLhs::value < TRhs::value;
-          } else {
-            return get(lhs_) < get(rhs_);
-          }
-        }()} {
-  }
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class le_ : op {
- public:
-  constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
-          using std::operator<=;
-#endif
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
-            return TLhs::value <= TRhs::value;
-          } else {
-            return get(lhs_) <= get(rhs_);
-          }
-        }()} {
-  }
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class and_ : op {
- public:
-  constexpr and_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs},
-        rhs_{rhs},
-        value_{static_cast<bool>(lhs) and static_cast<bool>(rhs)} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class TLhs, class TRhs>
-class or_ : op {
- public:
-  constexpr or_(const TLhs& lhs = {}, const TRhs& rhs = {})
-      : lhs_{lhs},
-        rhs_{rhs},
-        value_{static_cast<bool>(lhs) or static_cast<bool>(rhs)} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
-  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
-
- private:
-  const TLhs lhs_{};
-  const TRhs rhs_{};
-  const bool value_{};
-};
-
-template <class T>
-class not_ : op {
- public:
-  explicit constexpr not_(const T& t = {})
-      : t_{t}, value_{not static_cast<bool>(t)} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-  [[nodiscard]] constexpr auto value() const { return get(t_); }
-
- private:
-  const T t_{};
-  const bool value_{};
-};
-
-#if defined(__cpp_exceptions)
-template <class TExpr, class TException = void>
-class throws_ : op {
- public:
-  constexpr explicit throws_(const TExpr& expr)
-      : value_{[&expr] {
-          try {
-            expr();
-          } catch (const TException&) {
-            return true;
-          } catch (...) {
-            return false;
-          }
-          return false;
-        }()} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-
- private:
-  const bool value_{};
-};
-
-template <class TExpr>
-class throws_<TExpr, void> : op {
- public:
-  constexpr explicit throws_(const TExpr& expr)
-      : value_{[&expr] {
-          try {
-            expr();
-          } catch (...) {
-            return true;
-          }
-          return false;
-        }()} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-
- private:
-  const bool value_{};
-};
-
-template <class TExpr>
-class nothrow_ : op {
- public:
-  constexpr explicit nothrow_(const TExpr& expr)
-      : value_{[&expr] {
-          try {
-            expr();
-          } catch (...) {
-            return false;
-          }
-          return true;
-        }()} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-
- private:
-  const bool value_{};
-};
-#endif
-
-#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
-template <class TExpr>
-class aborts_ : op {
- public:
-  constexpr explicit aborts_(const TExpr& expr)
-      : value_{[&expr]() -> bool {
-          if (const auto pid = fork(); not pid) {
-            expr();
-            exit(0);
-          }
-          auto exit_status = 0;
-          wait(&exit_status);
-          return exit_status;
-        }()} {}
-
-  [[nodiscard]] constexpr operator bool() const { return value_; }
-
- private:
-  const bool value_{};
-};
-#endif
-}  // namespace detail
-
 struct none {};
 
 namespace events {
@@ -991,6 +597,467 @@ struct exception {
 struct summary {};
 }  // namespace events
 
+namespace detail {
+struct op {
+  static inline reflection::source_location location{};
+  static inline bool expect_wip{}, ops_wip{};
+};
+
+template <class TExpr>
+class op_ {
+ public:
+  constexpr explicit op_(const TExpr& expr) : expr_{expr} { op::ops_wip = {}; }
+
+  ~op_() noexcept(false) {
+    if (op::expect_wip or op::ops_wip) {
+      return;
+    }
+
+    op::ops_wip = true;
+    void(on<TExpr>(
+        events::assertion<TExpr>{.expr = expr_, .location = op::location}));
+  }
+
+ private:
+  const TExpr& expr_;
+};
+
+template <class T>
+[[nodiscard]] constexpr auto get_impl(const T& t, int) -> decltype(t.get()) {
+  return t.get();
+}
+template <class T>
+[[nodiscard]] constexpr auto get_impl(const T& t, ...) -> decltype(auto) {
+  return t;
+}
+template <class T>
+[[nodiscard]] constexpr auto get(const T& t) {
+  return get_impl(t, 0);
+}
+
+template <class T>
+struct type_ : op {
+  template <class TOther>
+  [[nodiscard]] constexpr auto operator()(TOther) const -> const type_<TOther> {
+    return {};
+  }
+  [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
+  template <class TOther>
+  [[nodiscard]] constexpr auto operator==(type_<TOther>) -> bool {
+    return false;
+  }
+  [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return true; }
+  template <class TOther>
+  [[nodiscard]] constexpr auto operator!=(type_<TOther>) -> bool {
+    return true;
+  }
+};
+
+template <class T, class = int>
+class value : op {
+ public:
+  using value_type = T;
+
+  constexpr /*explicit(false)*/ value(const T& value) : value_{value} {}
+  [[nodiscard]] constexpr explicit operator T() const { return value_; }
+  [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
+
+ private:
+  T value_{};
+};
+
+template <class T>
+class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
+    : op {
+ public:
+  using value_type = T;
+  static inline auto epsilon = T{};
+
+  constexpr value(const T& value, const T precision) : value_{value} {
+    epsilon = precision;
+  }
+
+  constexpr /*explicit(false)*/ value(const T& val)
+      : value{val, T(1) / math::pow(10, math::den_size<int>(val))} {}
+  [[nodiscard]] constexpr explicit operator T() const { return value_; }
+  [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
+
+ private:
+  T value_{};
+};
+
+template <class T>
+class value_location : public value<T> {
+ public:
+  constexpr /*explicit(false)*/ value_location(
+      const T& t, const reflection::source_location& sl =
+                      reflection::source_location::current())
+      : value<T>{t} {
+    op::location = sl;
+  }
+
+  constexpr value_location(const T& t, const T precision,
+                           const reflection::source_location& sl =
+                               reflection::source_location::current())
+      : value<T>{t, precision} {
+    op::location = sl;
+  }
+};
+
+template <auto N>
+class integral_constant : op {
+ public:
+  using value_type = decltype(N);
+  static constexpr auto value = N;
+
+  [[nodiscard]] constexpr auto operator-() const {
+    return integral_constant<-N>{};
+  }
+  [[nodiscard]] constexpr explicit operator value_type() const { return N; }
+  [[nodiscard]] constexpr auto get() const { return N; }
+};
+
+template <class T, auto N, auto D, auto Size, auto P = 1>
+struct floating_point_constant : op {
+  using value_type = T;
+
+  static constexpr auto epsilon = T(1) / math::pow(10, Size - 1);
+  static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
+
+  [[nodiscard]] constexpr auto operator-() const {
+    return floating_point_constant<T, N, D, Size, -1>{};
+  }
+  [[nodiscard]] constexpr explicit operator value_type() const { return value; }
+  [[nodiscard]] constexpr auto get() const { return value; }
+};
+
+template <class TLhs, class TRhs>
+class eq_ : op {
+ public:
+  constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
+          using std::operator==;
+          using std::operator<;
+#endif
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value == TRhs::value;
+          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
+                               type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs) - get(rhs)) <
+                   math::min_value(TLhs::epsilon, TRhs::epsilon);
+          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+            return math::abs(get(lhs) - get(rhs)) < TLhs::epsilon;
+          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs) - get(rhs)) < TRhs::epsilon;
+          } else {
+            return get(lhs) == get(rhs);
+          }
+        }()} {
+  }
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<eq_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class neq_ : op {
+ public:
+  constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
+          using std::operator!=;
+          using std::operator>;
+#endif
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value != TRhs::value;
+          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
+                               type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs_) - get(rhs_)) >
+                   math::min_value(TLhs::epsilon, TRhs::epsilon);
+          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+            return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
+          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+            return math::abs(get(lhs_) - get(rhs_)) > TRhs::epsilon;
+          } else {
+            return get(lhs_) != get(rhs_);
+          }
+        }()} {
+  }
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<neq_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class gt_ : op {
+ public:
+  constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
+          using std::operator>;
+#endif
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value > TRhs::value;
+          } else {
+            return get(lhs_) > get(rhs_);
+          }
+        }()} {
+  }
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<gt_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class ge_ : op {
+ public:
+  constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
+          using std::operator>=;
+#endif
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value >= TRhs::value;
+          } else {
+            return get(lhs_) >= get(rhs_);
+          }
+        }()} {
+  }
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<ge_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class lt_ : op {
+ public:
+  constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
+          using std::operator<;
+#endif
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value < TRhs::value;
+          } else {
+            return get(lhs_) < get(rhs_);
+          }
+        }()} {
+  }
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<lt_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class le_ : op {
+ public:
+  constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+#if (__GNUC__ < 10)
+          using std::operator<=;
+#endif
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs>) {
+            return TLhs::value <= TRhs::value;
+          } else {
+            return get(lhs_) <= get(rhs_);
+          }
+        }()} {
+  }
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<le_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class and_ : op {
+ public:
+  constexpr and_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs},
+        rhs_{rhs},
+        value_{static_cast<bool>(lhs) and static_cast<bool>(rhs)} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<and_> _{*this};
+};
+
+template <class TLhs, class TRhs>
+class or_ : op {
+ public:
+  constexpr or_(const TLhs& lhs = {}, const TRhs& rhs = {})
+      : lhs_{lhs},
+        rhs_{rhs},
+        value_{static_cast<bool>(lhs) or static_cast<bool>(rhs)} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+
+ private:
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const bool value_{};
+  const op_<or_> _{*this};
+};
+
+template <class T>
+class not_ : op {
+ public:
+  explicit constexpr not_(const T& t = {})
+      : t_{t}, value_{not static_cast<bool>(t)} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto value() const { return get(t_); }
+
+ private:
+  const T t_{};
+  const bool value_{};
+  const op_<not_> _{*this};
+};
+
+#if defined(__cpp_exceptions)
+template <class TExpr, class TException = void>
+class throws_ : op {
+ public:
+  constexpr explicit throws_(const TExpr& expr)
+      : value_{[&expr] {
+          try {
+            expr();
+          } catch (const TException&) {
+            return true;
+          } catch (...) {
+            return false;
+          }
+          return false;
+        }()} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+
+ private:
+  const bool value_{};
+  const op_<throws_> _{*this};
+};
+
+template <class TExpr>
+class throws_<TExpr, void> : op {
+ public:
+  constexpr explicit throws_(const TExpr& expr)
+      : value_{[&expr] {
+          try {
+            expr();
+          } catch (...) {
+            return true;
+          }
+          return false;
+        }()} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+
+ private:
+  const bool value_{};
+  const op_<throws_> _{*this};
+};
+
+template <class TExpr>
+class nothrow_ : op {
+ public:
+  constexpr explicit nothrow_(const TExpr& expr)
+      : value_{[&expr] {
+          try {
+            expr();
+          } catch (...) {
+            return false;
+          }
+          return true;
+        }()} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+
+ private:
+  const bool value_{};
+  const op_<nothrow_> _{*this};
+};
+#endif
+
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
+template <class TExpr>
+class aborts_ : op {
+ public:
+  constexpr explicit aborts_(const TExpr& expr)
+      : value_{[&expr]() -> bool {
+          if (const auto pid = fork(); not pid) {
+            expr();
+            exit(0);
+          }
+          auto exit_status = 0;
+          wait(&exit_status);
+          return exit_status;
+        }()} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+
+ private:
+  const bool value_{};
+  const op_<aborts_> _{*this};
+};
+#endif
+}  // namespace detail
+
 #if not defined(BOOST_UT_FORWARD)
 struct colors {
   std::string_view none = "\033[0m";
@@ -1010,7 +1077,7 @@ class printer {
 
   template <class T>
   auto& operator<<(const T& t) {
-    out_ << t;
+    out_ << detail::get(t);
     return *this;
   }
 
@@ -1541,8 +1608,9 @@ template <class... Ts, class TEvent>
 template <class Test>
 struct test_location {
   template <class T>
-  constexpr test_location(T t, const reflection::source_location& sl =
-                                   reflection::source_location::current())
+  constexpr test_location(const T& t,
+                          const reflection::source_location& sl =
+                              reflection::source_location::current())
       : test{t}, location{sl} {}
 
   Test test{};
@@ -1782,19 +1850,45 @@ template <char... Cs>
 
 namespace type_traits {
 template <class T>
-constexpr auto is_op_v = __is_base_of(detail::op, T);
+inline constexpr auto is_op_v = __is_base_of(detail::op, T);
+template <class>
+inline constexpr auto is_value_v = false;
+template <>
+inline constexpr auto is_value_v<bool> = true;
+template <>
+inline constexpr auto is_value_v<char> = true;
+template <>
+inline constexpr auto is_value_v<short> = true;
+template <>
+inline constexpr auto is_value_v<int> = true;
+template <>
+inline constexpr auto is_value_v<long> = true;
+template <>
+inline constexpr auto is_value_v<long long> = true;
+template <>
+inline constexpr auto is_value_v<unsigned> = true;
+template <>
+inline constexpr auto is_value_v<unsigned char> = true;
+template <>
+inline constexpr auto is_value_v<unsigned short> = true;
+template <>
+inline constexpr auto is_value_v<unsigned long> = true;
 }  // namespace type_traits
 
 namespace operators {
+#if defined(__clang__)
+  #pragma clang diagnostic ignored "-Wunused-comparison"
+#endif
+
 #if not defined(BOOST_UT_FORWARD) and \
     (defined(__cpp_lib_string_view) or defined(__APPLE__))
-[[nodiscard]] constexpr auto operator==(std::string_view lhs,
-                                        std::string_view rhs) {
+[[nodiscard]] /*constexpr*/ auto operator==(std::string_view lhs,
+                                            std::string_view rhs) {
   return detail::eq_{lhs, rhs};
 }
 
-[[nodiscard]] constexpr auto operator!=(std::string_view lhs,
-                                        std::string_view rhs) {
+[[nodiscard]] /*constexpr*/ auto operator!=(std::string_view lhs,
+                                            std::string_view rhs) {
   return detail::neq_{lhs, rhs};
 }
 #endif
@@ -1810,9 +1904,23 @@ template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 }
 
 template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+          type_traits::requires_t<
+              (type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>)and not(
+                  type_traits::is_value_v<TLhs> or
+                  type_traits::is_value_v<TRhs>)> = 0>
 [[nodiscard]] constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+constexpr auto operator==(
+    const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+constexpr auto operator==(
+    const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   return detail::eq_{lhs, rhs};
 }
 
@@ -1854,7 +1962,7 @@ template <class TLhs, class TRhs,
 template <class TLhs, class TRhs,
           type_traits::requires_t<type_traits::is_op_v<TLhs> or
                                   type_traits::is_op_v<TRhs>> = 0>
-[[nodiscard]] constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
+constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   return detail::and_{lhs, rhs};
 }
 
@@ -1908,7 +2016,10 @@ template <
 template <class TExpr, type_traits::requires_t<
                            type_traits::is_op_v<TExpr> or
                            type_traits::is_convertible_v<TExpr, bool>> = 0>
-constexpr auto expect(const TExpr& expr,
+/*constexpr*/ auto expect(const TExpr& expr,
+                      utility::scope_guard<void (*)(), void (*)()> = {
+                          [] { detail::op::expect_wip = true; },
+                          [] { detail::op::expect_wip = false; }},
                       const reflection::source_location& sl =
                           reflection::source_location::current()) {
   return detail::expect_<TExpr>{detail::on<TExpr>(
@@ -1974,9 +2085,10 @@ struct suite {
   }
 };
 
-[[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
-[[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
-constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
+[[maybe_unused]] /*constexpr*/ auto true_b = detail::integral_constant<true>{};
+[[maybe_unused]] /*constexpr*/ auto false_b =
+    detail::integral_constant<false>{};
+/*constexpr*/ auto operator""_b(const char*, decltype(sizeof(""))) {
   return true_b;
 }
 
@@ -1988,7 +2100,7 @@ constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
 [[maybe_unused]] constexpr auto should = test;
 [[maybe_unused]] constexpr auto skip = detail::skip{};
 template <class T = void>
-[[maybe_unused]] constexpr auto type = detail::type_<T>();
+[[maybe_unused]] /*constexpr*/ auto type = detail::type_<T>();
 
 template <class TLhs, class TRhs>
 [[nodiscard]] constexpr auto eq(const TLhs& lhs, const TRhs& rhs) {

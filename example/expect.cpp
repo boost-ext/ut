@@ -92,11 +92,11 @@ int main() {
     expect(std::array{true, false} == std::array{true, false});
   };
 
-  "constant"_test = [] {
-    constexpr auto compile_time_v = 42;
-    auto run_time_v = 99;
-    expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
-  };
+  //"constant"_test = [] {
+  // constexpr auto compile_time_v = 42;
+  // auto run_time_v = 99;
+  // expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
+  //};
 
   "convertible"_test = [] {
     expect(bool(std::make_unique<int>()));
@@ -107,5 +107,14 @@ int main() {
     expect("true"_b);
     expect("true"_b and not false_b);
     expect(not"true"_b == false_b);
+  };
+
+  "in-place"_test = [] {
+    42_i == sum(40, 3);
+    2_i == sum(1, 1);
+    sum(1, 1, 2) == 4_i;
+    42_i == sum(40, 2) and 2_i == sum(1) and 3_i == 3;
+    3_i == sum(1, 1, 1);
+    sum(1, 2, 3) == 7_i;
   };
 }
