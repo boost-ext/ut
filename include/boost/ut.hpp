@@ -519,8 +519,10 @@ struct type_ : op {
 template <class T, class = int>
 class value : op {
  public:
-  constexpr explicit value(const T& value) : value_(value) {}
-  [[nodiscard]] constexpr operator T() const { return value_; }
+  using value_type = T;
+
+  constexpr /*explicit(false)*/ value(const T& value) : value_(value) {}
+  [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
  private:
@@ -531,6 +533,7 @@ template <class T>
 class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
     : op {
  public:
+  using value_type = T;
   static inline auto epsilon = T{};
 
   constexpr value(const T& value, const T precision) : value_{value} {
@@ -539,7 +542,7 @@ class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
 
   constexpr explicit value(const T& val)
       : value{val, T(1) / math::pow(10, math::den_size<int>(val))} {}
-  [[nodiscard]] constexpr operator T() const { return value_; }
+  [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
  private:
@@ -549,24 +552,27 @@ class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
 template <auto N>
 class integral_constant : op {
  public:
+  using value_type = decltype(N);
   static constexpr auto value = N;
 
   [[nodiscard]] constexpr auto operator-() const {
     return integral_constant<-N>{};
   }
-  [[nodiscard]] constexpr operator decltype(N)() const { return N; }
+  [[nodiscard]] constexpr explicit operator value_type() const { return N; }
   [[nodiscard]] constexpr auto get() const { return N; }
 };
 
 template <class T, auto N, auto D, auto Size, auto P = 1>
 struct floating_point_constant : op {
+  using value_type = T;
+
   static constexpr auto epsilon = T(1) / math::pow(10, Size - 1);
   static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
 
   [[nodiscard]] constexpr auto operator-() const {
     return floating_point_constant<T, N, D, Size, -1>{};
   }
-  [[nodiscard]] constexpr operator T() const { return value; }
+  [[nodiscard]] constexpr explicit operator value_type() const { return value; }
   [[nodiscard]] constexpr auto get() const { return value; }
 };
 
@@ -1010,7 +1016,7 @@ class printer {
 
   template <class T>
   auto& operator<<(const T& t) {
-    out_ << t;
+    out_ << detail::get(t);
     return *this;
   }
 
@@ -1783,6 +1789,28 @@ template <char... Cs>
 namespace type_traits {
 template <class T>
 constexpr auto is_op_v = __is_base_of(detail::op, T);
+template <class>
+constexpr auto is_number_v = false;
+template <>
+constexpr auto is_number_v<bool> = true;
+template <>
+constexpr auto is_number_v<char> = true;
+template <>
+constexpr auto is_number_v<short> = true;
+template <>
+constexpr auto is_number_v<int> = true;
+template <>
+constexpr auto is_number_v<long> = true;
+template <>
+constexpr auto is_number_v<long long> = true;
+template <>
+constexpr auto is_number_v<unsigned> = true;
+template <>
+constexpr auto is_number_v<unsigned char> = true;
+template <>
+constexpr auto is_number_v<unsigned short> = true;
+template <>
+constexpr auto is_number_v<unsigned long> = true;
 }  // namespace type_traits
 
 namespace operators {
@@ -1810,9 +1838,23 @@ template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 }
 
 template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+          type_traits::requires_t<
+              (type_traits::is_op_v<TLhs> or type_traits::is_op_v<TRhs>)and not(
+                  type_traits::is_number_v<TLhs> or
+                  type_traits::is_number_v<TRhs>)> = 0>
 [[nodiscard]] constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+constexpr auto operator==(const T& lhs,
+                          const detail::value<typename T::value_type>& rhs) {
+  return detail::eq_{lhs, rhs};
+}
+
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+constexpr auto operator==(const detail::value<typename T::value_type>& lhs,
+                          const T& rhs) {
   return detail::eq_{lhs, rhs};
 }
 

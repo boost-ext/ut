@@ -108,4 +108,9 @@ int main() {
     expect("true"_b and not false_b);
     expect(not"true"_b == false_b);
   };
+
+  "in-place"_test = [] {
+    42_i == sum(40, 2);
+    sum(1, 2, 3) == 6_i;
+  };
 }

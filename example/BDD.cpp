@@ -8,8 +8,10 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace boost::ut;
+  using namespace boost::ut::operators;
+  using namespace boost::ut::literals;
   using namespace boost::ut::bdd;
+  using boost::ut::expect;
 
   "Scenario"_test = [] {
     given("I have...") = [] {
