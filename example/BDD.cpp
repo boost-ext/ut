@@ -8,14 +8,15 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace boost::ut;
+  using namespace boost::ut::operators;
+  using namespace boost::ut::literals;
   using namespace boost::ut::bdd;
 
   "Scenario"_test = [] {
     given("I have...") = [] {
       when("I run...") = [] {
-        then("I expect...") = [] { expect(1_u == 1u); };
-        then("I expect...") = [] { expect(1u == 1_u); };
+        then("I should have...") = [] { 1_u == 1u; };
+        then("I should have...") = [] { 1u == 1_u; };
       };
     };
   };

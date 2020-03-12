@@ -10,12 +10,16 @@
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
 int main() {
-  using namespace boost::ut::operators::terse;
+  using boost::ut::operator""_test;
   using namespace boost::ut::literals;
-  using namespace boost::ut::spec;
+  using namespace boost::ut::operators::terse;
 
-  describe("sum") = [] {
-    it("should be 0") = [] { sum() == 0_i; };
-    it("should add all args") = [] { sum(1, 2, 3) == 6_i; };
+  "terse"_test = [] {
+    42_i == sum(40, 2);
+    2_i == sum(1, 1);
+    sum(1, 1, 2) == 4_i;
+    42_i == sum(40, 2) and 2_i == sum(2) and 3_i == 3;
+    3_i == sum(1, 1, 2);
+    sum(1, 2, 3) == 6_i;
   };
 }

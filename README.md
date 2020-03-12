@@ -17,7 +17,7 @@
 <p>
 
 <p align="center">
-  <a href="https://godbolt.org/z/dfMGbE"><img src="doc/images/ut.png"></a>
+  <a href="https://godbolt.org/z/f2BdeZ"><img src="doc/images/ut.png"></a>
 </p>
 
 <a name="motivation"></a>
@@ -624,6 +624,50 @@ All tests passed (4 asserts in 1 tests)
 </p>
 </details>
 
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
+<p>
+
+```cpp
+"Scenario"_test = [] {
+  given("I have...") = [] {
+    when("I run...") = [] {
+      then("I expect...") = [] { expect(1_i == 1); };
+      then("I expect...") = [] { expect(1 == 1_i); };
+    };
+  };
+};
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/mNBySr
+
+</p>
+</details>
+
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Spec</summary>
+<p>
+
+```cpp
+int main() {
+  describe("equality") = [] {
+    it("should be equal")     = [] { expect(0_i == 0); };
+    it("should not be equal") = [] { expect(1_i != 0); };
+  };
+}
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/BXYJ3a
+
+</p>
+</details>
+
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Parameterized</summary>
 <p>
 
@@ -663,49 +707,6 @@ All tests passed (14 asserts in 10 tests)
 </p>
 </details>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Behavior Driven Development (BDD)</summary>
-<p>
-
-```cpp
-"Scenario"_test = [] {
-  given("I have...") = [] {
-    when("I run...") = [] {
-      then("I expect...") = [] { expect(1_i == 1); };
-      then("I expect...") = [] { expect(1 == 1_i); };
-    };
-  };
-};
-```
-
-```
-All tests passed (2 asserts in 1 tests)
-```
-
-> https://godbolt.org/z/mNBySr
-
-</p>
-</details>
-
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Spec</summary>
-<p>
-
-```cpp
-int main() {
-  describe("equality") = [] {
-    it("should be equal")     = [] { expect(0_i == 0_i); };
-    it("should not be equal") = [] { expect(1_i != 0_i); };
-  };
-}
-```
-
-```
-All tests passed (2 asserts in 1 tests)
-```
-
-> https://godbolt.org/z/BXYJ3a
-
-</p>
-</details>
 
 </p>
 </details>

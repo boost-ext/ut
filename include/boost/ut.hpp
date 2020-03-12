@@ -220,7 +220,6 @@ namespace reflection {
 class source_location {
  public:
   [[nodiscard]] static constexpr auto current(
-
 #if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
       const char* file = __builtin_FILE(), int line = __builtin_LINE()
 #else
@@ -482,6 +481,113 @@ auto operator<<(ostream& os, char const* s) -> ostream& {
 #endif
 }  // namespace io
 
+struct none {};
+
+namespace events {
+struct test_begin {
+  utility::string_view type{};
+  utility::string_view name{};
+  reflection::source_location location{};
+};
+template <class Test, class TArg = none>
+struct test {
+  utility::string_view type{};
+  utility::string_view name{};
+  reflection::source_location location{};
+  TArg arg{};
+  Test run{};
+
+  constexpr auto operator()() { run_impl(static_cast<Test&&>(run), arg); }
+  constexpr auto operator()() const { run_impl(static_cast<Test&&>(run), arg); }
+
+ private:
+  static constexpr auto run_impl(Test test, const none&) { test(); }
+
+  template <class T>
+  static constexpr auto run_impl(T test, const TArg& arg)
+      -> decltype(test(arg), void()) {
+    test(arg);
+  }
+
+  template <class T>
+  static constexpr auto run_impl(T test, const TArg&)
+      -> decltype(test.template operator()<TArg>(), void()) {
+    test.template operator()<TArg>();
+  }
+};
+template <class Test, class TArg>
+test(utility::string_view, utility::string_view, reflection::source_location,
+     TArg, Test)
+    ->test<Test, TArg>;
+template <class TSuite>
+struct suite {
+  TSuite run{};
+  constexpr auto operator()() { run(); }
+  constexpr auto operator()() const { run(); }
+};
+template <class TSuite>
+suite(TSuite)->suite<TSuite>;
+struct test_run {
+  utility::string_view type{};
+  utility::string_view name{};
+};
+template <class TArg = none>
+struct skip {
+  utility::string_view type{};
+  utility::string_view name{};
+  TArg arg{};
+};
+template <class TArg>
+skip(utility::string_view, utility::string_view, TArg)->skip<TArg>;
+struct test_skip {
+  utility::string_view type{};
+  utility::string_view name{};
+};
+template <class TExpr>
+struct assertion {
+  TExpr expr{};
+  reflection::source_location location{};
+};
+template <class TExpr>
+assertion(TExpr, reflection::source_location)->assertion<TExpr>;
+#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
+struct expr {
+  bool result;
+  utility::function<io::ostream&(io::ostream&)> out;
+};
+#endif
+template <class TExpr>
+struct assertion_pass {
+  TExpr expr{};
+  reflection::source_location location{};
+};
+template <class TExpr>
+assertion_pass(TExpr)->assertion_pass<TExpr>;
+template <class TExpr>
+struct assertion_fail {
+  TExpr expr{};
+  reflection::source_location location{};
+};
+template <class TExpr>
+assertion_fail(TExpr)->assertion_fail<TExpr>;
+struct test_end {
+  utility::string_view type{};
+  utility::string_view name{};
+};
+template <class TMsg>
+struct log {
+  TMsg msg{};
+};
+template <class TMsg = utility::string_view>
+log(TMsg)->log<TMsg>;
+struct fatal_assertion {};
+struct exception {
+  const char* msg{};
+  auto what() const -> const char* { return msg; }
+};
+struct summary {};
+}  // namespace events
+
 namespace detail {
 struct op {};
 
@@ -519,8 +625,10 @@ struct type_ : op {
 template <class T, class = int>
 class value : op {
  public:
-  constexpr explicit value(const T& value) : value_(value) {}
-  [[nodiscard]] constexpr operator T() const { return value_; }
+  using value_type = T;
+
+  constexpr /*explicit(false)*/ value(const T& value) : value_{value} {}
+  [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
  private:
@@ -531,15 +639,16 @@ template <class T>
 class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
     : op {
  public:
+  using value_type = T;
   static inline auto epsilon = T{};
 
   constexpr value(const T& value, const T precision) : value_{value} {
     epsilon = precision;
   }
 
-  constexpr explicit value(const T& val)
+  constexpr /*explicit(false)*/ value(const T& val)
       : value{val, T(1) / math::pow(10, math::den_size<int>(val))} {}
-  [[nodiscard]] constexpr operator T() const { return value_; }
+  [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
  private:
@@ -549,24 +658,27 @@ class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
 template <auto N>
 class integral_constant : op {
  public:
+  using value_type = decltype(N);
   static constexpr auto value = N;
 
   [[nodiscard]] constexpr auto operator-() const {
     return integral_constant<-N>{};
   }
-  [[nodiscard]] constexpr operator decltype(N)() const { return N; }
+  [[nodiscard]] constexpr explicit operator value_type() const { return N; }
   [[nodiscard]] constexpr auto get() const { return N; }
 };
 
 template <class T, auto N, auto D, auto Size, auto P = 1>
 struct floating_point_constant : op {
+  using value_type = T;
+
   static constexpr auto epsilon = T(1) / math::pow(10, Size - 1);
   static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
 
   [[nodiscard]] constexpr auto operator-() const {
     return floating_point_constant<T, N, D, Size, -1>{};
   }
-  [[nodiscard]] constexpr operator T() const { return value; }
+  [[nodiscard]] constexpr explicit operator value_type() const { return value; }
   [[nodiscard]] constexpr auto get() const { return value; }
 };
 
@@ -884,113 +996,6 @@ class aborts_ : op {
 #endif
 }  // namespace detail
 
-struct none {};
-
-namespace events {
-struct test_begin {
-  utility::string_view type{};
-  utility::string_view name{};
-  reflection::source_location location{};
-};
-template <class Test, class TArg = none>
-struct test {
-  utility::string_view type{};
-  utility::string_view name{};
-  reflection::source_location location{};
-  TArg arg{};
-  Test run{};
-
-  constexpr auto operator()() { run_impl(static_cast<Test&&>(run), arg); }
-  constexpr auto operator()() const { run_impl(static_cast<Test&&>(run), arg); }
-
- private:
-  static constexpr auto run_impl(Test test, const none&) { test(); }
-
-  template <class T>
-  static constexpr auto run_impl(T test, const TArg& arg)
-      -> decltype(test(arg), void()) {
-    test(arg);
-  }
-
-  template <class T>
-  static constexpr auto run_impl(T test, const TArg&)
-      -> decltype(test.template operator()<TArg>(), void()) {
-    test.template operator()<TArg>();
-  }
-};
-template <class Test, class TArg>
-test(utility::string_view, utility::string_view, reflection::source_location,
-     TArg, Test)
-    ->test<Test, TArg>;
-template <class TSuite>
-struct suite {
-  TSuite run{};
-  constexpr auto operator()() { run(); }
-  constexpr auto operator()() const { run(); }
-};
-template <class TSuite>
-suite(TSuite)->suite<TSuite>;
-struct test_run {
-  utility::string_view type{};
-  utility::string_view name{};
-};
-template <class TArg = none>
-struct skip {
-  utility::string_view type{};
-  utility::string_view name{};
-  TArg arg{};
-};
-template <class TArg>
-skip(utility::string_view, utility::string_view, TArg)->skip<TArg>;
-struct test_skip {
-  utility::string_view type{};
-  utility::string_view name{};
-};
-template <class TExpr>
-struct assertion {
-  TExpr expr{};
-  reflection::source_location location{};
-};
-template <class TExpr>
-assertion(TExpr, reflection::source_location)->assertion<TExpr>;
-#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
-struct expr {
-  bool result;
-  utility::function<io::ostream&(io::ostream&)> out;
-};
-#endif
-template <class TExpr>
-struct assertion_pass {
-  TExpr expr{};
-  reflection::source_location location{};
-};
-template <class TExpr>
-assertion_pass(TExpr)->assertion_pass<TExpr>;
-template <class TExpr>
-struct assertion_fail {
-  TExpr expr{};
-  reflection::source_location location{};
-};
-template <class TExpr>
-assertion_fail(TExpr)->assertion_fail<TExpr>;
-struct test_end {
-  utility::string_view type{};
-  utility::string_view name{};
-};
-template <class TMsg>
-struct log {
-  TMsg msg{};
-};
-template <class TMsg = utility::string_view>
-log(TMsg)->log<TMsg>;
-struct fatal_assertion {};
-struct exception {
-  const char* msg{};
-  auto what() const -> const char* { return msg; }
-};
-struct summary {};
-}  // namespace events
-
 #if not defined(BOOST_UT_FORWARD)
 struct colors {
   std::string_view none = "\033[0m";
@@ -1010,7 +1015,7 @@ class printer {
 
   template <class T>
   auto& operator<<(const T& t) {
-    out_ << t;
+    out_ << detail::get(t);
     return *this;
   }
 
@@ -1541,8 +1546,9 @@ template <class... Ts, class TEvent>
 template <class Test>
 struct test_location {
   template <class T>
-  constexpr test_location(T t, const reflection::source_location& sl =
-                                   reflection::source_location::current())
+  constexpr test_location(const T& t,
+                          const reflection::source_location& sl =
+                              reflection::source_location::current())
       : test{t}, location{sl} {}
 
   Test test{};
@@ -1782,7 +1788,7 @@ template <char... Cs>
 
 namespace type_traits {
 template <class T>
-constexpr auto is_op_v = __is_base_of(detail::op, T);
+inline constexpr auto is_op_v = __is_base_of(detail::op, T);
 }  // namespace type_traits
 
 namespace operators {
@@ -1903,7 +1909,99 @@ template <
         t);
   };
 }
-}  //  namespace operators
+
+namespace terse {
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-comparison"
+#endif
+
+namespace detail {
+struct data {
+  static inline reflection::source_location location{};
+  static inline bool wip{};
+};
+
+template <class TExpr>
+class terse {
+ public:
+  constexpr explicit terse(const TExpr& expr) : expr_{expr} { data::wip = {}; }
+
+  ~terse() noexcept(false) {
+    if (static auto once = true; once) {
+      once = {};
+    } else {
+      return;
+    }
+
+    if (data::wip) {
+      return;
+    }
+
+    data::wip = true;
+    void(ut::detail::on<TExpr>(
+        events::assertion<TExpr>{.expr = expr_, .location = data::location}));
+  }
+
+ private:
+  const TExpr& expr_;
+};
+
+template <class T>
+class value_location : public ut::detail::value<T> {
+ public:
+  constexpr /*explicit(false)*/ value_location(
+      const T& t, const reflection::source_location& sl =
+                      reflection::source_location::current())
+      : ut::detail::value<T>{t} {
+    data::location = sl;
+  }
+
+  constexpr value_location(const T& t, const T precision,
+                           const reflection::source_location& sl =
+                               reflection::source_location::current())
+      : ut::detail::value<T>{t, precision} {
+    data::location = sl;
+  }
+};
+}  // namespace detail
+
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+constexpr auto operator==(
+    const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
+  using eq_t =
+      ut::detail::eq_<T, detail::value_location<typename T::value_type>>;
+  struct eq_ : eq_t {
+    using eq_t::eq_t;
+    const detail::terse<eq_t> _{*this};
+  };
+  return eq_{lhs, rhs};
+}
+
+template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+constexpr auto operator==(
+    const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
+  using eq_t =
+      ut::detail::eq_<detail::value_location<typename T::value_type>, T>;
+  struct eq_ : eq_t {
+    using eq_t::eq_t;
+    const detail::terse<eq_t> _{*this};
+  };
+  return eq_{lhs, rhs};
+}
+
+template <class TLhs, class TRhs,
+          type_traits::requires_t<type_traits::is_op_v<TLhs> or
+                                  type_traits::is_op_v<TRhs>> = 0>
+constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
+  using and_t = ut::detail::and_<TLhs, TRhs>;
+  struct and_ : and_t {
+    using and_t::and_t;
+    const detail::terse<and_t> _{*this};
+  };
+  return and_{lhs, rhs};
+}
+}  // namespace terse
+}  // namespace operators
 
 template <class TExpr, type_traits::requires_t<
                            type_traits::is_op_v<TExpr> or
