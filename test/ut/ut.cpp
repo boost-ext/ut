@@ -1419,13 +1419,18 @@ int main() {
 
     42_i == 42;
     1 == 2_i;
+    0_i == 1 and 1_i > 2 or 3 <= 3_i;
 
-    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(3 == std::size(test_cfg.assertion_calls));
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[0].result);
 
     test_assert("1 == 2" == test_cfg.assertion_calls[1].expr);
     test_assert(not test_cfg.assertion_calls[1].result);
+
+    test_assert("((0 == 1 and 1 > 2) or 3 <= 3)" ==
+                test_cfg.assertion_calls[2].expr);
+    test_assert(test_cfg.assertion_calls[2].result);
   }
 }
