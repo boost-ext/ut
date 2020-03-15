@@ -37,7 +37,7 @@ export import std;
 #elif not defined(__cpp_static_assert)
 #error "[Boost].UT requires support for static assert";
 #else
-#define BOOST_UT_VERSION 1'1'6
+#define BOOST_UT_VERSION 1'1'7
 
 #if defined(__has_builtin) and (__GNUC__ < 10) and not defined(__clang__)
 #undef __has_builtin
@@ -88,7 +88,7 @@ export namespace boost::ut {
 namespace boost::ut {
 #endif
 
-inline namespace v1_1_6 {
+inline namespace v1_1_7 {
 namespace utility {
 class string_view {
  public:
@@ -2320,6 +2320,6 @@ using operators::operator and;
 using operators::operator or;
 using operators::operator not;
 using operators::operator|;
-}  // namespace v1_1_6
+}  // namespace v1_1_7
 }  // namespace boost::ut
 #endif
