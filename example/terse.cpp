@@ -15,11 +15,8 @@ int main() {
   using namespace boost::ut::operators::terse;
 
   "terse"_test = [] {
-    42_i == sum(40, 2);
-    2_i == sum(1, 1);
-    sum(1, 1, 2) == 4_i;
-    42_i == sum(40, 2) and 2_i == sum(2) and 3_i == 3;
-    3_i == sum(1, 1, 2);
-    sum(1, 2, 3) == 6_i;
+    6_i == sum(1, 2, 3);
+    sum(1, 1) == 2_i;
+    42_i == sum(40, 2) and 0_i != sum(1) or 4_i == 3;
   };
 }
