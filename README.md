@@ -4,7 +4,7 @@
 <a href="https://ci.appveyor.com/project/krzysztof-jusiak/ut" target="_blank">![Build Status](https://img.shields.io/appveyor/ci/krzysztof-jusiak/ut/master.svg?label=windows)</a>
 <a href="https://codecov.io/gh/boost-experimental/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-experimental/ut/branch/master/graph/badge.svg)</a>
 <a href="https://www.codacy.com/manual/krzysztof-jusiak/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-experimental/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
-<a href="https://godbolt.org/z/wCwkR9">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+<a href="https://godbolt.org/z/Jqb5Ye">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 <a href="https://gitter.im/boost-experimental/ut?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">![Chat](https://badges.gitter.im/boost-experimental/ut.svg)</a>
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
@@ -110,7 +110,7 @@ Sounds intriguing/interesting? Learn more at
 * No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*, Clang-cl-9.0+](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
 * Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
-* Easy to use ([Minimal API](#api) - `expect, test, suite`)
+* Easy to use ([Minimal API](#api) - `test, suite, operators, literals, [expect]`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
 * Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 * Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
@@ -223,7 +223,27 @@ asserts: 1 | 0 passed | 1 failed
 
 See the [User-guide](#user-guide) for more details.
 
-> Alternatively, other expression syntaxes can be used.
+> Alternatively, a `terse` notation (no expect required) can be used.
+
+```cpp
+int main() {
+  using namespace boost::ut::literals;
+  using namespace boost::ut::operators::terse;
+
+  1_i == 2; // terse notation
+}
+```
+
+```
+main.cpp:7:FAILED [1 == 2]
+===============================================================================
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+> https://godbolt.org/z/s77GSm
+
+> Additionally,, other expression syntaxes are also available.
 
 ```cpp
 expect(1_i == 2);       // UDL syntax
@@ -345,7 +365,7 @@ asserts: 1 | 0 passed | 1 failed
 > 👍 We are done here!
 
 > I'd like to nest my tests, though and share setup/tear-down.
-> With lambdas used to represents tests we can easily achieve that.
+> With lambdas used to represents `tests/sections` we can easily achieve that.
 > Let's just take a look at the following example.
 
 ```cpp
@@ -403,6 +423,28 @@ All tests passed (2 asserts in 1 tests)
 ```
 
 > https://godbolt.org/z/xNSGpr
+
+> Nice, is `Spec` notation supported as well?
+
+```cpp
+int main() {
+  describe("vector") = [] {
+    std::vector<int> v(5);
+    !expect(5_ul == std::size(v));
+
+    it("should resize bigger") = [v] {
+      mut(v).resize(10);
+      expect(10_ul == std::size(v));
+    };
+  };
+}
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/chvYvx
 
 > That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
 > Parameterized tests to the rescue!
