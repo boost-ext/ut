@@ -8,7 +8,7 @@
 #include <boost/ut.hpp>
 
 auto* ptr() {
-  static auto i = 42;  /// Change to 0 for fatal assertions
+  static auto i = 42;  /// Change i to 0 for fatal assertions
   return &i;
 }
 

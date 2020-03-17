@@ -1665,17 +1665,14 @@ class terse_ {
   constexpr explicit terse_(const TExpr& expr) : expr_{expr} { cfg::wip = {}; }
 
   ~terse_() noexcept(false) {
-    if (static auto once = true; once) {
+    if (static auto once = true; once and not cfg::wip) {
       once = {};
     } else {
       return;
     }
 
-    if (cfg::wip) {
-      return;
-    }
-
     cfg::wip = true;
+
     void(ut::detail::on<TExpr>(
         events::assertion<TExpr>{.expr = expr_, .location = cfg::location}));
   }
@@ -1734,7 +1731,7 @@ template <class T>
 class expect_ : op {
  public:
   using type = expect_;
-  constexpr explicit expect_(bool value) : value_{value} {}
+  constexpr explicit expect_(bool value) : value_{value} { cfg::wip = {}; }
 
   template <class TMsg>
   auto& operator<<(const TMsg& msg) {

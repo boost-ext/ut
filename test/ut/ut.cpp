@@ -1410,6 +1410,7 @@ int main() {
   }
 
   {
+    using ut::expect;
     using namespace ut::literals;
     using namespace ut::operators::terse;
 
@@ -1420,8 +1421,11 @@ int main() {
     42_i == 42;
     1 == 2_i;
     0_i == 1 and 1_i > 2 or 3 <= 3_i;
+    !expect(boost::ut::true_b == false) and 1_i > 0;
+    2 == 1_i;
 
-    test_assert(3 == std::size(test_cfg.assertion_calls));
+    test_assert(7 == std::size(test_cfg.assertion_calls));
+    test_assert(test_cfg.fatal_assertion_calls > 0);
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[0].result);
@@ -1432,5 +1436,17 @@ int main() {
     test_assert("((0 == 1 and 1 > 2) or 3 <= 3)" ==
                 test_cfg.assertion_calls[2].expr);
     test_assert(test_cfg.assertion_calls[2].result);
+
+    test_assert("true == false" == test_cfg.assertion_calls[3].expr);
+    test_assert(not test_cfg.assertion_calls[3].result);
+
+    test_assert("false" == test_cfg.assertion_calls[4].expr);
+    test_assert(not test_cfg.assertion_calls[4].result);
+
+    test_assert("(false and 1 > 0)" == test_cfg.assertion_calls[5].expr);
+    test_assert(not test_cfg.assertion_calls[4].result);
+
+    test_assert("2 == 1" == test_cfg.assertion_calls[6].expr);
+    test_assert(not test_cfg.assertion_calls[6].result);
   }
 }
