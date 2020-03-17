@@ -590,6 +590,10 @@ struct summary {};
 
 namespace detail {
 struct op {};
+struct cfg {
+  static inline reflection::source_location location{};
+  static inline bool wip{};
+};
 
 template <class T>
 [[nodiscard]] constexpr auto get_impl(const T& t, int) -> decltype(t.get()) {
@@ -653,6 +657,24 @@ class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
 
  private:
   T value_{};
+};
+
+template <class T>
+class value_location : public ut::detail::value<T> {
+ public:
+  constexpr /*explicit(false)*/ value_location(
+      const T& t, const reflection::source_location& sl =
+                      reflection::source_location::current())
+      : ut::detail::value<T>{t} {
+    cfg::location = sl;
+  }
+
+  constexpr value_location(const T& t, const T precision,
+                           const reflection::source_location& sl =
+                               reflection::source_location::current())
+      : ut::detail::value<T>{t, precision} {
+    cfg::location = sl;
+  }
 };
 
 template <auto N>
@@ -1637,6 +1659,31 @@ struct log {
   }
 };
 
+template <class TExpr>
+class terse_ {
+ public:
+  constexpr explicit terse_(const TExpr& expr) : expr_{expr} { cfg::wip = {}; }
+
+  ~terse_() noexcept(false) {
+    if (static auto once = true; once) {
+      once = {};
+    } else {
+      return;
+    }
+
+    if (cfg::wip) {
+      return;
+    }
+
+    cfg::wip = true;
+    void(ut::detail::on<TExpr>(
+        events::assertion<TExpr>{.expr = expr_, .location = cfg::location}));
+  }
+
+ private:
+  const TExpr& expr_;
+};
+
 struct that_ {
   template <class TLhs>
   class expr {
@@ -1686,6 +1733,7 @@ struct that_ {
 template <class T>
 class expect_ : op {
  public:
+  using type = expect_;
   constexpr explicit expect_(bool value) : value_{value} {}
 
   template <class TMsg>
@@ -1697,18 +1745,29 @@ class expect_ : op {
     return *this;
   }
 
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+
   constexpr auto& operator!() {
     fatal_ = true;
+    if (not detail::cfg::wip) {
+      fatal();
+    }
     return *this;
   }
 
   ~expect_() noexcept(false) {
+    if (detail::cfg::wip) {
+      fatal();
+    }
+  }
+
+ private:
+  constexpr auto fatal() {
     if (not value_ and fatal_) {
       on<T>(events::fatal_assertion{});
     }
   }
 
- private:
   bool value_{}, fatal_{};
 };
 }  // namespace detail
@@ -1915,56 +1974,6 @@ namespace terse {
 #pragma clang diagnostic ignored "-Wunused-comparison"
 #endif
 
-namespace detail {
-struct data {
-  static inline reflection::source_location location{};
-  static inline bool wip{};
-};
-
-template <class TExpr>
-class terse {
- public:
-  constexpr explicit terse(const TExpr& expr) : expr_{expr} { data::wip = {}; }
-
-  ~terse() noexcept(false) {
-    if (static auto once = true; once) {
-      once = {};
-    } else {
-      return;
-    }
-
-    if (data::wip) {
-      return;
-    }
-
-    data::wip = true;
-    void(ut::detail::on<TExpr>(
-        events::assertion<TExpr>{.expr = expr_, .location = data::location}));
-  }
-
- private:
-  const TExpr& expr_;
-};
-
-template <class T>
-class value_location : public ut::detail::value<T> {
- public:
-  constexpr /*explicit(false)*/ value_location(
-      const T& t, const reflection::source_location& sl =
-                      reflection::source_location::current())
-      : ut::detail::value<T>{t} {
-    data::location = sl;
-  }
-
-  constexpr value_location(const T& t, const T precision,
-                           const reflection::source_location& sl =
-                               reflection::source_location::current())
-      : ut::detail::value<T>{t, precision} {
-    data::location = sl;
-  }
-};
-}  // namespace detail
-
 template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
 constexpr auto operator==(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
@@ -1973,7 +1982,7 @@ constexpr auto operator==(
   struct eq_ : eq_t {
     using type = eq_t;
     using eq_t::eq_t;
-    const detail::terse<eq_t> _{*this};
+    const detail::terse_<eq_t> _{*this};
   };
   return eq_{lhs, rhs};
 }
@@ -1986,7 +1995,7 @@ constexpr auto operator==(
   struct eq_ : eq_t {
     using type = eq_t;
     using eq_t::eq_t;
-    const detail::terse<eq_t> _{*this};
+    const detail::terse_<eq_t> _{*this};
   };
   return eq_{lhs, rhs};
 }
@@ -1999,7 +2008,7 @@ constexpr auto operator!=(
   struct neq_ : neq_t {
     using type = neq_t;
     using neq_t::neq_t;
-    const detail::terse<neq_t> _{*this};
+    const detail::terse_<neq_t> _{*this};
   };
   return neq_{lhs, rhs};
 }
@@ -2012,7 +2021,7 @@ constexpr auto operator!=(
   struct neq_ : neq_t {
     using type = neq_t;
     using neq_t::neq_t;
-    const detail::terse<neq_t> _{*this};
+    const detail::terse_<neq_t> _{*this};
   };
   return neq_{lhs, rhs};
 }
@@ -2025,7 +2034,7 @@ constexpr auto operator>(
   struct gt_ : gt_t {
     using type = gt_t;
     using gt_t::gt_t;
-    const detail::terse<gt_t> _{*this};
+    const detail::terse_<gt_t> _{*this};
   };
   return gt_{lhs, rhs};
 }
@@ -2038,7 +2047,7 @@ constexpr auto operator>(
   struct gt_ : gt_t {
     using type = gt_t;
     using gt_t::gt_t;
-    const detail::terse<gt_t> _{*this};
+    const detail::terse_<gt_t> _{*this};
   };
   return gt_{lhs, rhs};
 }
@@ -2051,7 +2060,7 @@ constexpr auto operator>=(
   struct ge_ : ge_t {
     using type = ge_t;
     using ge_t::ge_t;
-    const detail::terse<ge_t> _{*this};
+    const detail::terse_<ge_t> _{*this};
   };
   return ge_{lhs, rhs};
 }
@@ -2064,7 +2073,7 @@ constexpr auto operator>=(
   struct ge_ : ge_t {
     using type = ge_t;
     using ge_t::ge_t;
-    const detail::terse<ge_t> _{*this};
+    const detail::terse_<ge_t> _{*this};
   };
   return ge_{lhs, rhs};
 }
@@ -2077,7 +2086,7 @@ constexpr auto operator<(
   struct lt_ : lt_t {
     using type = lt_t;
     using lt_t::lt_t;
-    const detail::terse<lt_t> _{*this};
+    const detail::terse_<lt_t> _{*this};
   };
   return lt_{lhs, rhs};
 }
@@ -2090,7 +2099,7 @@ constexpr auto operator<(
   struct lt_ : lt_t {
     using type = lt_t;
     using lt_t::lt_t;
-    const detail::terse<lt_t> _{*this};
+    const detail::terse_<lt_t> _{*this};
   };
   return lt_{lhs, rhs};
 }
@@ -2103,7 +2112,7 @@ constexpr auto operator<=(
   struct le_ : le_t {
     using type = le_t;
     using le_t::le_t;
-    const detail::terse<le_t> _{*this};
+    const detail::terse_<le_t> _{*this};
   };
   return le_{lhs, rhs};
 }
@@ -2116,7 +2125,7 @@ constexpr auto operator<=(
   struct le_ : le_t {
     using type = le_t;
     using le_t::le_t;
-    const detail::terse<le_t> _{*this};
+    const detail::terse_<le_t> _{*this};
   };
   return le_{lhs, rhs};
 }
@@ -2129,7 +2138,7 @@ constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   struct and_ : and_t {
     using type = and_t;
     using and_t::and_t;
-    const detail::terse<and_t> _{*this};
+    const detail::terse_<and_t> _{*this};
   };
   return and_{lhs, rhs};
 }
@@ -2142,7 +2151,7 @@ constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   struct or_ : or_t {
     using type = or_t;
     using or_t::or_t;
-    const detail::terse<or_t> _{*this};
+    const detail::terse_<or_t> _{*this};
   };
   return or_{lhs, rhs};
 }
@@ -2153,7 +2162,7 @@ constexpr auto operator not(const T& t) {
   struct not_ : not_t {
     using type = not_t;
     using not_t::not_t;
-    const detail::terse<not_t> _{*this};
+    const detail::terse_<not_t> _{*this};
   };
   return not_{t};
 }
