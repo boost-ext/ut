@@ -9,6 +9,19 @@
 
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
+struct foo {
+  int a{};
+  bool b{};
+
+  constexpr auto operator==(const foo& other) {
+    return a == other.a and b == other.b;
+  }
+
+  friend auto& operator<<(std::ostream& os, const foo& f) {
+    return (os << "foo{" << f.a << ',' << f.b << '}');
+  }
+};
+
 int main() {
   using boost::ut::operator""_test;
   using namespace boost::ut::literals;
@@ -18,5 +31,10 @@ int main() {
     6_i == sum(1, 2, 3);
     sum(1, 1) == 2_i;
     42_i == sum(40, 2) and 0_i != sum(1) or 4_i == 3;
+  };
+
+  "terse types"_test = [] {
+    foo{42, true} % _t == foo{42, true};
+    foo{42, true} == foo{42, true} % _t;
   };
 }
