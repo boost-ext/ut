@@ -1423,8 +1423,9 @@ int main() {
     0_i == 1 and 1_i > 2 or 3 <= 3_i;
     !expect(boost::ut::true_b == false) and 1_i > 0;
     2 == 1_i;
+    custom{42} % _t == custom{41};
 
-    test_assert(7 == std::size(test_cfg.assertion_calls));
+    test_assert(8 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.fatal_assertion_calls > 0);
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
@@ -1448,5 +1449,8 @@ int main() {
 
     test_assert("2 == 1" == test_cfg.assertion_calls[6].expr);
     test_assert(not test_cfg.assertion_calls[6].result);
+
+    test_assert("custom{42} == custom{41}" == test_cfg.assertion_calls[7].expr);
+    test_assert(not test_cfg.assertion_calls[7].result);
   }
 }

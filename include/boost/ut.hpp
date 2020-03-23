@@ -1971,6 +1971,14 @@ namespace terse {
 #pragma clang diagnostic ignored "-Wunused-comparison"
 #endif
 
+static inline struct {
+} _t;
+
+template <class T>
+constexpr auto operator%(const T& lhs, const decltype(_t)&) {
+  return detail::value<T>{lhs};
+}
+
 template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
 constexpr auto operator==(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
