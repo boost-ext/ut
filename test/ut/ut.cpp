@@ -1418,12 +1418,14 @@ int main() {
 
     test_cfg = fake_cfg{};
 
+    // clang-format off
     42_i == 42;
     1 == 2_i;
     0_i == 1 and 1_i > 2 or 3 <= 3_i;
     !expect(boost::ut::true_b == false) and 1_i > 0;
     2 == 1_i;
-    custom{42} % _t == custom{41};
+    custom{42}%_t == custom{41};
+    // clang-format on
 
     test_assert(8 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.fatal_assertion_calls > 0);

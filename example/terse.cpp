@@ -33,8 +33,10 @@ int main() {
     42_i == sum(40, 2) and 0_i != sum(1) or 4_i == 3;
   };
 
+  // clang-format off
   "terse types"_test = [] {
-    foo{42, true} % _t == foo{42, true};
+    foo{42, true}%_t == foo{42, true};
     foo{42, true} == foo{42, true} % _t;
   };
+  // clang-format on
 }
