@@ -13,8 +13,12 @@ struct foo {
   int a{};
   bool b{};
 
-  constexpr auto operator==(const foo& other) {
+  constexpr auto operator==(const foo& other) const {
     return a == other.a and b == other.b;
+  }
+
+  constexpr auto operator!=(const foo& other) const {
+    return not(*this == other);
   }
 
   friend auto& operator<<(std::ostream& os, const foo& f) {
@@ -35,8 +39,11 @@ int main() {
 
   // clang-format off
   "terse types"_test = [] {
-    foo{42, true}%_t == foo{42, true};
-    foo{42, true} == foo{42, true} % _t;
+    foo{.a = 42, .b = true}%_t == foo{42, true};
+    foo{.a = 43, .b = true} != foo{42, true}%_t;
+
+    constexpr auto make_foo = [](auto... args) { return foo{args...}; };
+    foo{42, true} == make_foo(42, true)%_t;
   };
   // clang-format on
 }
