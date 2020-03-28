@@ -15,8 +15,8 @@ int main() {
   "Scenario"_test = [] {
     given("I have...") = [] {
       when("I run...") = [] {
-        then("I should have...") = [] { 1_u == 1u; };
-        then("I should have...") = [] { 1u == 1_u; };
+        then("I should have...") = [] { return 1_u == 1u; };
+        then("I should have...") = [] { return 1u == 1_u; };
       };
     };
   };
