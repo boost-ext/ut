@@ -8,8 +8,8 @@
 #include <boost/ut.hpp>
 
 int main() {
-  using namespace boost::ut::operators;
   using namespace boost::ut::literals;
+  using namespace boost::ut::operators::terse;
   using namespace boost::ut::bdd;
 
   "Scenario"_test = [] {
