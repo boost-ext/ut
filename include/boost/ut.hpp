@@ -627,22 +627,19 @@ struct type_ : op {
 };
 
 template <class T, class = int>
-class value : op {
- public:
+struct value : op {
   using value_type = T;
 
   constexpr /*explicit(false)*/ value(const T& value) : value_{value} {}
   [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
- private:
   T value_{};
 };
 
 template <class T>
-class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
+struct value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
     : op {
- public:
   using value_type = T;
   static inline auto epsilon = T{};
 
@@ -655,7 +652,6 @@ class value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
   [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
- private:
   T value_{};
 };
 
@@ -678,8 +674,7 @@ class value_location : public ut::detail::value<T> {
 };
 
 template <auto N>
-class integral_constant : op {
- public:
+struct integral_constant : op {
   using value_type = decltype(N);
   static constexpr auto value = N;
 
@@ -705,8 +700,7 @@ struct floating_point_constant : op {
 };
 
 template <class TLhs, class TRhs>
-class eq_ : op {
- public:
+struct eq_ : op {
   constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
 #if (__GNUC__ < 10)
@@ -734,15 +728,13 @@ class eq_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class TLhs, class TRhs>
-class neq_ : op {
- public:
+struct neq_ : op {
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
 #if (__GNUC__ < 10)
@@ -770,15 +762,13 @@ class neq_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class TLhs, class TRhs>
-class gt_ : op {
- public:
+struct gt_ : op {
   constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
 #if (__GNUC__ < 10)
@@ -797,15 +787,13 @@ class gt_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class TLhs, class TRhs>
-class ge_ : op {
- public:
+struct ge_ : op {
   constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
 #if (__GNUC__ < 10)
@@ -824,15 +812,13 @@ class ge_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class TLhs, class TRhs>
-class lt_ : op {
- public:
+struct lt_ : op {
   constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
 #if (__GNUC__ < 10)
@@ -858,8 +844,7 @@ class lt_ : op {
 };
 
 template <class TLhs, class TRhs>
-class le_ : op {
- public:
+struct le_ : op {
   constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
 #if (__GNUC__ < 10)
@@ -878,15 +863,13 @@ class le_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class TLhs, class TRhs>
-class and_ : op {
- public:
+struct and_ : op {
   constexpr and_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs},
         rhs_{rhs},
@@ -896,15 +879,13 @@ class and_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class TLhs, class TRhs>
-class or_ : op {
- public:
+struct or_ : op {
   constexpr or_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs},
         rhs_{rhs},
@@ -914,30 +895,26 @@ class or_ : op {
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
- private:
   const TLhs lhs_{};
   const TRhs rhs_{};
   const bool value_{};
 };
 
 template <class T>
-class not_ : op {
- public:
+struct not_ : op {
   explicit constexpr not_(const T& t = {})
       : t_{t}, value_{not static_cast<bool>(t)} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto value() const { return get(t_); }
 
- private:
   const T t_{};
   const bool value_{};
 };
 
 #if defined(__cpp_exceptions)
 template <class TExpr, class TException = void>
-class throws_ : op {
- public:
+struct throws_ : op {
   constexpr explicit throws_(const TExpr& expr)
       : value_{[&expr] {
           try {
@@ -952,13 +929,11 @@ class throws_ : op {
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
 
- private:
   const bool value_{};
 };
 
 template <class TExpr>
-class throws_<TExpr, void> : op {
- public:
+struct throws_<TExpr, void> : op {
   constexpr explicit throws_(const TExpr& expr)
       : value_{[&expr] {
           try {
@@ -971,13 +946,11 @@ class throws_<TExpr, void> : op {
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
 
- private:
   const bool value_{};
 };
 
 template <class TExpr>
-class nothrow_ : op {
- public:
+struct nothrow_ : op {
   constexpr explicit nothrow_(const TExpr& expr)
       : value_{[&expr] {
           try {
@@ -990,15 +963,13 @@ class nothrow_ : op {
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
 
- private:
   const bool value_{};
 };
 #endif
 
 #if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
 template <class TExpr>
-class aborts_ : op {
- public:
+struct aborts_ : op {
   constexpr explicit aborts_(const TExpr& expr)
       : value_{[&expr]() -> bool {
           if (const auto pid = fork(); not pid) {
@@ -1012,7 +983,6 @@ class aborts_ : op {
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
 
- private:
   const bool value_{};
 };
 #endif
@@ -1728,8 +1698,7 @@ struct that_ {
 };
 
 template <class T>
-class expect_ : op {
- public:
+struct expect_ : op {
   using type = expect_;
   constexpr explicit expect_(bool value) : value_{value} { cfg::wip = {}; }
 
@@ -1758,7 +1727,6 @@ class expect_ : op {
     }
   }
 
- private:
   constexpr auto fatal() {
     if (not value_ and fatal_) {
       on<T>(events::fatal_assertion{});
