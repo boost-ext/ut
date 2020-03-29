@@ -703,10 +703,9 @@ template <class TLhs, class TRhs>
 struct eq_ : op {
   constexpr eq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
           using std::operator==;
           using std::operator<;
-#endif
+
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value == TRhs::value;
@@ -721,8 +720,7 @@ struct eq_ : op {
           } else {
             return get(lhs) == get(rhs);
           }
-        }()} {
-  }
+        }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -737,10 +735,9 @@ template <class TLhs, class TRhs>
 struct neq_ : op {
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
           using std::operator!=;
           using std::operator>;
-#endif
+
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value != TRhs::value;
@@ -755,8 +752,7 @@ struct neq_ : op {
           } else {
             return get(lhs_) != get(rhs_);
           }
-        }()} {
-  }
+        }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -771,17 +767,15 @@ template <class TLhs, class TRhs>
 struct gt_ : op {
   constexpr gt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
           using std::operator>;
-#endif
+
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value > TRhs::value;
           } else {
             return get(lhs_) > get(rhs_);
           }
-        }()} {
-  }
+        }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -796,17 +790,15 @@ template <class TLhs, class TRhs>
 struct ge_ : op {
   constexpr ge_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
           using std::operator>=;
-#endif
+
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value >= TRhs::value;
           } else {
             return get(lhs_) >= get(rhs_);
           }
-        }()} {
-  }
+        }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -821,17 +813,15 @@ template <class TLhs, class TRhs>
 struct lt_ : op {
   constexpr lt_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
           using std::operator<;
-#endif
+
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value < TRhs::value;
           } else {
             return get(lhs_) < get(rhs_);
           }
-        }()} {
-  }
+        }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -847,17 +837,15 @@ template <class TLhs, class TRhs>
 struct le_ : op {
   constexpr le_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
-#if (__GNUC__ < 10)
           using std::operator<=;
-#endif
+
           if constexpr (type_traits::has_value_v<TLhs> and
                         type_traits::has_value_v<TRhs>) {
             return TLhs::value <= TRhs::value;
           } else {
             return get(lhs_) <= get(rhs_);
           }
-        }()} {
-  }
+        }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
