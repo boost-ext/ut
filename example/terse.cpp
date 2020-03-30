@@ -38,7 +38,7 @@ int main() {
   };
 
   // clang-format off
-  "terse types"_test = [] {
+  "terse type"_test = [] {
     foo{.a = 42, .b = true}%_t == foo{42, true};
     foo{.a = 43, .b = true} != foo{42, true}%_t;
 
@@ -46,4 +46,11 @@ int main() {
     foo{42, true} == make_foo(42, true)%_t;
   };
   // clang-format on
+
+  "terse boolean"_test = [] {
+    constexpr auto is_true = [] { return true; };
+    is_true() == true_b;
+    is_true() != false_b;
+    is_true() == "should be true"_b;
+  };
 }
