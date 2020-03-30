@@ -1796,6 +1796,11 @@ template <char... Cs>
       long double, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
       math::den_size<int, Cs...>()>{};
 }
+[[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
+[[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
+constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
+  return true_b;
+}
 }  // namespace literals
 
 namespace type_traits {
@@ -2200,12 +2205,6 @@ struct suite {
   }
 };
 
-[[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
-[[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
-constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
-  return true_b;
-}
-
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};
 [[maybe_unused]] constexpr auto test = [](const auto name) {
@@ -2268,6 +2267,10 @@ namespace spec {
 }  // namespace spec
 
 using literals::operator""_test;
+
+using literals::false_b;
+using literals::true_b;
+using literals::operator""_b;
 using literals::operator""_i;
 using literals::operator""_s;
 using literals::operator""_c;
@@ -2280,6 +2283,7 @@ using literals::operator""_ul;
 using literals::operator""_f;
 using literals::operator""_d;
 using literals::operator""_ld;
+
 using operators::operator==;
 using operators::operator!=;
 using operators::operator>;
