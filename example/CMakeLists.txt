@@ -6,7 +6,7 @@
 #
 find_program(MEMORYCHECK_COMMAND valgrind)
 
-if (ENABLE_MEMCHECK AND MEMORYCHECK_COMMAND)
+if (BOOST_UT_ENABLE_MEMCHECK AND MEMORYCHECK_COMMAND)
   function(example file target)
     add_executable(${target} ${file}.cpp)
     ut_add_custom_command_or_test(TARGET ${target} COMMAND ${MEMORYCHECK_COMMAND}
