@@ -69,14 +69,14 @@ script:
   - git clone --depth 1 https://github.com/intel/tbb.git
   - export TBB_ROOT="$PWD/tbb"
   - if [ "${VARIANT}" == "valgrind" ]; then (
-      cmake -Bbuild/debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_MEMCHECK=ON -H. && cmake --build build/debug &&
-      cmake -Bbuild/release -DCMAKE_BUILD_TYPE=Release -DENABLE_MEMCHECK=ON -H. && cmake --build build/release
+      cmake -Bbuild/debug -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_MEMCHECK=ON -H. && cmake --build build/debug &&
+      cmake -Bbuild/release -DCMAKE_BUILD_TYPE=Release -DBOOST_UT_ENABLE_MEMCHECK=ON -H. && cmake --build build/release
     ); fi
   - if [ "${VARIANT}" == "sanitizers" ]; then (
-      cmake -Bbuild/debug/sanitizers -DCMAKE_BUILD_TYPE=Debug -DENABLE_SANITIZERS=ON -H. && cmake --build build/debug/sanitizers
+      cmake -Bbuild/debug/sanitizers -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_SANITIZERS=ON -H. && cmake --build build/debug/sanitizers
     ); fi
   - if [ "${VARIANT}" == "coverage" ]; then (
-      cmake -Bbuild/debug/coverage -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -H. && cmake --build build/debug/coverage &&
+      cmake -Bbuild/debug/coverage -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_COVERAGE=ON -H. && cmake --build build/debug/coverage &&
       bash <(curl -s https://codecov.io/bash) -x "${GCOV}"
     ); fi
 
