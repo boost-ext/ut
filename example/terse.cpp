@@ -37,6 +37,15 @@ int main() {
     42_i == sum(40, 2) and 0_i != sum(1) or 4_i == 3;
   };
 
+  "terse boolean"_test = [] {
+    //constexpr auto is_true = [] { return true; };
+    //is_true() == true_b;
+    //is_true() != false_b;
+    //false_b != true;
+    1 != 2_i;
+    //is_true() == "should be true"_b;
+  };
+
   // clang-format off
   "terse type"_test = [] {
     foo{.a = 42, .b = true}%_t == foo{42, true};
@@ -46,11 +55,4 @@ int main() {
     foo{42, true} == make_foo(42, true)%_t;
   };
   // clang-format on
-
-  "terse boolean"_test = [] {
-    constexpr auto is_true = [] { return true; };
-    is_true() == true_b;
-    is_true() != false_b;
-    is_true() == "should be true"_b;
-  };
 }
