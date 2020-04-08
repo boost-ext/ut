@@ -6,7 +6,9 @@
 #
 cmake_minimum_required(VERSION 3.1)
 project(boost.ut CXX)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "Default value for CXX_STANDARD property of targets.")
+set(CMAKE_CXX_STANDARD_REQUIRED yes CACHE BOOL "Default value for CXX_STANDARD_REQUIRED property of targets.")
+set(CMAKE_CXX_EXTENSIONS no CACHE BOOL "Default value for CXX_EXTENSIONS property of targets.")
 
 add_library(boost.ut INTERFACE)
 target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
