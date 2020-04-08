@@ -6,21 +6,18 @@
 #
 find_program(MEMORYCHECK_COMMAND valgrind)
 
-if (BOOST_UT_ENABLE_MEMCHECK AND MEMORYCHECK_COMMAND)
-  function(example file target)
-    add_executable(${target} ${file}.cpp)
-    ut_add_custom_command_or_test(TARGET ${target} COMMAND ${MEMORYCHECK_COMMAND}
-        --leak-check=full --error-exitcode=1 ./${target} ${ARGN})
-  endfunction()
-else()
-  function(example file target)
-    add_executable(${target} ${file}.cpp)
-    if (${target} MATCHES "_cpp17$")
-      set_property(TARGET ${target} PROPERTY CXX_STANDARD 17)
-    endif()
-    ut_add_custom_command_or_test(TARGET ${target} COMMAND ${target} ${ARGN})
-  endfunction()
-endif()
+function(example file target)
+  add_executable(boost_ut_${target} ${file}.cpp)
+  if(${target} MATCHES "_cpp17$")
+    set_property(TARGET boost_ut_${target} PROPERTY CXX_STANDARD 17)
+  endif()
+  if(BOOST_UT_ENABLE_MEMCHECK AND MEMORYCHECK_COMMAND)
+    ut_add_custom_command_or_test(TARGET boost_ut_${target} COMMAND ${MEMORYCHECK_COMMAND}
+                                  --leak-check=full --error-exitcode=1 ./boost_ut_${target} ${ARGN})
+  else()
+    ut_add_custom_command_or_test(TARGET boost_ut_${target} COMMAND boost_ut_${target} ${ARGN})
+  endif()
+endfunction()
 
 example(cfg/printer printer)
 example(cfg/runner runner)
