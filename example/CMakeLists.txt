@@ -4,15 +4,15 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-find_program(MEMORYCHECK_COMMAND valgrind)
+find_program(BOOST_UT_MEMORYCHECK_COMMAND valgrind)
 
 function(example file target)
   add_executable(boost_ut_${target} ${file}.cpp)
   if(${target} MATCHES "_cpp17$")
     set_property(TARGET boost_ut_${target} PROPERTY CXX_STANDARD 17)
   endif()
-  if(BOOST_UT_ENABLE_MEMCHECK AND MEMORYCHECK_COMMAND)
-    ut_add_custom_command_or_test(TARGET boost_ut_${target} COMMAND ${MEMORYCHECK_COMMAND}
+  if(BOOST_UT_ENABLE_MEMCHECK AND BOOST_UT_MEMORYCHECK_COMMAND)
+    ut_add_custom_command_or_test(TARGET boost_ut_${target} COMMAND ${BOOST_UT_MEMORYCHECK_COMMAND}
                                   --leak-check=full --error-exitcode=1 ./boost_ut_${target} ${ARGN})
   else()
     ut_add_custom_command_or_test(TARGET boost_ut_${target} COMMAND boost_ut_${target} ${ARGN})
