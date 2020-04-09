@@ -28,7 +28,7 @@ if (DEFINED ENV{TBB_ROOT})
   include(${TBB_ROOT}/cmake/TBBBuild.cmake)
   tbb_build(TBB_ROOT ${TBB_ROOT} CONFIG_DIR TBB_DIR MAKE_ARGS stdver="c++17")
   find_package(TBB)
-  target_link_libraries(parallel_runner ${TBB_IMPORTED_TARGETS})
+  target_link_libraries(boost_ut_parallel_runner ${TBB_IMPORTED_TARGETS})
 endif()
 
 example(cfg/reporter reporter)
