@@ -6,6 +6,9 @@
 #
 cmake_minimum_required(VERSION 3.1)
 project(boost.ut CXX)
+
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "Default value for CXX_STANDARD property of targets.")
 set(CMAKE_CXX_STANDARD_REQUIRED yes CACHE BOOL "Default value for CXX_STANDARD_REQUIRED property of targets.")
 set(CMAKE_CXX_EXTENSIONS no CACHE BOOL "Default value for CXX_EXTENSIONS property of targets.")
@@ -121,7 +124,6 @@ function(ut_add_custom_command_or_test)
   endif()
 endfunction()
 
-enable_testing()
 include_directories(include)
 
 if (BOOST_UT_BUILD_BENCHMARKS OR PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
