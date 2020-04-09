@@ -735,6 +735,7 @@ template <class TLhs, class TRhs>
 struct neq_ : op {
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
+          using std::operator==;
           using std::operator!=;
           using std::operator>;
 

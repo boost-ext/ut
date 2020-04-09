@@ -1612,6 +1612,19 @@ All tests passed (4 asserts in 3 tests)
 </p>
 </details>
 
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;What about Microbenchmarking?</summary>
+<p>
+
+> Consider using one of the following frameworks
+
+* https://github.com/google/benchmark
+* https://github.com/DigitalInBlue/Celero
+* https://github.com/libnonius/nonius
+* https://github.com/martinus/nanobench
+
+</p>
+</details>
+
 </p>
 </details>
 

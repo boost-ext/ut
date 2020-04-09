@@ -38,6 +38,7 @@ if (NOT WIN32)
 endif()
 
 example(BDD BDD)
+example(benchmark benchmark)
 example(cli cli_pass "cli.pass")
 example(cli cli_pass_no_colors "cli.pass" "0" "1")
 example(cli cli_pass_dry_run "cli.pass" "1" "1")
