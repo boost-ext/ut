@@ -1,0 +1,1088 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Future of testing with C++20</title>
+
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="reveal.js/css/theme/league.css" id="theme">
+    <link rel="stylesheet" href="extensions/plugin/line-numbers/line-numbers.css">
+    <link rel="stylesheet" href="extensions/css/highlight-styles/zenburn.css">
+    <link rel="stylesheet" href="extensions/css/custom.css">
+
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+
+      function set_address(self, remote, local) {
+        if (window.location.search.match("local")) {
+          self.href = local;
+        } else {
+          self.href = remote;
+        }
+      }
+    </script>
+
+    <meta name="description" content="Dependency Injection - a 25-dollar term for a 5-cent concept">
+    <meta name="author" content="Kris Jusiak">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+          <section data-markdown=""
+                   data-separator="^====+$"
+                   data-separator-vertical="^----+$">
+          <script type="text/template">
+#### ACCU 2020, Bristol UK
+
+---
+
+# Future of testing with C++20
+
+---
+
+#### [kris@jusiak.net](mailto:kris@jusiak.net) | [@krisjusiak](https://twitter.com/krisjusiak) | [linkedin.com/in/kris-jusiak](https://www.linkedin.com/in/kris-jusiak)
+
+
+==============================================================================
+
+### Agenda
+
+* #### Motivation
+<!-- .element: class="fragment" -->
+  * #### Existing solutions
+<!-- .element: class="fragment" -->
+  * #### The goal
+<!-- .element: class="fragment" -->
+
+* #### Implementation
+<!-- .element: class="fragment" -->
+  * #### Test
+<!-- .element: class="fragment" -->
+  * #### Assert
+<!-- .element: class="fragment" -->
+  * #### Suite
+<!-- .element: class="fragment" -->
+
+----
+
+### Agenda
+
+* #### [Boost].UT - Unit Testing Framework
+<!-- .element: class="fragment" -->
+  * #### Overview
+<!-- .element: class="fragment" -->
+  * #### Features
+<!-- .element: class="fragment" -->
+
+* #### Benchmarks
+<!-- .element: class="fragment" -->
+
+* #### Summary
+<!-- .element: class="fragment" -->
+  * #### Standarization?
+  <!-- .element: class="fragment" -->
+
+---
+
+##### <p style="background-color:darkblue">`darkblue background - something to remember ✓`</p>
+<!-- .element: class="fragment" -->
+
+==============================================================================
+
+### Motivation
+
+```cpp
+constexpr auto sum(auto... args) { return (args + ...); }
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+int main() {
+  // should sum numbers
+  {
+    assert(3 == sum(1, 2));
+  }
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+### Motivation - Problems
+
+* #### No names for tests
+<!-- .element: class="fragment" -->
+* #### No automatic registration of tests
+<!-- .element: class="fragment" -->
+* #### Hard to debug
+<!-- .element: class="fragment" -->
+* #### Hard to scale
+<!-- .element: class="fragment" -->
+* #### Hard to integrate
+<!-- .element: class="fragment" -->
+* #### Easy to make mistakes
+<!-- .element: class="fragment" -->
+* #### Hard to follow good practises such as TDD/BDD
+<!-- .element: class="fragment" -->
+* #### ...
+<!-- .element: class="fragment" -->
+
+----
+
+### Existing Solutions
+
+* #### [GoogleTest](https://github.com/google/googletest)
+<!-- .element: class="fragment" -->
+* #### [Boost.Test](https://github.com/boostorg/test)
+<!-- .element: class="fragment" -->
+* #### [Catch](https://github.com/catchorg/Catch2)
+<!-- .element: class="fragment" -->
+* #### [DocTest](https://github.com/onqtam/doctest)
+<!-- .element: class="fragment" -->
+* ...
+<!-- .element: class="fragment" -->
+
+----
+
+### Existing Solutions - Problems
+
+* #### Macro based*
+<!-- .element: class="fragment" -->
+* #### Boilerplate*
+<!-- .element: class="fragment" -->
+* #### Slow to compile*
+<!-- .element: class="fragment" -->
+* #### Hard to integrate*
+<!-- .element: class="fragment" -->
+* ...
+<!-- .element: class="fragment" -->
+
+> \* Generalized
+<!-- .element: class="fragment" -->
+
+----
+
+### Future (C++20)?
+
+* #### No macros
+<!-- .element: class="fragment" -->
+* #### Minimal boilerpalte
+<!-- .element: class="fragment" -->
+* #### Minimal learning curve
+<!-- .element: class="fragment" -->
+* #### Easy integration
+<!-- .element: class="fragment" -->
+* #### Flexible/Scalable
+<!-- .element: class="fragment" -->
+* #### Fast to compile/execute
+<!-- .element: class="fragment" -->
+
+----
+
+### The Goal
+
+```cpp
+constexpr auto sum(auto... args) { return (args + ...); }
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+01 import ut;
+02
+03 int main() {
+04   "sum"_test = [] {      // Running "sum"...
+05      sum(1, 2) == 42_i;  // sum.cpp:5:FAILED [ 3 == 42 ]
+06   };                     // tests:   1 | 1 failed
+07 }                        // asserts: 1 | 0 passed | 1 failed
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+01 import ut;
+02
+03 suite _ = [] {
+04   "sum empty"_test  = [] { sum()     == 0_i;  };
+05   "sum single"_test = [] { sum(42)   == 42_i; };
+06   "sum many"_test   = [] { sum(1, 2) == 3_i;  };
+07 };
+08
+09 int main() {              // tests:   3 | 0 failed
+10 }                         // asserts: 3 | 3 passed | 0 failed
+```
+<!-- .element: class="fragment" -->
+
+==============================================================================
+
+### Implementation*
+
+> \* Simplified
+
+----
+
+#### Test
+
+```cpp
+[[nodiscard]] constexpr Test auto operator ""_test(
+  const char* name, std::size_t size) {
+  return test{{name, size}};
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Test
+
+```cpp
+struct test final {
+  std::string_view name{};
+
+  constexpr auto operator=(const auto& test) {
+    std::cout << "Running... " << name << '\n';
+    test();
+  }
+};
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### expect
+
+```cpp
+constexpr auto& expect(Expression auto expr,
+  const auto& location = std::source_location::current()) {
+  if (not static_cast<bool>(expr)) {
+    std::cerr << location.file_name()
+              << ':'
+              << location.line()
+              << ":FAILED: "
+              << expr
+              << '\n';
+  }
+  return std::cerr;
+}
+```
+
+----
+
+#### Source Location
+
+<img src="images/source_location.png" style="width: 50%; background:none; border:none; box-shadow:none;" />
+<!-- .element: class="fragment" -->
+
+#### http://eel.is/c++draft/support.srcloc#source.location.syn
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### Source Location
+
+```cpp
+gotcha and solution
+operator== and source_location
+```
+
+<!-- .slide: data-background="darkblue" -->
+----
+
+#### expect - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+01 int main() {
+02   expect(false);
+03 }
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+main.cpp:02:FAILED: [false]
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Operators
+
+```cpp
+[[nodiscard]] constexpr auto operator==(auto lhs, auto rhs) {
+  return eq{lhs, rhs};
+}
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Operators - equality
+
+```cpp
+template <class TLhs, class TRhs>
+struct eq final {
+  TLhs lhs{};
+  TRhs rhs{};
+
+  [[nodiscard]] constexpr explicit operator bool() const {
+    return lhs == rhs;
+  }
+
+  friend auto& operator<<(auto& os, const eq& op) {
+    return (os << op.lhs << " == " << op.rhs);
+  }
+};
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Operators
+
+```cpp
+01 int main() {
+02  expect(sum(1, 2) == 43);
+03 }
+```
+
+```cpp
+main.cpp:02:FAILED: [false]
+```
+
+----
+
+#### User Defined Literals (UDL)
+
+```cpp
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_i() {
+  return []<auto... Ns>(std::index_sequence<Ns...>) {
+    return std::integral_constant<int, ((int(std::pow(10, sizeof...(Ns) - Ns - 1)) * (Cs - '0')) + ...)>{};
+  }(std::make_index_sequence<sizeof...(Cs)>{});
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+static_assert(0_i  == 0);
+static_assert(42_i == 42);
+```
+<!-- .element: class="fragment" -->
+
+#### https://godbolt.org/z/cZsSK3
+<!-- .element: class="fragment" -->
+
+----
+
+#### Immediately-invoked function expression (IIFE) / Familiar template syntax for generic lambdas
+
+```cpp
+template<auto N>
+constexpr auto iife = []<auto... Ns>(std::index_sequence<Ns...>) {
+  return (Ns + ...);
+}(std::make_index_sequence<N>{});
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+static_assert(0 == iife<0>);
+static_assert(0 + 1 + 2 == iife<3>);
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### User Defined Literals (UDL)
+
+```cpp
+""_i
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### Expect / Operators / UDL
+
+```cpp
+01 int main() {
+02  expect(42_i == 43);
+03  42_i == 43;
+03 }
+```
+
+```cpp
+main.cpp:02:FAILED: [42 == 43]
+main.cpp:02:FAILED: [42 == 43]
+```
+
+----
+
+#### Test - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+int main() {
+  "sum"_test = [] {};
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+Running... sum
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Concepts
+
+```cpp
+template<class T>
+concept Test = true;
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+#### Performance
+
+```cpp
+  template <class... Ts>
+  constexpr auto operator=(void (*test)()); // this path compiles 5x faster than the next one as it doesn't introduce a new type for each lambda
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+  template <class Test> requires not type_traits::is_convertible_v<Test, void (*)()>>
+  constexpr auto operator=(Test test) -> typename type_traits::identity<Test, decltype(test())>::type;
+```
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+
+#### Test / Operators / UDL
+
+```cpp
+01 int main() {
+02   "sum"_test = [] {
+03     42_i == 43;
+04   };
+05 }
+```
+
+```cpp
+Running... sum
+main.cpp:02:FAILED: [42 == 43]
+```
+
+----
+
+#### Suite
+
+```cpp
+struct suite final {
+  [[nodiscard]] constexpr explicit(false)
+  suite(Suite auto suite) {
+    suite();
+  }
+};
+```
+
+----
+
+#### Suite
+
+```cpp
+suite errors = [] {
+  "exception"_test = [] {
+    2 == 1_i;
+  };
+};
+```
+
+```cpp
+int main() {}
+```
+
+```cpp
+FAILED:...
+```
+
+----
+
+#### Modules
+
+```cpp
+export modules
+```
+
+----
+
+#### Modules
+
+Modules
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
+
+----
+
+### UT - https://godbolt.org/z/6Nk5Mi
+
+==============================================================================
+
+### [Boost].UT - Unit Testing Framework
+
+#### https://github.com/boost-experimental/ut
+
+----
+
+#### [Boost].UT - Overview
+
+* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+<!-- .element: class="fragment" -->
+
+* #### Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+<!-- .element: class="fragment" -->
+
+* #### Macro-free (✔️)
+<!-- .element: class="fragment" -->
+
+* #### Features ([Assertions](https://github.com/boost-experimental/ut/tree/master/example/expect.cpp), [Suites](https://github.com/boost-experimental/ut/tree/master/example/suite.cpp), [Tests](https://github.com/boost-experimental/ut/tree/master/example/skip.cpp), [Sections](https://github.com/boost-experimental/ut/tree/master/example/section.cpp), [BDD](https://github.com/boost-experimental/ut/tree/master/example/BDD.cpp), [Matchers](https://github.com/boost-experimental/ut/tree/master/example/matcher.cpp), [Logging](https://github.com/boost-experimental/ut/tree/master/example/log.cpp), [...](https://github.com/boost-experimental/ut/tree/master/example))
+<!-- .element: class="fragment" -->
+
+---
+
+* #### (\*) Limitations may apply
+<!-- .element: class="fragment" -->
+
+* #### [Boost].UT is not an official Boost library
+<!-- .element: class="fragment" -->
+
+----
+
+#### Hello World - https://godbolt.org/z/Y43mXz
+
+```cpp
+// #include <boost/ut.hpp> // Single header
+//  import   boost.ut;     // Single module (C++20)
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+int main() {
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+  "hello world"_test = [] {
+    expect(true);
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+}
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+---
+
+```sh
+$CXX $CXXFLAGS hello_world.cpp -o hello_world
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+<pre><code>./hello_world</code> -> <font color="lime">All tests passed</font> (1 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="5" -->
+
+----
+
+#### Assertions - https://godbolt.org/z/jaFK8w
+
+<pre><code class="line-numbers">expect(1_i == 2);                       // UDL syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+<pre><code class="line-numbers">expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre> <!-- .element: class="fragment" data-fragment-index="2" -->
+
+<pre><code class="line-numbers">expect(2 == 1_i) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+<pre><code class="line-numbers"> std::vector v{1l, 2l, 3l};
+!expect(4_ul == std::size(v));          // Fatal assertion
+ expect(v[3] == 4_l);                   // Not executed
+</code>  -> assertions.cpp:2:<font color="salmon">FAILED</font> [<font color="salmon">4 == 3</font>]</pre>
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+<pre><code class="line-numbers">expect(41.10_d == 42.101 and "a" == "b"sv);</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
+<!-- .element: class="fragment" data-fragment-index="5" -->
+
+----
+
+#### Sections - https://godbolt.org/z/y9m5vF
+
+```cpp
+"[vector]"_test = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  std::vector<int> v(5);
+  !expect(5_ul == std::size(v));
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+  should("resize bigger") = [=] {
+    mut(v).resize(10);
+    expect(10_ul == std::size(v));
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+  !expect(5_ul == std::size(v));
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+```cpp
+  should("resize smaller") = [=] {
+    mut(v).resize(0);
+    expect(0_ul == std::size(v));
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="5" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+----
+
+#### Behavior Driven Development (BDD) - https://godbolt.org/z/ps9_EQ
+
+```cpp
+"[vector]"_test = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  given("I have a vector") = [] {
+    std::vector<int> v(5);
+    !expect(5_ul == std::size(v));
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+    when("I resize bigger") = [=] {
+      v.resize(10);
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+      then("The size should increase") = [=] {
+        expect(10_ul == std::size(v));
+      };
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+```cpp
+    };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+----
+
+#### Parameterized - https://godbolt.org/z/6FHtpq
+
+```cpp
+for (auto i : std::vector{1, 2, 3}) {
+  test("args " + std::to_string(i)) = [i] {
+    expect(arg > 0_i) << "all values greater than 0";
+  };
+}
+```
+<!-- .element: class="fragment" data-fragment-index="0" -->
+
+<pre>-> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+```cpp
+"args and types"_test =
+  []<class TArg>(TArg arg) {
+    expect(std::is_integral_v<TArg>);
+    expect(type<TArg> == type<int> or type<TArg> == type<bool>);
+  }
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+<pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="5" -->
+
+----
+
+#### Suites - https://godbolt.org/z/F3xJcJ
+
+```cpp
+suite errors = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  "exception"_test = [] {
+    expect(throws([] { throw 0; })) << "throws any exception";
+  };
+
+  "failure"_test = [] {
+    expect(aborts([] { assert(false); }));
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+----
+
+#### Macros - https://godbolt.org/z/tvy-nP
+
+```cpp
+#define EXPECT(...) expect(that % __VA_ARGS__)
+#define TEST(name)  test{"test", name} = [=]() mutable
+```
+
+```cpp
+int main() {
+  TEST("equal") {
+    EXPECT(1 != 2);
+  };
+
+  TEST("vector") {
+    std::vector<int> v(5);
+
+   !EXPECT(5u == std::size(v)) << "fatal";
+
+    TEST("resize bigger") {
+      v.resize(10);
+      EXPECT(10u == std::size(v));
+    };
+  };
+}
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+passed...
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### Primitives
+
+Macro based Unit Testing Frameworks can be built on top of Unit-Testing primitivies
+
+<!-- .slide: data-background="darkblue" -->
+
+==============================================================================
+
+### Benchmarks
+
+#### https://github.com/cpp-testing/ut-benchmark
+
+----
+
+#### Benchmarks - Frameworks
+
+<img src="images/frameworks.png" style="width: 90%; background:none; border:none; box-shadow:none;" />
+
+----
+
+#### Benchmarks - [Include](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_include.png"><img src="images/Compilation_include.png" style="width: 50%; background:none; border:none; box-shadow:none;" /></a>
+
+##### 0 tests, 0 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Assert](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_assert.png"><img src="images/Compilation_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_assert.png"><img src="images/Execution_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_assert.png"><img src="images/BinarySize_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+##### 1 test, 1'000'000 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Test](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_test.png"><img src="images/Compilation_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_test.png"><img src="images/Execution_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_test.png"><img src="images/BinarySize_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 1'000 tests, 0 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Suite](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_suite.png"><img src="images/Compilation_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite.png"><img src="images/Execution_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite.png"><img src="images/BinarySize_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 10'000 tests, 0 asserts, 100 cpp files
+
+----
+
+#### Benchmarks - [Suite+Assert](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_suite+assert.png"><img src="images/Compilation_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite+assert.png"><img src="images/Execution_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert.png"><img src="images/BinarySize_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 10'000 tests, 40'000 asserts, 100 cpp files
+
+----
+
+#### Benchmarks - [Suite+Assert+STL](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 10'000 tests, 20'000 asserts, 100 cpp files
+
+----
+
+#### Benchmarks - [Incremental Build](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_incremental.suite+assert+stl.png"><img src="images/Compilation_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_incremental.suite+assert+stl.png"><img src="images/Execution_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_incremental.suite+assert+stl.png"><img src="images/BinarySize_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)
+
+----
+
+#### Benchmarks - [Headers vs Precompiled headers vs C++20 Modules](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 10'000 tests, 20'000 asserts, 100 cpp files
+
+==============================================================================
+
+### Summary
+
+----
+
+#### Leavarging C++20 features allows for cleaner design
+
+----
+
+#### [Boost].UT is an example of cuting edge Unit Testing Framework
+
+----
+
+#### Possible standardization of Unit Testing primitives?
+  * #### It lowers the entry-level to the language
+  <!-- .element: class="fragment" -->
+  * #### It improves the education aspect
+  <!-- .element: class="fragment" -->
+  * #### It makes the language more coherent/stable
+  <!-- .element: class="fragment" -->
+  * #### It makes the testing a first class citizen
+  <!-- .element: class="fragment" -->
+  * #### It allows to publish tests for the Standard Library (STL) in the standard way
+  <!-- .element: class="fragment" -->
+  * #### It allows to act as additional documentation
+  <!-- .element: class="fragment" -->
+  * #### It helps with establishing standard vocabulary for testing
+  <!-- .element: class="fragment" -->
+
+==============================================================================
+
+#### https://github.com/boost-experimental/ut
+
+---
+
+### "If you liked it then you "should have put a"_test on it", Beyonce rule
+
+---
+          </script>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="reveal.js/lib/js/head.min.js"></script>
+    <script src="reveal.js/js/reveal.js"></script>
+
+    <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+
+        // Display controls in the bottom right corner
+        controls: true,
+
+        // Display a presentation progress bar
+        progress: false,
+
+        // Display the page number of the current slide
+        slideNumber: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: false,
+
+        // Vertical centering of slides
+        center: true,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // Hides the address bar on mobile devices
+        hideAddressBar: true,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: true,
+
+        // Transition style
+        transition: 'convex', // none/fade/slide/convex/concave/zoom
+
+        // Transition speed
+        transitionSpeed: 'default', // default/fast/slow
+
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'default', // none/fade/slide/convex/concave/zoom
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Parallax background image
+        parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+        // Parallax background size
+        parallaxBackgroundSize: '', // CSS syntax, e.g. "2100px 900px"
+
+        // Number of pixels to move the parallax background per slide
+        // - Calculated automatically unless specified
+        // - Set to 0 to disable movement along an axis
+        parallaxBackgroundHorizontal: null,
+        parallaxBackgroundVertical: null,
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true },
+          { src: 'extensions/plugin/line-numbers/line-numbers.js' }
+        ]
+      });
+
+      window.addEventListener("mousedown", handleClick, false);
+      window.addEventListener("contextmenu", function(e) { e.preventDefault(); }, false);
+
+      function handleClick(e) {
+        if (1 >= outerHeight - innerHeight) {
+          document.querySelector( '.reveal' ).style.cursor = 'none';
+        } else {
+          document.querySelector( '.reveal' ).style.cursor = '';
+        }
+
+        e.preventDefault();
+        if(e.button === 0) Reveal.next();
+        if(e.button === 2) Reveal.prev();
+      }
+    </script>
+
+  </body>
+</html>
