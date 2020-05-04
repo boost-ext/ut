@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+if(NOT TARGET boost::ut)
+	add_library(boost::ut INTERFACE IMPORTED)
+	set_target_properties(boost::ut PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${PACKAGE_PREFIX_DIR}/include")
+	target_compile_features(boost::ut INTERFACE cxx_std_17)
+endif()

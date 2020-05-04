@@ -27,6 +27,7 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 
 add_library(boost.ut INTERFACE)
 target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
+add_library(boost::ut ALIAS boost.ut)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   if (WIN32) # clang-cl
@@ -140,4 +141,28 @@ if (BOOST_UT_BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-install(FILES include/boost/ut.hpp DESTINATION include/boost/)
+## Packaging.
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+set(package_directory "${CMAKE_INSTALL_LIBDIR}/cmake/ut")
+set(config_output "${CMAKE_CURRENT_BINARY_DIR}/ut-config.cmake")
+
+# Generate config file.
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/ut-config.cmake.in"
+  "${config_output}"
+  INSTALL_DESTINATION "${package_directory}"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+# Install includes, config and targets.
+install(
+  FILES include/boost/ut.hpp
+  DESTINATION include/boost/
+)
+install(
+  FILES "${config_output}"
+  DESTINATION "${package_directory}"
+)
