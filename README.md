@@ -1486,7 +1486,7 @@ namespace boost::ut::inline v1_1_7 {
 </details>
 
 <a name="fast-compilation-times"></a>
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Fast compilation times ([Benchmarks](#benchmarks))?</summary>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Fast compilation times <a href="#benchmarks">(Benchmarks)</a>?</summary>
 <p>
 
 > Implementation
