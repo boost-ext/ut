@@ -1485,6 +1485,51 @@ namespace boost::ut::inline v1_1_7 {
 </p>
 </details>
 
+<a name="fast-compilation-times"></a>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Fast compilation times ([Benchmarks](#benchmarks))?</summary>
+<p>
+
+> Implementation
+
+* Leveraging [C++20](#cpp-20) features
+
+* Avoiding unique types for lambda expressions
+
+```cpp
+  template <class Test>
+    requires not std::convertible_to<Test, void (*)()>>
+  constexpr auto operator=(Test test);
+
+vs
+
+  // Compiles 5x faster because it doesn't introduce a new type for each lambda
+  constexpr auto operator=(void (*test)());
+```
+
+* `Type-name` erasure (allows types/function memoization)
+
+```cpp
+  eq<integral_constant<42>, int>{{}, 42}
+
+vs
+
+  // Can be memoized - faster to compile
+  eq<int, int>{42, 42}
+```
+
+* Limiting preprocessor work
+  * Single header/module
+  * Minimal number of include files
+  * Configuration between header files and cpp files with
+    * `BOOST_UT_FORWARD` and `BOOST_UT_IMPLEMENTATION`
+
+* Simplified versions of
+  * `std::function`
+  * `std::string_view`
+
+</p>
+</details>
+
 <a name="cpp-20"></a>
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++20 features?</summary>
 <p>
@@ -1511,6 +1556,7 @@ namespace boost::ut::inline v1_1_7 {
 
 </p>
 </details>
+
 
 <a name="cpp-2x"></a>
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++2X integration?</summary>
