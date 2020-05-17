@@ -40,6 +40,34 @@ matrix:
 
   - os: linux
     dist: xenial
+    env: CXX=clang++-10 VARIANT=valgrind
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - sourceline: 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main'
+            key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+        packages:
+          - clang-10
+          - libstdc++-10-dev
+          - valgrind
+
+  - os: linux
+    dist: xenial
+    env: CXX=clang++-10 VARIANT=sanitizers
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - sourceline: 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main'
+            key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+        packages:
+          - clang-10
+          - libstdc++-10-dev
+          - valgrind
+
+  - os: linux
+    dist: xenial
     env: CXX=g++-9 VARIANT=valgrind
     addons:
       apt:
@@ -52,17 +80,29 @@ matrix:
 
   - os: linux
     dist: xenial
-    env: CXX=g++-9 GCOV=gcov-9 VARIANT=coverage
+    env: CXX=g++-10 VARIANT=valgrind
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
         packages:
-          - g++-9
-          - libstdc++-9-dev
+          - g++-10
+          - libstdc++-10-dev
+          - valgrind
+
+  - os: linux
+    dist: xenial
+    env: CXX=g++-10 GCOV=gcov-10 VARIANT=coverage
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-10
+          - libstdc++-10-dev
 
   - os: osx
-    osx_image: xcode11.3
+    osx_image: xcode11.4
     env: CXX=clang++ VARIANT=valgrind
 
 script:
