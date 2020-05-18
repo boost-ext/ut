@@ -135,6 +135,24 @@ int main() {
     using namespace std::literals::string_view_literals;
 
     {
+      static_assert(std::is_same_v<type_traits::list<>,
+                                   type_traits::function_traits<void()>::args>);
+      static_assert(
+          std::is_same_v<void,
+                         type_traits::function_traits<void()>::result_type>);
+      static_assert(
+          std::is_same_v<type_traits::list<int>,
+                         type_traits::function_traits<void(int)>::args>);
+      static_assert(
+          std::is_same_v<
+              type_traits::list<int, const float&>,
+              type_traits::function_traits<void(int, const float&)>::args>);
+      static_assert(
+          std::is_same_v<int,
+                         type_traits::function_traits<int()>::result_type>);
+    }
+
+    {
       struct foo {
         int value;
       };
@@ -187,13 +205,14 @@ int main() {
     }
 
     {
-      test_assert(std::vector<std::string_view>{} == utility::split("", "."));
+      test_assert(std::vector<std::string_view>{} ==
+                  utility::split<std::string_view>("", "."));
       test_assert(std::vector<std::string_view>{"a"} ==
-                  utility::split("a.", "."));
+                  utility::split<std::string_view>("a.", "."));
       test_assert(std::vector<std::string_view>{"a", "b"} ==
-                  utility::split("a.b", "."));
+                  utility::split<std::string_view>("a.b", "."));
       test_assert(std::vector<std::string_view>{"a", "b", "cde"} ==
-                  utility::split("a.b.cde", "."));
+                  utility::split<std::string_view>("a.b.cde", "."));
     }
 
     {
