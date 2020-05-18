@@ -130,6 +130,7 @@ class function;
 template <class R, class... TArgs>
 class function<R(TArgs...)> {
  public:
+  constexpr function() = default;
   template <class T>
   constexpr /*explicit(false)*/ function(T data)
       : invoke_{invoke_impl<T>},
@@ -144,8 +145,8 @@ class function<R(TArgs...)> {
   constexpr function(const function&) = delete;
   ~function() { destroy_(data_); }
 
-  constexpr auto& operator=(const function&) = delete;
-  constexpr auto& operator=(function&&) = delete;
+  constexpr function& operator=(const function&) = delete;
+  constexpr function& operator=(function&&) = delete;
   [[nodiscard]] constexpr auto operator()(TArgs... args) -> R {
     return invoke_(data_, args...);
   }
@@ -197,16 +198,16 @@ class function<R(TArgs...)> {
   return is_match(input.substr(1), pattern.substr(1));
 }
 
-[[nodiscard]] inline auto split(std::string_view input, std::string_view delim)
-    -> std::vector<std::string_view> {
-  std::vector<std::string_view> output;
+template <class T = std::string_view, class TDelim>
+[[nodiscard]] inline auto split(T input, TDelim delim) -> std::vector<T> {
+  std::vector<T> output{};
   std::size_t first{};
   while (first < std::size(input)) {
     const auto second = input.find_first_of(delim, first);
     if (first != second) {
       output.emplace_back(input.substr(first, second - first));
     }
-    if (second == std::string_view::npos) {
+    if (second == T::npos) {
       break;
     }
     first = second + 1;
@@ -332,9 +333,39 @@ template <class T, class TValue>
 }  // namespace math
 
 namespace type_traits {
+template <class...>
+struct list {};
+
 template <class T, class...>
 struct identity {
   using type = T;
+};
+
+template <class T>
+struct function_traits : function_traits<decltype(&T::operator())> {};
+
+template <class R, class... TArgs>
+struct function_traits<R (*)(TArgs...)> {
+  using result_type = R;
+  using args = list<TArgs...>;
+};
+
+template <class R, class... TArgs>
+struct function_traits<R(TArgs...)> {
+  using result_type = R;
+  using args = list<TArgs...>;
+};
+
+template <class R, class T, class... TArgs>
+struct function_traits<R (T::*)(TArgs...)> {
+  using result_type = R;
+  using args = list<TArgs...>;
+};
+
+template <class R, class T, class... TArgs>
+struct function_traits<R (T::*)(TArgs...) const> {
+  using result_type = R;
+  using args = list<TArgs...>;
 };
 
 template <class T>
