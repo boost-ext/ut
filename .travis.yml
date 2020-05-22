@@ -62,7 +62,7 @@ matrix:
           - libstdc++-9-dev
 
   - os: osx
-    osx_image: xcode11.3
+    osx_image: xcode11.4
     env: CXX=clang++ VARIANT=valgrind
 
 script:
