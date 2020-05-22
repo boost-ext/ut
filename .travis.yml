@@ -52,14 +52,26 @@ matrix:
 
   - os: linux
     dist: xenial
-    env: CXX=g++-9 GCOV=gcov-9 VARIANT=coverage
+    env: CXX=g++-10 VARIANT=valgrind
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
         packages:
-          - g++-9
-          - libstdc++-9-dev
+          - g++-10
+          - libstdc++-10-dev
+          - valgrind
+
+  - os: linux
+    dist: xenial
+    env: CXX=g++-10 GCOV=gcov-10 VARIANT=coverage
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-10
+          - libstdc++-10-dev
 
   - os: osx
     osx_image: xcode11.4
