@@ -1,12 +1,16 @@
-Feature: Feature 0
+Feature: Calculator
 
-  Scenario: Scenario 1
-    Given I have 42
-    When I increase it by 1
-    Then I expect 43
+  Scenario: Addition
+    Given I have calculator
+     When I enter 40
+     When I enter 2
+     When I press add
+     Then I expect 42
 
-  Scenario: Scenario 2
-    Given I have 12345
-    When I increase it by 5
-    Then I expect 12350
-
+  Scenario: Subtraction
+    Given I have calculator
+     When I enter 45
+     When I enter 2
+     When I enter 1
+     When I press sub
+     Then I expect 42
