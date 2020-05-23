@@ -8,6 +8,7 @@
 #include <boost/ut.hpp>
 #include <fstream>
 #include <functional>
+#include <numeric>
 #include <streambuf>
 #include <string>
 #include <unordered_map>
@@ -22,9 +23,11 @@ class steps {
     template <class TPattern>
     step(steps& steps, const TPattern& pattern)
         : steps_{steps},
-          expr_{steps.call_steps_[std::string{pattern}]},
-          pattern_{pattern} {}
+          pattern_{pattern},
+          expr_{steps_.call_steps_[pattern_]} {}
 
+    step(step&&) = delete;
+    step(const step&) = delete;
     ~step() noexcept { steps_.next(pattern_); }
 
     template <class T>
@@ -37,8 +40,9 @@ class steps {
       if (expr_) {
         return;
       }
-      expr_ = [this, expr, pattern = pattern_](const std::string& step) {
-        [&]<class... TArgs>(boost::ut::type_traits::list<TArgs...>) {
+
+      expr_ = [expr, pattern = pattern_](const std::string& step) {
+        [=]<class... TArgs>(boost::ut::type_traits::list<TArgs...>) {
           boost::ut::log << step;
           const auto& ms = matches(pattern, step);
           auto i = 0;
@@ -50,8 +54,8 @@ class steps {
 
    private:
     steps& steps_;
-    call_step_t& expr_;
     std::string pattern_{};
+    call_step_t& expr_;
   };
 
  public:
@@ -61,21 +65,31 @@ class steps {
   template <class TGherkin>
   auto operator|(const TGherkin& gherkin) {
     gherkin_ = boost::ut::utility::split<std::string>(gherkin, '\n');
+    for (auto& step : gherkin_) {
+      step.erase(0, step.find_first_not_of(" \t"));
+    }
+
     return [this] {
       steps_(*this);
       current_step_ = tmp_current_step_ = {};
       call_steps_ = {};
     };
   }
-  auto feature(std::string pattern) {
+  auto feature(const std::string& pattern) {
     return step{*this, "Feature: " + pattern};
   }
-  auto scenario(std::string pattern) {
+  auto scenario(const std::string& pattern) {
     return step{*this, "Scenario: " + pattern};
   }
-  auto given(std::string pattern) { return step{*this, "Given " + pattern}; }
-  auto when(std::string pattern) { return step{*this, "When " + pattern}; }
-  auto then(std::string pattern) { return step{*this, "Then " + pattern}; }
+  auto given(const std::string& pattern) {
+    return step{*this, "Given " + pattern};
+  }
+  auto when(const std::string& pattern) {
+    return step{*this, "When " + pattern};
+  }
+  auto then(const std::string& pattern) {
+    return step{*this, "Then " + pattern};
+  }
 
  private:
   template <class T>
@@ -133,35 +147,29 @@ class steps {
 
   template <class TPattern>
   auto next(const TPattern& pattern) -> void {
-    while (true) {
-      auto i = 0u;
-      for (auto current_step : gherkin_) {
-        if (i++ == current_step_) {
-          current_step.erase(0, current_step.find_first_not_of(" \t"));
+    static constexpr auto scenario = "Scenario";
+    auto i = 0u;
+    for (const auto& current_step : gherkin_) {
+      if (i++ == current_step_) {
+        for (const auto& [step, call] : call_steps_) {
+          if (pattern.find(scenario) == std::string::npos and
+              current_step.find(scenario) != std::string::npos) {
+            tmp_current_step_ = i;
+            break;
+          }
 
-          for (const auto& [step, call] : call_steps_) {
-            if (pattern.find("Scenario") == std::string::npos and
-                current_step.find("Scenario") != std::string::npos) {
-              tmp_current_step_ = i;
-              goto done;
-            }
-
-            if (match(step, current_step)) {
-              current_step_ = i;
-              call(current_step);
-            }
+          if (match(step, current_step)) {
+            current_step_ = i;
+            call(current_step);
           }
         }
       }
-
-      if (tmp_current_step_ or pattern.find("Scenario") == std::string::npos) {
-        break;
-      } else {
-        current_step_ = tmp_current_step_;
-        tmp_current_step_ = {};
-      }
     }
-  done:;
+
+    if (not tmp_current_step_ and pattern.find(scenario) != std::string::npos) {
+      current_step_ = tmp_current_step_;
+      tmp_current_step_ = {};
+    }
   }
 
   void (*steps_)(steps&){};
@@ -171,16 +179,35 @@ class steps {
 };
 }  // namespace gherkin
 
+template <class T>
+class calculator {
+ public:
+  auto enter(const T& value) -> void { values_.push_back(value); }
+  auto add() -> void {
+    result_ = std::accumulate(std::cbegin(values_), std::cend(values_), T{});
+  }
+  auto sub() -> void {
+    result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
+                              values_.front(), std::minus{});
+  }
+  auto get() const -> T { return result_; }
+
+ private:
+  std::vector<T> values_{};
+  T result_{};
+};
+
 gherkin::steps steps = [](auto& steps) {
   using namespace boost::ut;
-
-  steps.feature("*") = [&] {
+  steps.feature("Calculator") = [&] {
     steps.scenario("*") = [&] {
-      steps.given("I have {}") = [&](int value) {
-        auto i = value;
-        steps.when("I increase it by {}") = [&](int value) { i += value; };
-        steps.then("I expect {}") = [&](int result) {
-          expect(that % i == result);
+      steps.given("I have calculator") = [&] {
+        calculator<int> calc{};
+        steps.when("I enter {value}") = [&](int value) { calc.enter(value); };
+        steps.when("I press add") = [&] { calc.add(); };
+        steps.when("I press sub") = [&] { calc.sub(); };
+        steps.then("I expect {value}") = [&](int result) {
+          expect(that % calc.get() == result);
         };
       };
     };
@@ -191,22 +218,23 @@ int main(int argc, char** argv) {
   using namespace boost::ut;
 
   // clang-format off
-  "gherkin text"_test = steps |
+  "Gherkin Calculator"_test = steps |
     R"(
-      Feature: Feature 0
+      Feature: Calculator
 
-        Scenario: Scenario 1
-          Given I have 42
-          When I increase it by 1
-          Then I expect 43
-          Then I expect 43
-          When I increase it by 2
-          Then I expect 45
+        Scenario: Addition
+          Given I have calculator
+           When I enter 40
+           When I enter 2
+           When I press add
+           Then I expect 42
 
-        Scenario: Scenario 2
-          Given I have 1234
-          When I increase it by 10
-          Then I expect 1244
+        Scenario: Subtraction
+          Given I have calculator
+           When I enter 4
+           When I enter 2
+           When I press sub
+           Then I expect 2
     )";
   // clang-format on
 
