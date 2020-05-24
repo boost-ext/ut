@@ -20,6 +20,13 @@ environment:
       CMAKE_GENERATOR: Ninja
       CXX: clang-cl
 
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
+      VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build
+      PLATFORM: amd64
+      CXX_STANDARD: 17
+      CMAKE_GENERATOR: Ninja
+      CXX: clang-cl
+
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       VSPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build
       PLATFORM: amd64

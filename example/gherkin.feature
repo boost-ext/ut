@@ -14,3 +14,4 @@ Feature: Calculator
      When I enter 1
      When I press sub
      Then I expect 42
+
