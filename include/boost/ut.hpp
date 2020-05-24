@@ -124,7 +124,6 @@ class string_view {
   decltype(sizeof("")) size_{};
 };
 
-#if defined(BOOST_UT_FORWARD) or defined(BOOST_UT_IMPLEMENTATION)
 template <class>
 class function;
 template <class R, class... TArgs>
@@ -169,7 +168,6 @@ class function<R(TArgs...)> {
   void (*destroy_)(void*){};
   void* data_{};
 };
-#endif
 
 #if not defined(BOOST_UT_FORWARD)
 [[nodiscard]] inline auto is_match(std::string_view input,

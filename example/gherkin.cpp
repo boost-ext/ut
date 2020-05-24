@@ -7,55 +7,103 @@
 //
 #include <boost/ut.hpp>
 #include <fstream>
-#include <functional>
 #include <numeric>
 #include <streambuf>
 #include <string>
-#include <unordered_map>
 
 namespace gherkin {
+namespace detail {
+template <class TPattern, class TStr>
+constexpr auto match(const TPattern& pattern, const TStr& str)
+    -> std::vector<TStr> {
+  std::vector<TStr> groups{};
+  auto pi = 0u, si = 0u;
+
+  const auto matcher = [&](char b, char e, char c = 0) {
+    const auto match = si;
+    while (str[si] and str[si] != b and str[si] != c) {
+      ++si;
+    }
+    groups.emplace_back(str.substr(match, si - match));
+    while (pattern[pi] and pattern[pi] != e) {
+      ++pi;
+    }
+    pi++;
+  };
+
+  while (pi < std::size(pattern) && si < std::size(str)) {
+    if (pattern[pi] == '\'' and str[si] == '\'' and pattern[pi + 1] == '{') {
+      ++si;
+      matcher('\'', '}');
+    } else if (pattern[pi] == '{') {
+      matcher(' ', '}', ',');
+    } else if (pattern[pi] != str[si]) {
+      return {};
+    }
+    ++pi, ++si;
+  }
+
+  if (si < str.size() or pi < std::size(pattern)) {
+    return {};
+  }
+
+  return groups;
+}
+
+template <class TPattern, class TStr>
+constexpr auto re_match(const TPattern& pattern, const TStr& str) -> bool {
+  switch (*pattern) {
+    default:
+      return *pattern == *str and re_match(pattern + 1, str + 1);
+    case '\0':
+      return *str == '\0';
+    case '?':
+      return *str != '\0' and re_match(pattern + 1, str + 1);
+    case '*':
+      return (*str != '\0' and re_match(pattern, str + 1)) ||
+             re_match(pattern + 1, str);
+  }
+}
+}  // namespace detail
+
 class steps {
   using step_t = std::string;
-  using call_step_t = std::function<void(const std::string&)>;
+  using steps_t = void (*)(steps&);
+  using gherkin_t = std::vector<step_t>;
+  using call_step_t = boost::ut::utility::function<void(const std::string&)>;
+  using call_steps_t = std::vector<std::pair<step_t, call_step_t>>;
 
   class step {
    public:
     template <class TPattern>
     step(steps& steps, const TPattern& pattern)
-        : steps_{steps},
-          pattern_{pattern},
-          expr_{steps_.call_steps_[pattern_]} {}
+        : steps_{steps}, pattern_{pattern} {}
 
-    step(step&&) = delete;
-    step(const step&) = delete;
-    ~step() noexcept { steps_.next(pattern_); }
-
-    template <class T>
-    static auto make(const std::string& arg) -> T {
-      return T{std::stoi(arg)};
-    }
+    ~step() { steps_.next(pattern_); }
 
     template <class TExpr>
     auto operator=(const TExpr& expr) -> void {
-      if (expr_) {
-        return;
+      for (const auto& [pattern, _] : steps_.call_steps()) {
+        if (pattern_ == pattern) {
+          return;
+        }
       }
 
-      expr_ = [expr, pattern = pattern_](const std::string& step) {
-        [=]<class... TArgs>(boost::ut::type_traits::list<TArgs...>) {
-          boost::ut::log << step;
-          const auto& ms = matches(pattern, step);
-          auto i = 0;
-          expr(make<TArgs>(ms[i++])...);
-        }
-        (typename boost::ut::type_traits::function_traits<TExpr>::args{});
-      };
+      steps_.call_steps().emplace_back(
+          pattern_, [expr, pattern = pattern_](const auto& step) {
+            [=]<class... TArgs>(boost::ut::type_traits::list<TArgs...>) {
+              boost::ut::log << step;
+              auto i = 0;
+              const auto& ms = detail::match(pattern, step);
+              expr(TArgs{std::stoi(ms[i++])}...);
+            }
+            (typename boost::ut::type_traits::function_traits<TExpr>::args{});
+          });
     }
 
    private:
     steps& steps_;
     std::string pattern_{};
-    call_step_t& expr_;
   };
 
  public:
@@ -70,9 +118,8 @@ class steps {
     }
 
     return [this] {
+      step_ = {};
       steps_(*this);
-      current_step_ = tmp_current_step_ = {};
-      call_steps_ = {};
     };
   }
   auto feature(const std::string& pattern) {
@@ -92,90 +139,42 @@ class steps {
   }
 
  private:
-  template <class T>
-  static auto matches(T pattern, const std::string& str)
-      -> std::vector<std::string> {
-    std::vector<std::string> matches{};
-    auto pi = 0u, si = 0u;
-
-    const auto matcher = [&](char b, char e, char c = 0) {
-      const auto match = si;
-      while (str[si] && str[si] != b && str[si] != c) ++si;
-      matches.emplace_back(str.substr(match, si - match));
-      while (pattern[pi] && pattern[pi] != e) ++pi;
-      pi++;
-    };
-
-    while (pi < pattern.size() && si < str.size()) {
-      if (pattern[pi] == '\'' && str[si] == '\'' && pattern[pi + 1] == '{') {
-        ++si;
-        matcher('\'', '}');
-      } else if (pattern[pi] == '{') {
-        matcher(' ', '}', ',');
-      } else if (pattern[pi] != str[si]) {
-        return std::vector<std::string>{};
-      }
-      ++pi, ++si;
-    }
-
-    if (si < str.size() || pi < pattern.size()) {
-      return std::vector<std::string>{};
-    }
-
-    return matches;
-  }
-
-  static inline bool re_match(const char* pattern, const char* str) {
-    switch (*pattern) {
-      default:
-        return *pattern == *str && re_match(pattern + 1, str + 1);
-      case '\0':
-        return *str == '\0';
-      case '?':
-        return *str != '\0' && re_match(pattern + 1, str + 1);
-      case '*':
-        return (*str != '\0' && re_match(pattern, str + 1)) ||
-               re_match(pattern + 1, str);
-    }
-  }
-
-  template <class TPattern>
-  static auto match(const TPattern& pattern, const std::string& str) {
-    return re_match(pattern.c_str(), str.c_str()) or
-           not std::empty(matches(pattern, str));
-  }
-
   template <class TPattern>
   auto next(const TPattern& pattern) -> void {
-    static constexpr auto scenario = "Scenario";
-    auto i = 0u;
-    for (const auto& current_step : gherkin_) {
-      if (i++ == current_step_) {
-        for (const auto& [step, call] : call_steps_) {
-          if (pattern.find(scenario) == std::string::npos and
-              current_step.find(scenario) != std::string::npos) {
-            tmp_current_step_ = i;
-            break;
-          }
+    const auto is_scenario = [&pattern](const auto& step) {
+      constexpr auto scenario = "Scenario";
+      return pattern.find(scenario) == std::string::npos and
+             step.find(scenario) != std::string::npos;
+    };
 
-          if (match(step, current_step)) {
-            current_step_ = i;
-            call(current_step);
-          }
+    const auto call_steps = [this, is_scenario](const auto& step,
+                                                const auto i) {
+      for (const auto& [name, call] : call_steps_) {
+        if (is_scenario(step)) {
+          break;
+        }
+
+        if (detail::re_match(name.c_str(), step.c_str()) or
+            not std::empty(detail::match(name, step))) {
+          step_ = i;
+          call(step);
         }
       }
-    }
+    };
 
-    if (not tmp_current_step_ and pattern.find(scenario) != std::string::npos) {
-      current_step_ = tmp_current_step_;
-      tmp_current_step_ = {};
+    for (auto i = 0; const auto& step : gherkin_) {
+      if (i++ == step_) {
+        call_steps(step, i);
+      }
     }
   }
 
-  void (*steps_)(steps&){};
-  std::vector<std::string> gherkin_{};
-  std::size_t current_step_{}, tmp_current_step_{};
-  std::unordered_map<step_t, call_step_t> call_steps_{};
+  auto call_steps() -> call_steps_t& { return call_steps_; }
+
+  steps_t steps_{};
+  gherkin_t gherkin_{};
+  call_steps_t call_steps_{};
+  std::size_t step_{};
 };
 }  // namespace gherkin
 
@@ -199,6 +198,7 @@ class calculator {
 
 gherkin::steps steps = [](auto& steps) {
   using namespace boost::ut;
+
   steps.feature("Calculator") = [&] {
     steps.scenario("*") = [&] {
       steps.given("I have calculator") = [&] {
@@ -214,7 +214,7 @@ gherkin::steps steps = [](auto& steps) {
   };
 };
 
-int main(int argc, char** argv) {
+int main(int argc, const char** argv) {
   using namespace boost::ut;
 
   // clang-format off
