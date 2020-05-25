@@ -457,7 +457,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/chvYvx
+> https://godbolt.org/z/cVNkA5
 
 > Nice, is `Spec` notation supported as well?
 
@@ -720,6 +720,43 @@ All tests passed (2 asserts in 1 tests)
 ```
 
 > https://godbolt.org/z/mNBySr
+
+</p>
+</details>
+
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Gherkin</summary>
+<p>
+
+```cpp
+int main() {
+  bdd::gherkin::steps steps = [](auto& steps) {
+    steps.feature("*") = [&] {
+      steps.scenario("*") = [&] {
+        steps.given("I have a number {value}") = [&](int value) {
+          auto number = value;
+          steps.when("I add {value} to it") = [&](int value) { number += value; };
+          steps.then("I expect number to be {value}") = [&](int value) { expect(that % number == value); };
+        };
+      };
+    };
+  };
+
+  "Gherkin"_test = steps |
+    R"(
+      Feature: Number
+        Scenario: Addition
+          Given I have a number 40
+           When I add 2 to it
+           Then I expect number to be 42
+    )";
+}
+```
+
+```
+All tests passed (1 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/BP3hyt
 
 </p>
 </details>
