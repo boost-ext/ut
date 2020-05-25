@@ -1345,6 +1345,32 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
+      using namespace ut::bdd;
+
+      feature("feature...") = [] {
+        scenario("scenario...") = [] {
+          given("given...") = [] {};
+          when("when...") = [] {};
+          then("then...") = [] {};
+        };
+      };
+
+      test_assert(5 == std::size(test_cfg.run_calls));
+      test_assert("feature..."sv == test_cfg.run_calls[0].name);
+      test_assert("feature"sv == test_cfg.run_calls[0].type);
+      test_assert("scenario..."sv == test_cfg.run_calls[1].name);
+      test_assert("scenario"sv == test_cfg.run_calls[1].type);
+      test_assert("given..."sv == test_cfg.run_calls[2].name);
+      test_assert("given"sv == test_cfg.run_calls[2].type);
+      test_assert("when..."sv == test_cfg.run_calls[3].name);
+      test_assert("when"sv == test_cfg.run_calls[3].type);
+      test_assert("then..."sv == test_cfg.run_calls[4].name);
+      test_assert("then"sv == test_cfg.run_calls[4].type);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
       using namespace ut::spec;
 
       describe("describe") = [] { it("it") = [] { expect(1_u == 1u); }; };
