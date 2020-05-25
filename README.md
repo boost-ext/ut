@@ -78,6 +78,7 @@ Great question! There are a few unique features which makes `[Boost].UT` worth t
 * It leverages C++ features to support more complex testing ([parameterized](#examples))
 * It's faster to compile and execute than similar frameworks which makes it suitable for bigger projects without additional hassle ([Benchmarks](#benchmarks))
 * It supports [TDD/BDD](#examples) workflows
+* It supports [Gherkin](#examples) specification
 * It supports [Spec](#examples)
 * ...
 
@@ -112,7 +113,7 @@ Sounds intriguing/interesting? Learn more at
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `test, suite, operators, literals, [expect]`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
-* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Gherkin](example/gherkin.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 * Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
 
 > `*` - Limitations may apply
@@ -422,7 +423,41 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/xNSGpr
+> Can I use `Gherkin`?
+> Yeah, let's rewrite the example using `Gherkin` specification
+
+```cpp
+int main() {
+  bdd::gherkin::steps steps = [](auto& steps) {
+    steps.feature("Vector") = [&] {
+      steps.scenario("*") = [&] {
+        steps.given("I have a vector") = [&] {
+          std::vector<int> v(5);
+          !expect(5_ul == std::size(v));
+
+          steps.when("I resize bigger") = [&] { v.resize(10); };
+          steps.then("The size should increase") = [&] { expect(10_ul == std::size(v)); };
+        };
+      };
+    };
+  };
+
+  "Vector"_test = steps |
+    R"(
+      Feature: Vector
+        Scenario: Resize
+          Given I have a vector
+           When I resize bigger
+           Then The size should increase
+    )";
+}
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/chvYvx
 
 > Nice, is `Spec` notation supported as well?
 
