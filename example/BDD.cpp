@@ -20,4 +20,14 @@ int main() {
       };
     };
   };
+
+  feature("Calculator") = [] {
+    scenario("Addition") = [] {
+      given("I have number 40") = [] {
+        auto number = 40;
+        when("I add 2 to number") = [&number] { number += 2; };
+        then("I expect number to be 42") = [&number] { 42_i == number; };
+      };
+    };
+  };
 }

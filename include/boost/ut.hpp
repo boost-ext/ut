@@ -2276,6 +2276,12 @@ template <class T>
 }
 
 namespace bdd {
+[[maybe_unused]] constexpr auto feature = [](const auto name) {
+  return detail::test{"feature", name};
+};
+[[maybe_unused]] constexpr auto scenario = [](const auto name) {
+  return detail::test{"scenario", name};
+};
 [[maybe_unused]] constexpr auto given = [](const auto name) {
   return detail::test{"given", name};
 };
