@@ -50,7 +50,14 @@ struct fake_cfg {
   };
 
   template <class... Ts>
-  auto on(ut::events::test<Ts...> test) {
+  auto on(ut::events::test<Ts...> test) -> void {
+    if (std::find_if(std::cbegin(test.tag), std::cend(test.tag),
+                     [](const auto& name) {
+                       return ut::utility::is_match(name, "skip");
+                     }) != std::cend(test.tag)) {
+      on(ut::events::skip<>{.type = test.type, .name = test.name});
+      return;
+    }
     if (std::empty(test_filter) or std::string_view{test.name} == test_filter) {
       run_calls.push_back({.type = test.type,
                            .name = test.name,
@@ -69,7 +76,7 @@ struct fake_cfg {
   }
 
   template <class... Ts>
-  auto on(ut::events::skip<Ts...> test) {
+  auto on(ut::events::skip<Ts...> test) -> void {
     skip_calls.push_back(
         {.type = test.type, .name = test.name, .arg = test.arg});
   }
@@ -82,10 +89,10 @@ struct fake_cfg {
     return assertion.expr;
   }
 
-  auto on(ut::events::fatal_assertion) { ++fatal_assertion_calls; }
+  auto on(ut::events::fatal_assertion) -> void { ++fatal_assertion_calls; }
 
   template <class TMsg>
-  auto on(ut::events::log<TMsg> log) {
+  auto on(ut::events::log<TMsg> log) -> void {
     log_calls.push_back(log.msg);
   }
 
@@ -618,7 +625,7 @@ int main() {
       test_cfg = fake_cfg{};
 
       "run"_test = [] {};
-      skip | "skip"_test = [] {};
+      skip >> "skip"_test = [] {};
 
       test_assert(1 == std::size(test_cfg.run_calls));
       test_assert("run"sv == test_cfg.run_calls[0].name);
@@ -626,6 +633,18 @@ int main() {
       test_assert("test"sv == test_cfg.skip_calls[0].type);
       test_assert("skip"sv == test_cfg.skip_calls[0].name);
       void(std::any_cast<none>(test_cfg.skip_calls[0].arg));
+      test_assert(std::empty(test_cfg.log_calls));
+      test_assert(0 == test_cfg.fatal_assertion_calls);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      tag("tag1") >> tag("tag2") >> "tag"_test = [] {};
+
+      test_assert(1 == std::size(test_cfg.run_calls));
+      test_assert("tag"sv == test_cfg.run_calls[0].name);
+      test_assert(std::empty(test_cfg.skip_calls));
       test_assert(std::empty(test_cfg.log_calls));
       test_assert(0 == test_cfg.fatal_assertion_calls);
     }
