@@ -10,16 +10,26 @@
 int main() {
   using namespace boost::ut;
 
+  cfg<override> = {.filter = "tag", .tag = {"execute"}};
+
   // clang-format off
-  skip >>
-  "don't run"_test = [] {
+  tag("execute") >> skip >>
+  "tag"_test = [] {
     expect(42_i == 43) << "should not fire!";
     expect(false) << "should fail!";
   };
 
-  skip >> test("don't run") = [] {
-    expect(42_i == 43) << "should not fire!";
-    expect(false) << "should fail!";
+  tag("execute") >> "tag"_test= [] {
+    expect(42_i == 42);
+  };
+
+  tag("not executed") >> "tag"_test= [] {
+    expect(43_i == 42);
+  };
+
+  tag("not executed") >> tag("execute") >>
+  "tag"_test= [] {
+    expect(42_i == 42);
   };
   // clang-format on
 }

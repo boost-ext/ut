@@ -113,7 +113,7 @@ Sounds intriguing/interesting? Learn more at
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `test, suite, operators, literals, [expect]`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
-* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/skip.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Gherkin](example/gherkin.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/test.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Gherkin](example/gherkin.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 * Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
 
 > `*` - Limitations may apply
@@ -631,7 +631,7 @@ asserts: 24 | 22 passed | 2 failed
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Tests</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run/Skip</summary>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run/Skip/Tag</summary>
 <p>
 
 ```cpp
@@ -639,7 +639,7 @@ asserts: 24 | 22 passed | 2 failed
   expect(42_i == 42);
 };
 
-skip | "don't run UDL"_test = [] {
+skip >> "don't run UDL"_test = [] {
   expect(42_i == 43) << "should not fire!";
 };
 ```
@@ -654,7 +654,7 @@ test("run function") = [] {
   expect(42_i == 42);
 };
 
-skip | test("don't run function") = [] {
+skip >> test("don't run function") = [] {
   expect(42_i == 43) << "should not fire!";
 };
 ```
@@ -664,7 +664,28 @@ All tests passed (1 asserts in 1 tests)
 1 tests skipped
 ```
 
-> https://godbolt.org/z/2drJGq
+```cpp
+tag("nightly") >> tag("slow") >>
+"performance"_test= [] {
+  expect(42_i == 42);
+};
+
+tag("slow") >>
+"run slowly"_test= [] {
+  expect(42_i == 43) << "should not fire!";
+};
+```
+
+```
+cfg<override> = {.tag = {"nightly"}};
+```
+
+```
+All tests passed (1 asserts in 1 tests)
+1 tests skipped
+```
+
+> https://godbolt.org/z/X3_kG4
 
 </p>
 </details>
@@ -1189,13 +1210,19 @@ namespace boost::ut::inline v1_1_7 {
      * @example "parameterized"_test = [](auto arg) {} | std::tuple{1, 2, 3};
      */
     constexpr auto operator|;
+
+    /**
+     * Creates tags
+     * @example tag("slow") >> tag("nightly") >> "perf"_test = []{};
+     */
+    constexpr auto operator>>;
   } // namespace operators
 
   /**
    * Creates skippable test object
-   * @example skip | "don't run"_test = [] { };
+   * @example skip >> "don't run"_test = [] { };
    */
-  struct { } skip{};
+  constexpr auto skip = tag("skip");
 
   struct {
     /**

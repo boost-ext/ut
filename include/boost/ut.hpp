@@ -52,6 +52,7 @@ export import std;
 #endif
 
 #if defined(BOOST_UT_FORWARD) and (__GNUC__ < 10)
+#include <vector>
 namespace std {
 template <class TLhs, class TRhs>
 auto operator==(TLhs, TRhs) -> bool;
@@ -559,6 +560,7 @@ template <class Test, class TArg = none>
 struct test {
   utility::string_view type{};
   utility::string_view name{};
+  std::vector<utility::string_view> tag{};
   reflection::source_location location{};
   TArg arg{};
   Test run{};
@@ -582,8 +584,8 @@ struct test {
   }
 };
 template <class Test, class TArg>
-test(utility::string_view, utility::string_view, reflection::source_location,
-     TArg, Test)
+test(utility::string_view, utility::string_view, utility::string_view,
+     reflection::source_location, TArg, Test)
     ->test<Test, TArg>;
 template <class TSuite>
 struct suite {
@@ -1255,17 +1257,15 @@ class reporter {
     if (static auto once = true; once) {
       once = false;
       if (tests_.fail or asserts_.fail) {
-        printer_
-            << "\n============================================================"
-               "=="
-               "=================\n"
-            << "tests:   " << (tests_.pass + tests_.fail) << " | "
-            << printer_.colors().fail << tests_.fail << " failed"
-            << printer_.colors().none << '\n'
-            << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
-            << asserts_.pass << " passed"
-            << " | " << printer_.colors().fail << asserts_.fail << " failed"
-            << printer_.colors().none << '\n';
+        printer_ << "\n========================================================"
+                    "=======================\n"
+                 << "tests:   " << (tests_.pass + tests_.fail) << " | "
+                 << printer_.colors().fail << tests_.fail << " failed"
+                 << printer_.colors().none << '\n'
+                 << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
+                 << asserts_.pass << " passed"
+                 << " | " << printer_.colors().fail << asserts_.fail
+                 << " failed" << printer_.colors().none << '\n';
         std::cerr << printer_.str() << std::endl;
       } else {
         std::cout << printer_.colors().pass << "All tests passed"
@@ -1300,6 +1300,7 @@ class reporter {
 
 struct options {
   std::string_view filter{};
+  std::vector<std::string_view> tag{};
   ut::colors colors{};
   bool dry_run{};
 };
@@ -1353,8 +1354,9 @@ class runner {
     }
   }
 
-  constexpr auto operator=(options options) {
+  auto operator=(options options) {
     filter_ = options.filter;
+    tag_ = options.tag;
     dry_run_ = options.dry_run;
     reporter_ = {options.colors};
   }
@@ -1367,6 +1369,26 @@ class runner {
   template <class... Ts>
   auto on(events::test<Ts...> test) {
     path_[level_] = test.name;
+
+    auto execute = std::empty(test.tag);
+    for (const auto& tag : test.tag) {
+      if (utility::is_match(tag, "skip")) {
+        on(events::skip<>{.type = test.type, .name = test.name});
+        return;
+      }
+
+      for (const auto& ftag : tag_) {
+        if (utility::is_match(tag, ftag)) {
+          execute = true;
+          break;
+        }
+      }
+    }
+
+    if (not execute) {
+      on(events::skip<>{.type = test.type, .name = test.name});
+      return;
+    }
 
     if (filter_(level_, path_)) {
       if (not level_++) {
@@ -1494,6 +1516,7 @@ class runner {
   std::size_t fails_{};
   std::array<std::string_view, MaxPathSize> path_{};
   filter filter_{};
+  std::vector<std::string_view> tag_{};
   bool dry_run_{};
 };
 
@@ -1558,7 +1581,9 @@ void on(events::log<utility::string_view> l) { cfg<override>.on(l); }
 }  // namespace link
 
 namespace detail {
-struct skip {};
+struct tag {
+  std::vector<utility::string_view> name{};
+};
 
 #if defined(BOOST_UT_FORWARD)
 template <class..., class TEvent>
@@ -1605,11 +1630,13 @@ struct test_location {
 struct test {
   utility::string_view type{};
   utility::string_view name{};
+  std::vector<utility::string_view> tag{};
 
   template <class... Ts>
   constexpr auto operator=(test_location<void (*)()> test) {
     on<Ts...>(events::test<void (*)()>{.type = type,
                                        .name = name,
+                                       .tag = tag,
                                        .location = test.location,
                                        .arg = none{},
                                        .run = test.test});
@@ -1623,8 +1650,9 @@ struct test {
       typename type_traits::identity<Test, decltype(test())>::type {
     on<Test>(events::test<Test>{.type = type,
                                 .name = name,
+                                .tag = tag,
                                 .location = {},
-                                .arg = {},
+                                .arg = none{},
                                 .run = static_cast<Test&&>(test)});
     return test;
   }
@@ -1640,30 +1668,6 @@ struct test {
       -> decltype(test(type_traits::declval<utility::string_view>())) {
     return test(name);
   }
-};
-
-template <class T>
-class test_skip {
- public:
-  constexpr explicit test_skip(T t) : t_{t} {}
-
-  template <class... Ts>
-  constexpr auto operator=(void (*test)()) {
-    on<Ts...>(events::skip<>{.type = t_.type, .name = t_.name, .arg = none{}});
-    return test;
-  }
-
-  template <class Test,
-            type_traits::requires_t<
-                not type_traits::is_convertible_v<Test, void (*)()>> = 0>
-  constexpr auto operator=(Test test) ->
-      typename type_traits::identity<Test, decltype(test())>::type {
-    on<Test>(events::skip{.type = t_.type, .name = t_.name, .arg = none{}});
-    return test;
-  }
-
- private:
-  T t_;
 };
 
 struct log {
@@ -1793,8 +1797,8 @@ struct expect_ : op {
 }  // namespace detail
 
 namespace literals {
-[[nodiscard]] constexpr auto operator""_test(const char* name,
-                                             decltype(sizeof("")) size) {
+[[nodiscard]] inline /*constexpr*/ auto operator""_test(
+    const char* name, decltype(sizeof("")) size) {
   return detail::test{"test", utility::string_view{name, size}};
 }
 
@@ -1960,9 +1964,24 @@ template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
   return detail::not_{t};
 }
 
-template <class T>
-[[nodiscard]] constexpr auto operator|(const detail::skip&, const T& t) {
-  return detail::test_skip{t};
+template <class Test>
+[[nodiscard]] /*constexpr*/ auto operator>>(const detail::tag& tag, Test test) {
+  for (const auto& name : tag.name) {
+    test.tag.push_back(name);
+  }
+  return test;
+}
+
+[[nodiscard]] inline /*constexpr*/ auto operator>>(const detail::tag& lhs,
+                                                   const detail::tag& rhs) {
+  std::vector<utility::string_view> tag{};
+  for (const auto& name : lhs.name) {
+    tag.push_back(name);
+  }
+  for (const auto& name : rhs.name) {
+    tag.push_back(name);
+  }
+  return detail::tag{tag};
 }
 
 template <class F, class T,
@@ -1970,8 +1989,12 @@ template <class F, class T,
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
   return [f, t](const auto name) {
     for (const auto& arg : t) {
-      detail::on<F>(events::test<F, typename T::value_type>{
-          .type = "test", .name = name, .location = {}, .arg = arg, .run = f});
+      detail::on<F>(events::test<F, typename T::value_type>{.type = "test",
+                                                            .name = name,
+                                                            .tag = {},
+                                                            .location = {},
+                                                            .arg = arg,
+                                                            .run = f});
     }
   };
 }
@@ -1985,6 +2008,7 @@ template <
         [f, name](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
                                              .name = name,
+                                             .tag = {},
                                              .location = {},
                                              .arg = args,
                                              .run = f}),
@@ -2237,7 +2261,8 @@ template <class TExpr>
 }
 #endif
 
-#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(BOOST_UT_FORWARD)
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and \
+    not defined(BOOST_UT_FORWARD)
 template <class TExpr>
 [[nodiscard]] constexpr auto aborts(const TExpr& expr) {
   return detail::aborts_{expr};
@@ -2278,7 +2303,10 @@ struct suite {
   return detail::test{"test", name};
 };
 [[maybe_unused]] constexpr auto should = test;
-[[maybe_unused]] constexpr auto skip = detail::skip{};
+[[maybe_unused]] /*constexpr*/ auto tag = [](const auto name) {
+  return detail::tag{{name}};
+};
+[[maybe_unused]] inline /*constexpr*/ auto skip = tag("skip");
 template <class T = void>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
 
@@ -2481,6 +2509,7 @@ using operators::operator and;
 using operators::operator or;
 using operators::operator not;
 using operators::operator|;
+using operators::operator>>;
 }  // namespace v1_1_7
 }  // namespace boost::ut
 #endif
