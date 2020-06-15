@@ -95,10 +95,6 @@ Sounds intriguing/interesting? Learn more at
 <details open><summary>Quick Start</summary>
 <p>
 
-<p align="center">
-  <a href="https://bit.ly/boost-ut-quick-start"><img width="90%" src="doc/images/quick_start.png"></a>
-</p>
-
 > https://bit.ly/boost-ut-quick-start (slides)
 
 </p>
