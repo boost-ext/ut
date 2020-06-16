@@ -1756,6 +1756,8 @@ All tests passed (4 asserts in 3 tests)
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;What about Microbenchmarking?</summary>
 <p>
 
+> [Example benchmark](example/benchmark.cpp)
+
 > Consider using one of the following frameworks
 
 * https://github.com/google/benchmark
