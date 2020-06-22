@@ -12,7 +12,7 @@ matrix:
 
   - os: linux
     dist: xenial
-    env: CXX=clang++-9 VARIANT=valgrind
+    env: CXX=clang++-9 VARIANT=valgrind TBB=https://github.com/intel/tbb.git
     addons:
       apt:
         sources:
@@ -26,7 +26,7 @@ matrix:
 
   - os: linux
     dist: xenial
-    env: CXX=clang++-9 VARIANT=sanitizers
+    env: CXX=clang++-9 VARIANT=sanitizers TBB=https://github.com/intel/tbb.git
     addons:
       apt:
         sources:
@@ -39,8 +39,22 @@ matrix:
           - valgrind
 
   - os: linux
+    dist: bionic
+    env: CXX=clang++-10 VARIANT=sanitizers TBB=https://github.com/intel/tbb.git
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - sourceline: 'deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main'
+            key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+        packages:
+          - clang-10
+          - libstdc++-10-dev
+          - valgrind
+
+  - os: linux
     dist: xenial
-    env: CXX=g++-9 VARIANT=valgrind
+    env: CXX=g++-9 VARIANT=valgrind TBB=https://github.com/intel/tbb.git
     addons:
       apt:
         sources:
@@ -51,23 +65,45 @@ matrix:
           - valgrind
 
   - os: linux
-    dist: xenial
-    env: CXX=g++-9 GCOV=gcov-9 VARIANT=coverage
+    dist: bionic
+    env: CXX=g++-10 VARIANT=valgrind
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
         packages:
-          - g++-9
-          - libstdc++-9-dev
+          - g++-10
+          - libstdc++-10-dev
+          - valgrind
+
+  - os: linux
+    dist: bionic
+    env: CXX=g++-10 GCOV=gcov-10 VARIANT=coverage
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-10
+          - libstdc++-10-dev
 
   - os: osx
     osx_image: xcode11.4
-    env: CXX=clang++ VARIANT=valgrind
+    env: CXX=clang++ VARIANT=valgrind TBB=https://github.com/intel/tbb.git
+
+  - os: osx
+    osx_image: xcode11.5
+    env: CXX=clang++ VARIANT=valgrind TBB=https://github.com/intel/tbb.git
+
+  - os: osx
+    osx_image: xcode11.6
+    env: CXX=clang++ VARIANT=valgrind TBB=https://github.com/intel/tbb.git
 
 script:
-  - git clone --depth 1 https://github.com/intel/tbb.git
-  - export TBB_ROOT="$PWD/tbb"
+  - if [ "${TBB}" != "" ]; then (
+	  	git clone --depth 1 "${TBB}"
+	  	export TBB_ROOT="$PWD/tbb"
+		); fi
   - if [ "${VARIANT}" == "valgrind" ]; then (
       cmake -Bbuild/debug -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_MEMCHECK=ON -H. && cmake --build build/debug &&
       cmake -Bbuild/release -DCMAKE_BUILD_TYPE=Release -DBOOST_UT_ENABLE_MEMCHECK=ON -H. && cmake --build build/release
