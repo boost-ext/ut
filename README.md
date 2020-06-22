@@ -1064,7 +1064,7 @@ int main() {
 ```cpp
 export module boost.ut; /// __cpp_modules
 
-namespace boost::ut::inline v1_1_7 {
+namespace boost::inline ext::ut::inline v1_1_7 {
   /**
    * Represents test suite object
    */
@@ -1406,7 +1406,7 @@ namespace boost::ut::inline v1_1_7 {
    * Can be overwritten with override
    */
   template <class = override> auto cfg = runner<reporter>{};
-} // namespace boost::ut
+}
 ```
 
 </p>

@@ -2305,7 +2305,7 @@ struct suite {
   return detail::test{"test", name};
 };
 [[maybe_unused]] constexpr auto should = test;
-[[maybe_unused]] /*constexpr*/ auto tag = [](const auto name) {
+[[maybe_unused]] inline /*constexpr*/ auto tag = [](const auto name) {
   return detail::tag{{name}};
 };
 [[maybe_unused]] inline /*constexpr*/ auto skip = tag("skip");
