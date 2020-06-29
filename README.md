@@ -1,15 +1,15 @@
 <a href="http://www.boost.org/LICENSE_1_0.txt" target="_blank">![Boost Licence](http://img.shields.io/badge/license-boost-blue.svg)</a>
-<a href="https://github.com/boost-experimental/ut/releases" target="_blank">![Version](https://badge.fury.io/gh/boost-experimental%2Fut.svg)</a>
-<a href="https://travis-ci.org/boost-experimental/ut" target="_blank">![Build Status](https://img.shields.io/travis/boost-experimental/ut/master.svg?label=linux/osx)</a>
-<a href="https://ci.appveyor.com/project/krzysztof-jusiak/ut" target="_blank">![Build Status](https://img.shields.io/appveyor/ci/krzysztof-jusiak/ut/master.svg?label=windows)</a>
-<a href="https://codecov.io/gh/boost-experimental/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-experimental/ut/branch/master/graph/badge.svg)</a>
-<a href="https://www.codacy.com/manual/krzysztof-jusiak/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-experimental/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
+<a href="https://github.com/boost-ext/ut/releases" target="_blank">![Version](https://badge.fury.io/gh/boost-ext%2Fut.svg)</a>
+<a href="https://travis-ci.org/boost-ext/ut" target="_blank">![Build Status](https://img.shields.io/travis/boost-ext/ut/master.svg?label=linux/osx)</a>
+<a href="https://ci.appveyor.com/project/boost-ext/ut" target="_blank">![Build Status](https://img.shields.io/appveyor/ci/boost-ext/ut/master.svg?label=windows)</a>
+<a href="https://codecov.io/gh/boost-ext/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-ext/ut/branch/master/graph/badge.svg)</a>
+<a href="https://www.codacy.com/manual/boost-ext/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-ext/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
 <a href="https://godbolt.org/z/Jqb5Ye">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
-<a href="https://gitter.im/boost-experimental/ut?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">![Chat](https://badges.gitter.im/boost-experimental/ut.svg)</a>
+<a href="https://gitter.im/boost-ext/ut?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">![Chat](https://badges.gitter.im/boost-ext/ut.svg)</a>
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
 
-# [Boost].UT / μt
+# [Boost::ext].UT / μt
 
 | [Motivation](#motivation) | [Quick Start](#quick-start) | [Overview](#overview) | [Tutorial](#tutorial) | [Examples](#examples) | [User Guide](#user-guide) | [FAQ](#faq) | [Benchmarks](#benchmarks) |
 
@@ -53,25 +53,25 @@ There are quite a few problems with the approach above
 * Hard to follow good practises such as `TDD/BDD` (Lack of support for sections and declarative expressions)
 * ...
 
-`[Boost].UT` is trying to address these issues by simplifying testing experience with a few simple steps:
+`[Boost::ext].UT` is trying to address these issues by simplifying testing experience with a few simple steps:
 
-* Just get a single [header/module](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
+* Just get a single [header/module](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp)
 * Integrate it into your project
 * Learn a few simple concepts ([expect, test, suite](#api))
 
 And you good to go!
 
-Okay, great, but why I would use `[Boost].UT` over other/similar testing frameworks already available in C++?
+Okay, great, but why I would use `[Boost::ext].UT` over other/similar testing frameworks already available in C++?
 
 * [Boost.Test](https://github.com/boostorg/test)
 * [GoogleTest](https://github.com/google/googletest)
 * [Catch](https://github.com/catchorg/Catch2)
 * [...](https://en.wikipedia.org/wiki/List_of_unit_testing_frameworks#C++)
 
-Great question! There are a few unique features which makes `[Boost].UT` worth trying
+Great question! There are a few unique features which makes `[Boost::ext].UT` worth trying
 
 * Firstly, it supports all the basic Unit Testing Framework features (automatic registration of tests, assertions, suites, etc...)
-* It's easy to integrate (it's just one [header/module](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+* It's easy to integrate (it's just one [header/module](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
 * It's macro free which makes testing experience that much nicer (it uses modern C++ features instead, macros are opt-in rather than being compulsory - [Can I still use macros?](#macros))
 * It's flexible (all parts of the framework such as: [runner, reporter, printer](#examples) can be customized, basically most other Unit Testing Frameworks can be implemented on top of UT primitives)
 * It has smaller learning curve (just a few simple concepts ([expect, test, suite](#api)))
@@ -104,8 +104,8 @@ Sounds intriguing/interesting? Learn more at
 <details open><summary>Overview</summary>
 <p>
 
-* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-experimental/ut), [MSVC-2019+*, Clang-cl-9.0+](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
-* Single header/module ([boost/ut.hpp](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp))
+* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*, Clang-cl-9.0+](https://ci.appveyor.com/project/boost-ext/ut))
+* Single header/module ([boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `test, suite, operators, literals, [expect]`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
@@ -124,7 +124,7 @@ Sounds intriguing/interesting? Learn more at
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Step 0: Get it...</summary>
 <p>
 
-> Get the latest latest header/module from [here!](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp)
+> Get the latest latest header/module from [here!](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp)
 
 > Include/Import
 
@@ -1781,7 +1781,7 @@ All tests passed (4 asserts in 3 tests)
 | **[GoogleTest](https://github.com/google/googletest)** | [1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0) | C++11 | BSD-3 | library | `static library` |
 | **[Catch](https://github.com/catchorg/Catch2)** | [2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | C++11 | Boost 1.0 | single header | `CATCH_CONFIG_FAST_COMPILE` |
 | **[Doctest](https://github.com/onqtam/doctest)** | [2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | C++11 | MIT | single header | `DOCTEST_CONFIG_SUPER_FAST_ASSERTS` |
-| **[[Boost].UT / μt](https://github.com/boost-experimental/ut)** | [1.1.0](https://github.com/boost-experimental/ut/blob/master/include/boost/ut.hpp) | C++17 | Boost 1.0 | single header/module | |
+| **[[Boost::ext].UT](https://github.com/boost-ext/ut)** | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++17 | Boost 1.0 | single header/module | |
 
 <table>
   <tr>
@@ -1882,6 +1882,6 @@ All tests passed (4 asserts in 3 tests)
 
 ---
 
-**Disclaimer** `[Boost].UT` is not an official Boost library.
+**Disclaimer** `[Boost::ext].UT` is not an official Boost library.
 
 <p align="left"><img width="5%" src="doc/images/logo.png" /></p>

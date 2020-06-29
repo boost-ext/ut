@@ -17,25 +17,25 @@ export import std;
 #endif
 
 #if not defined(__cpp_rvalue_references)
-#error "[Boost].UT requires support for rvalue references";
+#error "[Boost::ext].UT requires support for rvalue references";
 #elif not defined(__cpp_decltype)
-#error "[Boost].UT requires support for decltype";
+#error "[Boost::ext].UT requires support for decltype";
 #elif not defined(__cpp_return_type_deduction)
-#error "[Boost].UT requires support for return type deduction";
+#error "[Boost::ext].UT requires support for return type deduction";
 #elif not defined(__cpp_deduction_guides)
-#error "[Boost].UT requires support for return deduction guides";
+#error "[Boost::ext].UT requires support for return deduction guides";
 #elif not defined(__cpp_generic_lambdas)
-#error "[Boost].UT requires support for generic lambdas";
+#error "[Boost::ext].UT requires support for generic lambdas";
 #elif not defined(__cpp_constexpr)
-#error "[Boost].UT requires support for constexpr";
+#error "[Boost::ext].UT requires support for constexpr";
 #elif not defined(__cpp_alias_templates)
-#error "[Boost].UT requires support for alias templates";
+#error "[Boost::ext].UT requires support for alias templates";
 #elif not defined(__cpp_variadic_templates)
-#error "[Boost].UT requires support for variadic templates";
+#error "[Boost::ext].UT requires support for variadic templates";
 #elif not defined(__cpp_fold_expressions)
-#error "[Boost].UT requires support for return fold expressions";
+#error "[Boost::ext].UT requires support for return fold expressions";
 #elif not defined(__cpp_static_assert)
-#error "[Boost].UT requires support for static assert";
+#error "[Boost::ext].UT requires support for static assert";
 #else
 #define BOOST_UT_VERSION 1'1'7
 
@@ -84,9 +84,11 @@ auto operator>=(TLhs, TRhs) -> bool;
 #endif
 
 #if defined(__cpp_modules)
-export namespace boost::ut {
+export namespace boost::inline ext::ut {
 #else
-namespace boost::ut {
+namespace boost {
+inline namespace ext {
+namespace ut {
 #endif
 
 inline namespace v1_1_7 {
@@ -279,11 +281,11 @@ class source_location {
 template <class T>
 [[nodiscard]] constexpr auto type_name() -> utility::string_view {
 #if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[95], sizeof(__FUNCSIG__) - 103};
+  return {&__FUNCSIG__[105], sizeof(__FUNCSIG__) - 113};
 #elif defined(__clang__)
-  return {&__PRETTY_FUNCTION__[69], sizeof(__PRETTY_FUNCTION__) - 71};
+  return {&__PRETTY_FUNCTION__[74], sizeof(__PRETTY_FUNCTION__) - 76};
 #elif defined(__GNUC__)
-  return {&__PRETTY_FUNCTION__[103], sizeof(__PRETTY_FUNCTION__) - 105};
+  return {&__PRETTY_FUNCTION__[113], sizeof(__PRETTY_FUNCTION__) - 115};
 #endif
 }
 }  // namespace reflection
@@ -2511,5 +2513,7 @@ using operators::operator not;
 using operators::operator|;
 using operators::operator>>;
 }  // namespace v1_1_7
-}  // namespace boost::ut
+}  // namespace ut
+}  // namespace inline ext
+}  // namespace boost
 #endif
