@@ -413,11 +413,43 @@ int main() {
       };
     };
   };
+}
 ```
 
 ```
 All tests passed (2 asserts in 1 tests)
 ```
+
+> https://godbolt.org/z/Br7RYe
+
+> Additionally, `feature/scenario` aliases can be leveraged.
+
+```cpp
+int main() {
+  feature("vector") = [] {
+    scenario("size") = [] {
+      given("I have a vector") = [] {
+        std::vector<int> v(5);
+        !expect(5_ul == std::size(v));
+
+        when("I resize bigger") = [=] {
+          mut(v).resize(10);
+
+          then("The size should increase") = [=] {
+            expect(10_ul == std::size(v));
+          };
+        };
+      };
+    };
+  };
+}
+```
+
+```
+All tests passed (2 asserts in 1 tests)
+```
+
+> https://godbolt.org/z/_ZwUVi
 
 > Can I use `Gherkin`?
 > Yeah, let's rewrite the example using `Gherkin` specification
@@ -1559,23 +1591,47 @@ namespace boost::inline ext::ut::inline v1_1_7 {
   };
   ```
 
-> `should/given/when/then`
+> `Sections`
 
   ```cpp
   /**
    * Convenient aliases for creating test named object
    * @example should("return true") = [] {};
+   */
+  constexpr auto should = [](const auto name) { return test{name}; };
+  ```
+
+> `Behaviour Driven Development (BDD)`
+
+  ```cpp
+  /**
+   * Convenient aliases for creating BDD tests
+   * @example feature("Feature") = [] {};
+   * @example scenario("Scenario") = [] {};
    * @example given("I have an object") = [] {};
    * @example when("I call it") = [] {};
    * @example then("I should get") = [] {};
    */
-  constexpr auto should = [](const auto name) { return test{name}; };
-  constexpr auto given  = [](const auto name) { return test{name}; };
-  constexpr auto when   = [](const auto name) { return test{name}; };
-  constexpr auto then   = [](const auto name) { return test{name}; };
+  constexpr auto feature  = [](const auto name) { return test{name}; };
+  constexpr auto scenario = [](const auto name) { return test{name}; };
+  constexpr auto given    = [](const auto name) { return test{name}; };
+  constexpr auto when     = [](const auto name) { return test{name}; };
+  constexpr auto then     = [](const auto name) { return test{name}; };
   ```
 
 > https://godbolt.org/z/6Nk5Mi
+
+> `Spec`
+
+  ```cpp
+  /**
+   * Convenient aliases for creating Spec tests
+   * @example describe("test") = [] {};
+   * @example it("should...") = [] {};
+   */
+  constexpr auto describe = [](const auto name) { return test{name}; };
+  constexpr auto it       = [](const auto name) { return test{name}; };
+  ```
 
 </p>
 </details>
