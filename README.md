@@ -95,7 +95,7 @@ Sounds intriguing/interesting? Learn more at
 <details open><summary>Quick Start</summary>
 <p>
 
-> https://bit.ly/boost-ut-quick-start (slides)
+> https://bit.ly/ut-quick-start (slides)
 
 </p>
 </details>
