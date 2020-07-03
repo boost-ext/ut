@@ -77,7 +77,8 @@ example(test _test)
 example(tmp tmp)
 example(using using)
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR
+    "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   example(expect expect_cpp17)
   example(test test_cpp17)
   example(suite suite_cpp17)
