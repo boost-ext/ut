@@ -2456,7 +2456,8 @@ class steps {
       }
     };
 
-    for (auto i = 0; const auto& step : gherkin_) {
+    decltype(step_) i{};
+    for (const auto& step : gherkin_) {
       if (i++ == step_) {
         call_steps(step, i);
       }
