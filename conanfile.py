@@ -1,7 +1,7 @@
 from conans import ConanFile, CMake
 
 
-class BoostUT(ConanFile):
+class UT(ConanFile):
     name = "UT"
     version = "latest"
     url = "https://github.com/boost-ext/ut"
