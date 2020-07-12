@@ -153,6 +153,14 @@ cd build && make         # run tests
 cd build && make install # install
 ```
 
+> [Optional] CMake integration
+
+* [cmake/ut-config.cmake.in](cmake/ut-config.cmake.in)
+
+> [Optional] [Conan](https://conan.io) integration
+
+* [conanfile.py](conanfile.py)
+
 </p>
 </details>
 
@@ -240,7 +248,7 @@ asserts: 1 | 0 passed | 1 failed
 
 > https://godbolt.org/z/s77GSm
 
-> Additionally,, other expression syntaxes are also available.
+> Other expression syntaxes are also available.
 
 ```cpp
 expect(1_i == 2);       // UDL syntax
@@ -422,7 +430,7 @@ All tests passed (2 asserts in 1 tests)
 
 > https://godbolt.org/z/Br7RYe
 
-> Additionally, `feature/scenario` aliases can be leveraged.
+> On top of that, `feature/scenario` aliases can be leveraged.
 
 ```cpp
 int main() {
