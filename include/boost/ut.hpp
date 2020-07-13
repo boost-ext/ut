@@ -361,7 +361,7 @@ template <class T, class TValue>
   TValue tmp{};
   do {
     value *= 10;
-    tmp = value - T(value);
+    tmp = value - std::uint64_t(value);
     ++result;
   } while (tmp > precision);
 
