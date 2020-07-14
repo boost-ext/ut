@@ -53,6 +53,7 @@ export import std;
 
 #if defined(BOOST_UT_FORWARD) and (__GNUC__ < 10)
 #include <vector>
+#include <cstdint> // std::uintmax_t
 namespace std {
 template <class TLhs, class TRhs>
 auto operator==(TLhs, TRhs) -> bool;
