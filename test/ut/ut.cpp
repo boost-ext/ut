@@ -239,7 +239,9 @@ int main() {
       static_assert(42u == 42_ul);
       static_assert(42.42f == 42.42_f);
       static_assert(42.42 == 42.42_d);
+      static_assert(240.209996948 == 240.209996948);
       static_assert(static_cast<long double>(42.42) == 42.42_ld);
+      static_assert(240.20999694824218 == 240.20999694824218_ld);
       static_assert(0 == 0_i);
       static_assert(10'000 == 10'000_i);
       static_assert(42000'000 == 42000'000_i);
