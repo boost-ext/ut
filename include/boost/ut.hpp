@@ -718,7 +718,7 @@ struct value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
   }
 
   constexpr /*explicit(false)*/ value(const T& val)
-      : value{val, T(1) / math::pow(10, math::den_size<int>(val))} {}
+      : value{val, T(1) / math::pow(T(10), math::den_size<unsigned long long>(val))} {}
   [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
@@ -759,8 +759,8 @@ template <class T, auto N, auto D, auto Size, auto P = 1>
 struct floating_point_constant : op {
   using value_type = T;
 
-  static constexpr auto epsilon = T(1) / math::pow(10, Size - 1);
-  static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(10, Size)));
+  static constexpr auto epsilon = T(1) / math::pow(T(10), Size - 1);
+  static constexpr auto value = T(P) * (T(N) + (T(D) / math::pow(T(10), Size)));
 
   [[nodiscard]] constexpr auto operator-() const {
     return floating_point_constant<T, N, D, Size, -1>{};
@@ -1852,22 +1852,22 @@ template <char... Cs>
 template <char... Cs>
 [[nodiscard]] constexpr auto operator""_f() {
   return detail::floating_point_constant<
-      float, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
-      math::den_size<int, Cs...>()>{};
+      float, math::num<unsigned long, Cs...>(), math::den<unsigned long, Cs...>(),
+      math::den_size<unsigned long, Cs...>()>{};
 }
 
 template <char... Cs>
 [[nodiscard]] constexpr auto operator""_d() {
   return detail::floating_point_constant<
-      double, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
-      math::den_size<int, Cs...>()>{};
+      double, math::num<unsigned long, Cs...>(), math::den<unsigned long, Cs...>(),
+      math::den_size<unsigned long, Cs...>()>{};
 }
 
 template <char... Cs>
 [[nodiscard]] constexpr auto operator""_ld() {
   return detail::floating_point_constant<
-      long double, math::num<unsigned long, Cs...>(), math::den<int, Cs...>(),
-      math::den_size<int, Cs...>()>{};
+      long double, math::num<unsigned long long, Cs...>(), math::den<unsigned long long, Cs...>(),
+      math::den_size<unsigned long long, Cs...>()>{};
 }
 [[maybe_unused]] constexpr auto true_b = detail::integral_constant<true>{};
 [[maybe_unused]] constexpr auto false_b = detail::integral_constant<false>{};
