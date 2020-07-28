@@ -6,25 +6,45 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
-
-auto* ptr() {
-  static auto i = 42;  /// Change i to 0 for fatal assertions
-  return &i;
-}
+#include <optional>
+#include <vector>
 
 int main() {
   using boost::ut::operator""_test;
-  using boost::ut::expect;
   using namespace boost::ut::literals;
+  using boost::ut::fatal;
+
+  static constexpr auto value = 42;  // Change to std::nullopt
 
   "fatal"_test = [] {
-    using namespace boost::ut;
-    !expect(ptr());
-    expect(*ptr() != 0_i);
+    using namespace boost::ut::operators;
+    using boost::ut::expect;
+
+    std::optional<int> o{42};
+    expect(o.has_value() >> fatal);
+    expect(*o == 42_i);
+  };
+
+  "fatal matcher"_test = [] {
+    using namespace boost::ut::operators;
+    using boost::ut::expect;
+    using boost::ut::that;
+
+    std::optional<int> o{42};
+    expect(that % o.has_value() >> fatal and that % *o == 42);
   };
 
   "fatal terse"_test = [] {
     using namespace boost::ut::operators::terse;
-    !expect(ptr()) and *ptr() != 0_i;
+
+    std::optional<int> o{42};
+    o.has_value() >> fatal and*o == 42_i;
   };
+
+  using namespace boost::ut::operators;
+  using boost::ut::expect;
+
+  std::vector v{1};
+  expect((std::size(v) == 1_ul) >> fatal) << "fatal assertion";
+  expect(v[0] == 1_i);
 }

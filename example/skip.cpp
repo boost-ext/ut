@@ -11,13 +11,13 @@ int main() {
   using namespace boost::ut;
 
   // clang-format off
-  skip >>
+  skip /
   "don't run"_test = [] {
     expect(42_i == 43) << "should not fire!";
     expect(false) << "should fail!";
   };
 
-  skip >> test("don't run") = [] {
+  skip / test("don't run") = [] {
     expect(42_i == 43) << "should not fire!";
     expect(false) << "should fail!";
   };

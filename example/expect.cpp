@@ -51,14 +51,6 @@ int main() {
     expect(42.10000001 == 42.1_d) << "epsilon=0.1";
   };
 
-  "fatal"_test = [] {
-    std::vector v{1, 2, 3};
-    !expect(std::size(v) == 3_ul) << "fatal assertion";
-    expect(v[0] == 1_i);
-    expect(v[1] == 2_i);
-    expect(v[2] == 3_i);
-  };
-
   "strings"_test = [] {
     using namespace std::literals::string_view_literals;
     using namespace std::literals::string_literals;
@@ -105,7 +97,7 @@ int main() {
 
   "boolean"_test = [] {
     expect("true"_b);
-    expect("true"_b and not false_b);
-    expect(not"true"_b == false_b);
+    expect("true"_b or not"true"_b);
+    expect(not"true"_b != "true"_b);
   };
 }

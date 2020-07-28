@@ -65,6 +65,7 @@ struct fake_cfg {
                            .arg = test.arg});
       try {
         test();
+      } catch (const ut::events::fatal_assertion&) {
       } catch (const ut::events::exception& exception) {
         exception_calls.push_back(exception.what());
       } catch (const std::exception& exception) {
@@ -89,7 +90,10 @@ struct fake_cfg {
     return assertion.expr;
   }
 
-  auto on(ut::events::fatal_assertion) -> void { ++fatal_assertion_calls; }
+  auto on(ut::events::fatal_assertion fatal_assertion) -> void {
+    ++fatal_assertion_calls;
+    throw fatal_assertion;
+  }
 
   template <class TMsg>
   auto on(ut::events::log<TMsg> log) -> void {
@@ -223,8 +227,8 @@ int main() {
     }
 
     {
-      static_assert(true_b);
-      static_assert(not false_b);
+      static_assert("true"_b);
+      static_assert(not"true"_b != "true"_b);
       static_assert("named"_b);
       static_assert(42 == 42_i);
       static_assert(0u == 0_u);
@@ -317,18 +321,18 @@ int main() {
       test_assert(_b(true) != _b(false));
       test_assert(_i(42) > _i({}));
       test_assert(42_i < 88);
-      test_assert(true_b != false_b);
+      test_assert("true"_b != not"true"_b);
       test_assert(42 >= 42_i);
       test_assert(43 >= 42_i);
       test_assert(42 <= 42_i);
       test_assert(42 <= 43_i);
-      test_assert(not true_b == false_b);
+      test_assert(not"true"_b == not"true"_b);
     }
 
     {
-      test_assert(true_b and 42_i == 42_i);
-      test_assert(false_b or 42_i == 42_i);
-      test_assert(true_b or 42_i != 42_i);
+      test_assert("true"_b and 42_i == 42_i);
+      test_assert(not"true"_b or 42_i == 42_i);
+      test_assert("true"_b or 42_i != 42_i);
       test_assert(not(42_i < 0));
     }
 
@@ -348,7 +352,7 @@ int main() {
       test_assert("int == float" == to_string(type<>(int{}) == type<float>));
       test_assert("void != double" == to_string(type<void> != type<double>));
       test_assert("(true or 42.42 == 12.34)" ==
-                  to_string(true_b or (42.42_d == 12.34)));
+                  to_string("true"_b or (42.42_d == 12.34)));
       test_assert("(not 1 == 2 and str == str2)" ==
                   to_string(not(1_i == 2) and ("str"sv == "str2"sv)));
     }
@@ -627,7 +631,7 @@ int main() {
       test_cfg = fake_cfg{};
 
       "run"_test = [] {};
-      skip >> "skip"_test = [] {};
+      skip / "skip"_test = [] {};
 
       test_assert(1 == std::size(test_cfg.run_calls));
       test_assert("run"sv == test_cfg.run_calls[0].name);
@@ -642,7 +646,7 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
-      tag("tag1") >> tag("tag2") >> "tag"_test = [] {};
+      tag("tag1") / tag("tag2") / "tag"_test = [] {};
 
       test_assert(1 == std::size(test_cfg.run_calls));
       test_assert("tag"sv == test_cfg.run_calls[0].name);
@@ -778,7 +782,7 @@ int main() {
       expect(1 != 2_i);
       expect(-42 != -42_i);
       expect(-1.1_d == -1.1);
-      expect((not _b(true)) == false_b);
+      expect((not _b(true)) == not"true"_b);
       expect(2_i > 2_i) << "msg";
 
       test_assert(7 == std::size(test_cfg.assertion_calls));
@@ -798,7 +802,7 @@ int main() {
       test_assert("-1.1 == -1.1" == test_cfg.assertion_calls[4].expr);
       test_assert(test_cfg.assertion_calls[4].result);
 
-      test_assert("not true == false" == test_cfg.assertion_calls[5].expr);
+      test_assert("not true == not true" == test_cfg.assertion_calls[5].expr);
       test_assert(test_cfg.assertion_calls[5].result);
 
       test_assert("2 > 2" == test_cfg.assertion_calls[6].expr);
@@ -1021,8 +1025,8 @@ int main() {
       test_cfg = fake_cfg{};
 
       "fatal assertions"_test = [] {
-        !expect(1_i == 1);
-        !expect(2 != 2_i) << "fatal";
+        expect((1_i == 1) >> fatal);
+        expect((2 != 2_i) >> fatal) << "fatal";
       };
 
       test_assert(1 == std::size(test_cfg.run_calls));
@@ -1032,10 +1036,7 @@ int main() {
       test_assert(not test_cfg.assertion_calls[1].result);
       test_assert("2 != 2" == test_cfg.assertion_calls[1].expr);
       test_assert(1 == test_cfg.fatal_assertion_calls);
-      test_assert(2 == std::size(test_cfg.log_calls));
-      test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
-      test_assert("fatal"sv ==
-                  std::any_cast<const char*>(test_cfg.log_calls[1]));
+      test_assert(std::empty(test_cfg.log_calls));
     }
 
     {
@@ -1149,14 +1150,14 @@ int main() {
       "[vector]"_test = [] {
         std::vector<int> v(5);
 
-        !expect(5_ul == std::size(v));
+        expect((5_ul == std::size(v)) >> fatal);
 
         "resize bigger"_test = [=] {
           mut(v).resize(10);
           expect(10_ul == std::size(v));
         };
 
-        !expect(5_ul == std::size(v));
+        expect((5_ul == std::size(v)) >> fatal);
 
         "resize smaller"_test = [=]() mutable {
           v.resize(0);
@@ -1477,6 +1478,7 @@ int main() {
 
   {
     using ut::expect;
+    using ut::fatal;
     using namespace ut::literals;
     using namespace ut::operators::terse;
 
@@ -1488,12 +1490,14 @@ int main() {
     42_i == 42;
     1 == 2_i;
     0_i == 1 and 1_i > 2 or 3 <= 3_i;
-    !expect(boost::ut::true_b == false) and 1_i > 0;
+    try {
+    ("true"_b == false) >> fatal and 1_i > 0;
+    } catch(const ut::events::fatal_assertion&) {}
     2 == 1_i;
     custom{42}%_t == custom{41};
     // clang-format on
 
-    test_assert(8 == std::size(test_cfg.assertion_calls));
+    test_assert(6 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.fatal_assertion_calls > 0);
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
@@ -1506,19 +1510,13 @@ int main() {
                 test_cfg.assertion_calls[2].expr);
     test_assert(test_cfg.assertion_calls[2].result);
 
-    test_assert("true == false" == test_cfg.assertion_calls[3].expr);
+    test_assert("false" == test_cfg.assertion_calls[3].expr);
     test_assert(not test_cfg.assertion_calls[3].result);
 
-    test_assert("false" == test_cfg.assertion_calls[4].expr);
+    test_assert("2 == 1" == test_cfg.assertion_calls[4].expr);
     test_assert(not test_cfg.assertion_calls[4].result);
 
-    test_assert("(false and 1 > 0)" == test_cfg.assertion_calls[5].expr);
-    test_assert(not test_cfg.assertion_calls[4].result);
-
-    test_assert("2 == 1" == test_cfg.assertion_calls[6].expr);
-    test_assert(not test_cfg.assertion_calls[6].result);
-
-    test_assert("custom{42} == custom{41}" == test_cfg.assertion_calls[7].expr);
-    test_assert(not test_cfg.assertion_calls[7].result);
+    test_assert("custom{42} == custom{41}" == test_cfg.assertion_calls[5].expr);
+    test_assert(not test_cfg.assertion_calls[5].result);
   }
 }

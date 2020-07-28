@@ -38,7 +38,7 @@ int main() {
         ((test("args and types / " + std::to_string(args)) =
               [&] {
                 using TArgs = decltype(args);
-                !expect(std::is_integral_v<TArgs>);
+                expect((std::is_integral_v<TArgs>) >> fatal);
                 expect(42_i == static_cast<int>(args) or args);
                 expect(type<TArgs> == type<int> or type<TArgs> == type<bool>);
               }),
@@ -48,7 +48,7 @@ int main() {
 
   /// Alternative syntax
   "args and types"_test = []<class TArg>(TArg arg) {
-    !expect(std::is_integral_v<TArg>);
+    expect((std::is_integral_v<TArg>) >> fatal);
     expect(42_i == static_cast<int>(arg) or arg);
     expect(type<TArg> == type<int> or type<TArg> == type<bool>);
   }

@@ -8,7 +8,9 @@
 #include <boost/ut.hpp>
 #include <vector>
 
-#define EXPECT(...) ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
+#define EXPECT(...)            \
+  using namespace ::boost::ut; \
+  ::boost::ut::expect(::boost::ut::that % __VA_ARGS__)
 #define SUITE ::boost::ut::suite _ = []
 #define TEST(name) ::boost::ut::detail::test{"test", name} = [=]() mutable
 #define TEST_P(name, ...)                 \
@@ -30,7 +32,7 @@ int main() {
   TEST("vector") {
     std::vector<int> v(5);
 
-    !EXPECT(5u == std::size(v));
+    EXPECT((5u == std::size(v)) >> fatal);
 
     TEST("resize bigger") {
       v.resize(10);
