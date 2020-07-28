@@ -11,7 +11,7 @@ int main() {
   using namespace boost::ut;
 
   auto i = 0;
-  !expect(i == 0_i);
+  expect((i == 0_i) >> fatal);
 
   should("return increased number for ++") = [i] { expect(++mut(i) == 1_i); };
   should("return decreased number for --") = [i]() mutable {

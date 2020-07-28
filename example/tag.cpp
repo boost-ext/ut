@@ -13,21 +13,21 @@ int main() {
   cfg<override> = {.filter = "tag", .tag = {"execute"}};
 
   // clang-format off
-  tag("execute") >> skip >>
+  tag("execute") / skip /
   "tag"_test = [] {
     expect(42_i == 43) << "should not fire!";
     expect(false) << "should fail!";
   };
 
-  tag("execute") >> "tag"_test= [] {
+  tag("execute") / "tag"_test= [] {
     expect(42_i == 42);
   };
 
-  tag("not executed") >> "tag"_test= [] {
+  tag("not executed") / "tag"_test= [] {
     expect(43_i == 42);
   };
 
-  tag("not executed") >> tag("execute") >>
+  tag("not executed") / tag("execute") /
   "tag"_test= [] {
     expect(42_i == 42);
   };

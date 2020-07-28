@@ -274,8 +274,8 @@ asserts: 4 | 0 passed | 4 failed
 > Nothing easier, let's just add `!` before the `expect` call to make it fatal.
 
 ```cpp
-!expect(1 == 2_i); // fatal assertion
- expect(1_i == 2); // not executed
+expect((1 == 2_i) >> fatal); // fatal assertion
+expect(1_i == 2); // not executed
 ```
 
 ```
@@ -378,14 +378,14 @@ int main() {
   "[vector]"_test = [] {
     std::vector<int> v(5);
 
-    !expect(5_ul == std::size(v));
+    expect((5_ul == std::size(v)) >> fatal);
 
     should("resize bigger") = [v] { // or "resize bigger"_test
       mut(v).resize(10);
       expect(10_ul == std::size(v));
     };
 
-    !expect(5_ul == std::size(v));
+    expect((5_ul == std::size(v)) >> fatal);
 
     should("resize smaller") = [=]() mutable { // or "resize smaller"_test
       v.resize(0);
@@ -410,7 +410,7 @@ int main() {
   "vector"_test = [] {
     given("I have a vector") = [] {
       std::vector<int> v(5);
-      !expect(5_ul == std::size(v));
+      expect((5_ul == std::size(v)) >> fatal);
 
       when("I resize bigger") = [=] {
         mut(v).resize(10);
@@ -438,7 +438,7 @@ int main() {
     scenario("size") = [] {
       given("I have a vector") = [] {
         std::vector<int> v(5);
-        !expect(5_ul == std::size(v));
+        expect((5_ul == std::size(v)) >> fatal);
 
         when("I resize bigger") = [=] {
           mut(v).resize(10);
@@ -469,7 +469,7 @@ int main() {
       steps.scenario("*") = [&] {
         steps.given("I have a vector") = [&] {
           std::vector<int> v(5);
-          !expect(5_ul == std::size(v));
+          expect((5_ul == std::size(v)) >> fatal);
 
           steps.when("I resize bigger") = [&] { v.resize(10); };
           steps.then("The size should increase") = [&] { expect(10_ul == std::size(v)); };
@@ -501,7 +501,7 @@ All tests passed (2 asserts in 1 tests)
 int main() {
   describe("vector") = [] {
     std::vector<int> v(5);
-    !expect(5_ul == std::size(v));
+    expect((5_ul == std::size(v)) >> fatal);
 
     it("should resize bigger") = [v] {
       mut(v).resize(10);
@@ -641,7 +641,7 @@ expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
 
 // fatal
 std::vector v{1, 2, 3};
-!expect(std::size(v) == 3_ul) << "fatal assertion";
+expect((std::size(v) == 3_ul) >> fatal) << "fatal assertion";
 expect(v[0] == 1_i);
 expect(v[1] == 2_i);
 expect(v[2] == 3_i);
@@ -675,7 +675,7 @@ asserts: 24 | 22 passed | 2 failed
   expect(42_i == 42);
 };
 
-skip >> "don't run UDL"_test = [] {
+skip / "don't run UDL"_test = [] {
   expect(42_i == 43) << "should not fire!";
 };
 ```
@@ -690,7 +690,7 @@ test("run function") = [] {
   expect(42_i == 42);
 };
 
-skip >> test("don't run function") = [] {
+skip / test("don't run function") = [] {
   expect(42_i == 43) << "should not fire!";
 };
 ```
@@ -701,12 +701,12 @@ All tests passed (1 asserts in 1 tests)
 ```
 
 ```cpp
-tag("nightly") >> tag("slow") >>
+tag("nightly") / tag("slow") /
 "performance"_test= [] {
   expect(42_i == 42);
 };
 
-tag("slow") >>
+tag("slow") /
 "run slowly"_test= [] {
   expect(42_i == 43) << "should not fire!";
 };
@@ -733,14 +733,14 @@ All tests passed (1 asserts in 1 tests)
 "[vector]"_test = [] {
   std::vector<int> v(5);
 
-  !expect(5_ul == std::size(v));
+  expect((5_ul == std::size(v)) >> fatal);
 
   should("resize bigger") = [=] { // or "resize bigger"_test
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
 
-  !expect(5_ul == std::size(v));
+  expect((5_ul == std::size(v)) >> fatal);
 
   should("resize smaller") = [=]() mutable { // or "resize smaller"_test
     v.resize(0);
@@ -863,9 +863,9 @@ for (auto i : std::vector{1, 2, 3}) {
 
 "args and types"_test =
     []<class TArg>(TArg arg) {
-      !expect(std::is_integral_v<TArg>);
-       expect(42_i == arg or true_b == arg);
-       expect(type<TArg> == type<int> or type<TArg> == type<bool>);
+      expect(std::is_integral_v<TArg> >> fatal);
+      expect(42_i == arg or true_b == arg);
+      expect(type<TArg> == type<int> or type<TArg> == type<bool>);
     }
   | std::tuple{true, 42};
 ```
@@ -1204,10 +1204,11 @@ namespace boost::inline ext::ut::inline v1_1_7 {
     constexpr auto _ld(long double);
 
     /**
-     * Logical representation of constant values
+     * Logical representation of constant boolean (true) value
+     * @example "is set"_b     : true
+     *          not "is set"_b : false
      */
-    constexpr auto true_b;        /// true
-    constexpr auto false_b;       /// false
+    constexpr auto operator ""_b;
   } // namespace literals
 
   inline namespace operators {
@@ -1249,14 +1250,20 @@ namespace boost::inline ext::ut::inline v1_1_7 {
 
     /**
      * Creates tags
-     * @example tag("slow") >> tag("nightly") >> "perf"_test = []{};
+     * @example tag("slow") / tag("nightly") / "perf"_test = []{};
+     */
+    constexpr auto operator/;
+
+    /**
+     * Creates a `fatal_assertion` from an expression
+     * @example (42_i == 0) >> fatal
      */
     constexpr auto operator>>;
   } // namespace operators
 
   /**
    * Creates skippable test object
-   * @example skip >> "don't run"_test = [] { };
+   * @example skip / "don't run"_test = [] { };
    */
   constexpr auto skip = tag("skip");
 
@@ -1315,7 +1322,7 @@ namespace boost::inline ext::ut::inline v1_1_7 {
     auto on(ut::events::test<Ts...>);
 
     /**
-     * @example skip | "don't run"_test = []{};
+     * @example skip / "don't run"_test = []{};
      * @param skip.type ["test", "given", "when", "then"]
      * @param skip.name "don't run"
      * @param skip.arg parameterized argument
@@ -1333,8 +1340,8 @@ namespace boost::inline ext::ut::inline v1_1_7 {
     auto on(ut::events::assertion<TExpr>) -> bool;
 
     /**
-     * @example !expect(2_i == 1)
-     * @note triggered by `!expect`
+     * @example expect((2_i == 1) >> fatal)
+     * @note triggered by `fatal`
      *       should std::exit
      */
     auto on(ut::events::fatal_assertion);
@@ -1418,8 +1425,8 @@ namespace boost::inline ext::ut::inline v1_1_7 {
     auto on(ut::events::assertion_fail<TExpr>) -> void;
 
     /**
-     * @example !expect(2_i == 1)
-     * @note triggered by `!expect`
+     * @example expect((2_i == 1) >> fatal)
+     * @note triggered by `fatal`
      *       should std::exit
      */
     auto on(ut::events::fatal_assertion) -> void;
@@ -1786,7 +1793,7 @@ int main() {
   TEST("vector") {
     std::vector<int> v(5);
 
-   !EXPECT(5u == std::size(v)) << "fatal";
+   EXPECT((5u == std::size(v)) >> fatal) << "fatal";
 
     TEST("resize bigger") {
       v.resize(10);
