@@ -275,7 +275,7 @@ asserts: 4 | 0 passed | 4 failed
 
 ```cpp
 expect((1 == 2_i) >> fatal); // fatal assertion
-expect(1_i == 2); // not executed
+expect(1_i == 2);            // not executed
 ```
 
 ```
@@ -285,7 +285,7 @@ tests:   1 | 1 failed
 asserts: 2 | 0 passed | 2 failed
 ```
 
-> https://godbolt.org/z/469pH3
+> https://godbolt.org/z/WMe8Y1
 
 > But my expression is more complex than just simple comparisons.
 > Not a problem, logic operators are also supported in the `expect` 👍.
@@ -428,7 +428,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/Br7RYe
+> https://godbolt.org/z/dnvxsE
 
 > On top of that, `feature/scenario` aliases can be leveraged.
 
@@ -457,7 +457,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/_ZwUVi
+> https://godbolt.org/z/T4cWss
 
 > Can I use `Gherkin`?
 > Yeah, let's rewrite the example using `Gherkin` specification
@@ -493,7 +493,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/cVNkA5
+> https://godbolt.org/z/jb1d8P
 
 > Nice, is `Spec` notation supported as well?
 
@@ -515,7 +515,7 @@ int main() {
 All tests passed (2 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/chvYvx
+> https://godbolt.org/z/6jKKzT
 
 > That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
 > Parameterized tests to the rescue!
@@ -639,13 +639,6 @@ constexpr auto compile_time_v = 42;
 auto run_time_v = 99;
 expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
 
-// fatal
-std::vector v{1, 2, 3};
-expect((std::size(v) == 3_ul) >> fatal) << "fatal assertion";
-expect(v[0] == 1_i);
-expect(v[1] == 2_i);
-expect(v[2] == 3_i);
-
 // failure
 expect(1_i == 2) << "should fail";
 expect(sum() == 1_i or 2_i == sum()) << "sum?";
@@ -656,10 +649,10 @@ assertions.cpp:53:FAILED [1 == 2] should fail
 assertions.cpp:54:FAILED [(0 == 1 or 2 == 0)] sum?
 ===============================================================================
 tests:   0  | 0 failed
-asserts: 24 | 22 passed | 2 failed
+asserts: 20 | 18 passed | 2 failed
 ```
 
-> https://godbolt.org/z/jaFK8w
+> https://godbolt.org/z/E1c7G5
 
 </p>
 </details>
@@ -753,7 +746,7 @@ All tests passed (1 asserts in 1 tests)
 All tests passed (4 asserts in 1 tests)
 ```
 
-> https://godbolt.org/z/XWAdYt
+> https://godbolt.org/z/cE91bj
 
 </p>
 </details>
@@ -864,7 +857,7 @@ for (auto i : std::vector{1, 2, 3}) {
 "args and types"_test =
     []<class TArg>(TArg arg) {
       expect(std::is_integral_v<TArg> >> fatal);
-      expect(42_i == arg or true_b == arg);
+      expect(42_i == arg or "is true"_b == arg);
       expect(type<TArg> == type<int> or type<TArg> == type<bool>);
     }
   | std::tuple{true, 42};
@@ -873,7 +866,8 @@ for (auto i : std::vector{1, 2, 3}) {
 ```
 All tests passed (14 asserts in 10 tests)
 ```
-> https://godbolt.org/z/Achv68
+
+> https://godbolt.org/z/4xGGdo
 
 </p>
 </details>
