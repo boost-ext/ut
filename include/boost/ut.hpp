@@ -1790,26 +1790,26 @@ template <class... Ts, class TEvent>
     }
   };
 
-  template <class T>
+  template <class TExpr>
   struct fatal_ : op {
     using type = fatal_;
 
-    constexpr explicit fatal_(const T& t) : t_{t} {}
+    constexpr explicit fatal_(const TExpr& expr) : expr_{expr} {}
 
     [[nodiscard]] constexpr operator bool() const {
-      if (static_cast<bool>(t_)) {
+      if (static_cast<bool>(expr_)) {
       } else {
         cfg::wip = true;
-        void(
-            on<T>(events::assertion<T>{.expr = t_, .location = cfg::location}));
-        on<T>(events::fatal_assertion{});
+        void(on<TExpr>(events::assertion<TExpr>{.expr = expr_,
+                                                .location = cfg::location}));
+        on<TExpr>(events::fatal_assertion{});
       }
-      return static_cast<bool>(t_);
+      return static_cast<bool>(expr_);
     }
 
-    [[nodiscard]] constexpr decltype(auto) get() const { return t_; }
+    [[nodiscard]] constexpr decltype(auto) get() const { return expr_; }
 
-    T t_{};
+    TExpr expr_{};
   };
 
   template <class T>
@@ -1997,19 +1997,9 @@ template <class... Ts, class TEvent>
     return detail::not_{t};
   }
 
-  template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
-  [[nodiscard]] inline auto operator>>(const T& t, const detail::fatal&) {
-    return detail::fatal_{t};
-  }
-
+  template <class T>
   [[nodiscard]] inline auto operator>>(
-      const detail::value_location<detail::that_::expr<bool>>& t,
-      const detail::fatal&) {
-    return detail::fatal_{t.get()};
-  }
-
-  [[nodiscard]] inline auto operator>>(const detail::value_location<bool>& t,
-                                       const detail::fatal&) {
+      const T& t, const detail::value_location<detail::fatal>&) {
     return detail::fatal_{t};
   }
 
@@ -2080,8 +2070,9 @@ template <class... Ts, class TEvent>
     return detail::value<T>{t};
   }
 
-  template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
-  inline auto operator>>(const T& t, const detail::fatal&) {
+  template <class T>
+  inline auto operator>>(const T& t,
+                         const detail::value_location<detail::fatal>&) {
     using fatal_t = detail::fatal_<T>;
     struct fatal_ : fatal_t {
       using type [[maybe_unused]] = fatal_t;
@@ -2089,17 +2080,6 @@ template <class... Ts, class TEvent>
       const detail::terse_<fatal_t> _{*this};
     };
     return fatal_{t};
-  }
-
-  inline auto operator>>(const detail::value_location<bool>& t,
-                         const detail::fatal&) {
-    using fatal_t = detail::fatal_<bool>;
-    struct fatal_ : fatal_t {
-      using type [[maybe_unused]] = fatal_t;
-      using fatal_t::fatal_t;
-      const detail::terse_<fatal_t> _{*this};
-    };
-    return fatal_{t.get()};
   }
 
   template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
