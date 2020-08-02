@@ -1,0 +1,17 @@
+code.line-numbers {
+  counter-reset: line_numbers;
+}
+
+code span.line-number {
+  counter-increment: line_numbers;
+  margin-right: 1em;
+}
+
+code span.line-number:before {
+  content: counter(line_numbers, decimal-leading-zero);
+  color: gray;
+}
+
+code span.highlight-line:before {
+  color: yellow;
+}

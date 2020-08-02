@@ -41,10 +41,7 @@
                    data-separator="^====+$"
                    data-separator-vertical="^----+$">
           <script type="text/template">
----
-
-# [Boost::ext].UT
-## Unit Testing Framework
+## UT - Unit Testing Framework
 
 ---
 
@@ -115,21 +112,21 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 #### Assertions - https://godbolt.org/z/jaFK8w
 
-<pre><code class="line-numbers">expect(1_i == 2);                       // UDL syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
+<pre><code class="line-numbers">1_i == 2;                               // Terse syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 <pre><code class="line-numbers">expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre> <!-- .element: class="fragment" data-fragment-index="2" -->
 
-<pre><code class="line-numbers">expect(2 == 1_i) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
+<pre><code class="line-numbers">expect(2 == 1_i) << "should equal?";    // Expect syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
-<pre><code class="line-numbers"> std::vector v{1l, 2l, 3l};
-!expect(4_ul == std::size(v));          // Fatal assertion
- expect(v[3] == 4_l);                   // Not executed
+<pre><code class="line-numbers">std::vector v{1l, 2l, 3l};
+(4_ul == std::size(v)) >> fatal;        // Fatal assertion
+v[3] == 4_l;                            // Not executed
 </code>  -> assertions.cpp:2:<font color="salmon">FAILED</font> [<font color="salmon">4 == 3</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-<pre><code class="line-numbers">expect(41.10_d == 42.101 and "a" == "b"sv);</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
+<pre><code class="line-numbers">41.10_d == 42.101 and "a" == "b"sv;</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
@@ -143,7 +140,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 ```cpp
   std::vector<int> v(5);
-  !expect(5_ul == std::size(v));
+  expect((5_ul == std::size(v)) >> fatal);
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -156,7 +153,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-  !expect(5_ul == std::size(v));
+  expect((5_ul == std::size(v)_ >> fatal);
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
@@ -185,7 +182,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 ```cpp
   given("I have a vector") = [] {
     std::vector<int> v(5);
-    !expect(5_ul == std::size(v));
+    expect((5_ul == std::size(v)) >> fatal);
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -257,7 +254,7 @@ suite errors = [] {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "exception"_test = [] { 
+  "exception"_test = [] {
     expect(throws([] { throw 0; })) << "throws any exception";
   };
 
