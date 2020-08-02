@@ -37,7 +37,7 @@ export import std;
 #elif not defined(__cpp_static_assert)
 #error "[Boost::ext].UT requires support for static assert";
 #else
-#define BOOST_UT_VERSION 1'1'7
+#define BOOST_UT_VERSION 1'1'8
 
 #if defined(__has_builtin) and (__GNUC__ < 10) and not defined(__clang__)
 #undef __has_builtin
@@ -91,7 +91,7 @@ inline namespace ext {
 namespace ut {
 #endif
 
-  inline namespace v1_1_7 {
+  inline namespace v1_1_8 {
   namespace utility {
   class string_view {
    public:
@@ -2553,7 +2553,7 @@ template <bool Constant>
   using operators::operator|;
   using operators::operator/;
   using operators::operator>>;
-  }  // namespace v1_1_7
+  }  // namespace v1_1_8
 }  // namespace ut
 }  // namespace inline ext
 }  // namespace boost

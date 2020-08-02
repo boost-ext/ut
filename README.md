@@ -1098,7 +1098,7 @@ int main() {
 ```cpp
 export module boost.ut; /// __cpp_modules
 
-namespace boost::inline ext::ut::inline v1_1_7 {
+namespace boost::inline ext::ut::inline v1_1_8 {
   /**
    * Represents test suite object
    */
@@ -1458,7 +1458,7 @@ namespace boost::inline ext::ut::inline v1_1_7 {
 
 | Option | Description | Example |
 |-|-|-|
-| `BOOST_UT_VERSION`        | Current version | `1'1'7` |
+| `BOOST_UT_VERSION`        | Current version | `1'1'8` |
 | `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple suites | |
 | `BOOST_UT_IMPLEMENTATION` | Optionally used in `main.cpp` file to provide `ut` implementation (have to be used in combination with `BOOST_UT_FORWARD`) | |
 
