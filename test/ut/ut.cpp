@@ -1481,6 +1481,7 @@ int main() {
     using ut::fatal;
     using namespace ut::literals;
     using namespace ut::operators::terse;
+    using namespace std::literals::string_view_literals;
 
     auto& test_cfg = ut::cfg<ut::override>;
 
@@ -1495,9 +1496,10 @@ int main() {
     } catch(const ut::events::fatal_assertion&) {}
     2 == 1_i;
     custom{42}%_t == custom{41};
+    (3 >= 4_i) << "fatal";
     // clang-format on
 
-    test_assert(6 == std::size(test_cfg.assertion_calls));
+    test_assert(7 == std::size(test_cfg.assertion_calls));
     test_assert(test_cfg.fatal_assertion_calls > 0);
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
@@ -1518,5 +1520,11 @@ int main() {
 
     test_assert("custom{42} == custom{41}" == test_cfg.assertion_calls[5].expr);
     test_assert(not test_cfg.assertion_calls[5].result);
+
+    test_assert("3 >= 4" == test_cfg.assertion_calls[6].expr);
+    test_assert(not test_cfg.assertion_calls[6].result);
+    test_assert(2 == std::size(test_cfg.log_calls));
+    test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[0]));
+    test_assert("fatal"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
   }
 }

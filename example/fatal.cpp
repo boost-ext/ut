@@ -21,7 +21,7 @@ int main() {
     using boost::ut::expect;
 
     std::optional<int> o{42};
-    expect(o.has_value() >> fatal);
+    expect(o.has_value() >> fatal) << "fatal assertion";
     expect(*o == 42_i);
   };
 
@@ -31,14 +31,15 @@ int main() {
     using boost::ut::that;
 
     std::optional<int> o{42};
-    expect(that % o.has_value() >> fatal and that % *o == 42);
+    expect(that % o.has_value() >> fatal and that % *o == 42)
+        << "fatal assertion";
   };
 
   "fatal terse"_test = [] {
     using namespace boost::ut::operators::terse;
 
     std::optional<int> o{42};
-    o.has_value() >> fatal and*o == 42_i;
+    (o.has_value() >> fatal and *o == 42_i) << "fatal assertion";
   };
 
   using namespace boost::ut::operators;

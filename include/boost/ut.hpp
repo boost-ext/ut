@@ -2074,7 +2074,7 @@ template <class... Ts, class TEvent>
   inline auto operator>>(const T& t,
                          const detail::value_location<detail::fatal>&) {
     using fatal_t = detail::fatal_<T>;
-    struct fatal_ : fatal_t {
+    struct fatal_ : fatal_t, detail::log {
       using type [[maybe_unused]] = fatal_t;
       using fatal_t::fatal_t;
       const detail::terse_<fatal_t> _{*this};
@@ -2086,7 +2086,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator==(
       const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
     using eq_t = detail::eq_<T, detail::value_location<typename T::value_type>>;
-    struct eq_ : eq_t {
+    struct eq_ : eq_t, detail::log {
       using type [[maybe_unused]] = eq_t;
       using eq_t::eq_t;
       const detail::terse_<eq_t> _{*this};
@@ -2098,7 +2098,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator==(
       const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
     using eq_t = detail::eq_<detail::value_location<typename T::value_type>, T>;
-    struct eq_ : eq_t {
+    struct eq_ : eq_t, detail::log {
       using type [[maybe_unused]] = eq_t;
       using eq_t::eq_t;
       const detail::terse_<eq_t> _{*this};
@@ -2111,7 +2111,7 @@ template <class... Ts, class TEvent>
       const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
     using neq_t =
         detail::neq_<T, detail::value_location<typename T::value_type>>;
-    struct neq_ : neq_t {
+    struct neq_ : neq_t, detail::log {
       using type [[maybe_unused]] = neq_t;
       using neq_t::neq_t;
       const detail::terse_<neq_t> _{*this};
@@ -2136,7 +2136,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator>(
       const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
     using gt_t = detail::gt_<T, detail::value_location<typename T::value_type>>;
-    struct gt_ : gt_t {
+    struct gt_ : gt_t, detail::log {
       using type [[maybe_unused]] = gt_t;
       using gt_t::gt_t;
       const detail::terse_<gt_t> _{*this};
@@ -2148,7 +2148,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator>(
       const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
     using gt_t = detail::gt_<detail::value_location<typename T::value_type>, T>;
-    struct gt_ : gt_t {
+    struct gt_ : gt_t, detail::log {
       using type [[maybe_unused]] = gt_t;
       using gt_t::gt_t;
       const detail::terse_<gt_t> _{*this};
@@ -2160,7 +2160,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator>=(
       const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
     using ge_t = detail::ge_<T, detail::value_location<typename T::value_type>>;
-    struct ge_ : ge_t {
+    struct ge_ : ge_t, detail::log {
       using type [[maybe_unused]] = ge_t;
       using ge_t::ge_t;
       const detail::terse_<ge_t> _{*this};
@@ -2172,7 +2172,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator>=(
       const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
     using ge_t = detail::ge_<detail::value_location<typename T::value_type>, T>;
-    struct ge_ : ge_t {
+    struct ge_ : ge_t, detail::log {
       using type [[maybe_unused]] = ge_t;
       using ge_t::ge_t;
       const detail::terse_<ge_t> _{*this};
@@ -2184,7 +2184,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator<(
       const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
     using lt_t = detail::lt_<T, detail::value_location<typename T::value_type>>;
-    struct lt_ : lt_t {
+    struct lt_ : lt_t, detail::log {
       using type [[maybe_unused]] = lt_t;
       using lt_t::lt_t;
       const detail::terse_<lt_t> _{*this};
@@ -2196,7 +2196,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator<(
       const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
     using lt_t = detail::lt_<detail::value_location<typename T::value_type>, T>;
-    struct lt_ : lt_t {
+    struct lt_ : lt_t, detail::log {
       using type [[maybe_unused]] = lt_t;
       using lt_t::lt_t;
       const detail::terse_<lt_t> _{*this};
@@ -2208,7 +2208,7 @@ template <class... Ts, class TEvent>
   constexpr auto operator<=(
       const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
     using le_t = detail::le_<T, detail::value_location<typename T::value_type>>;
-    struct le_ : le_t {
+    struct le_ : le_t, detail::log {
       using type [[maybe_unused]] = le_t;
       using le_t::le_t;
       const detail::terse_<le_t> _{*this};
@@ -2233,7 +2233,7 @@ template <class... Ts, class TEvent>
                                     type_traits::is_op_v<TRhs>> = 0>
   constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
     using and_t = detail::and_<typename TLhs::type, typename TRhs::type>;
-    struct and_ : and_t {
+    struct and_ : and_t, detail::log {
       using type [[maybe_unused]] = and_t;
       using and_t::and_t;
       const detail::terse_<and_t> _{*this};
@@ -2246,7 +2246,7 @@ template <class... Ts, class TEvent>
                                     type_traits::is_op_v<TRhs>> = 0>
   constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
     using or_t = detail::or_<typename TLhs::type, typename TRhs::type>;
-    struct or_ : or_t {
+    struct or_ : or_t, detail::log {
       using type [[maybe_unused]] = or_t;
       using or_t::or_t;
       const detail::terse_<or_t> _{*this};
@@ -2257,7 +2257,7 @@ template <class... Ts, class TEvent>
   template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
   constexpr auto operator not(const T& t) {
     using not_t = detail::not_<typename T::type>;
-    struct not_ : not_t {
+    struct not_ : not_t, detail::log {
       using type [[maybe_unused]] = not_t;
       using not_t::not_t;
       const detail::terse_<not_t> _{*this};
