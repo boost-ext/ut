@@ -104,15 +104,13 @@ Sounds intriguing/interesting? Learn more at
 <details open><summary>Overview</summary>
 <p>
 
-* No dependencies (C++17*/[C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*, Clang-cl-9.0+](https://ci.appveyor.com/project/boost-ext/ut))
+* No dependencies ([C++20](#cpp-20), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*, Clang-cl-9.0+](https://ci.appveyor.com/project/boost-ext/ut))
 * Single header/module ([boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `test, suite, operators, literals, [expect]`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
 * Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/test.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Gherkin](example/gherkin.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
 * Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
-
-> `*` - Limitations may apply
 
 </p>
 </details>
@@ -1846,7 +1844,7 @@ All tests passed (4 asserts in 3 tests)
 | **[GoogleTest](https://github.com/google/googletest)** | [1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0) | C++11 | BSD-3 | library | `static library` |
 | **[Catch](https://github.com/catchorg/Catch2)** | [2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | C++11 | Boost 1.0 | single header | `CATCH_CONFIG_FAST_COMPILE` |
 | **[Doctest](https://github.com/onqtam/doctest)** | [2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | C++11 | MIT | single header | `DOCTEST_CONFIG_SUPER_FAST_ASSERTS` |
-| **[[Boost::ext].UT](https://github.com/boost-ext/ut)** | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++17 | Boost 1.0 | single header/module | |
+| **[[Boost::ext].UT](https://github.com/boost-ext/ut)** | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++20 | Boost 1.0 | single header/module | |
 
 <table>
   <tr>
