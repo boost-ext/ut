@@ -1640,6 +1640,13 @@ namespace boost::inline ext::ut::inline v1_1_8 {
   constexpr auto it       = [](const auto name) { return test{name}; };
   ```
 
+> [Example implementation](https://github.com/boost-ext/ut/tree/gh-pages/denver-cpp-2020/example)
+
+> Try it online
+
+* Header - https://godbolt.org/z/x96n8b
+* Module - https://wandbox.org/permlink/LrV7WwIgghTP1nrs
+
 </p>
 </details>
 
@@ -1714,7 +1721,6 @@ vs
 
 </p>
 </details>
-
 
 <a name="cpp-2x"></a>
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;C++2X integration?</summary>
@@ -1827,6 +1833,20 @@ All tests passed (4 asserts in 3 tests)
 * https://github.com/DigitalInBlue/Celero
 * https://github.com/libnonius/nonius
 * https://github.com/martinus/nanobench
+
+</p>
+</details>
+
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Related materials/talks?</summary>
+<p>
+
+* [[Boost].UT - Unit Testing Framework - Kris Jusiak](https://boost-ext.github.io/ut/denver-cpp-2019)
+
+* ["If you liked it then you `"should have put a"_test` on it", Beyonce rule - Kris Jusiak](https://boost-ext.github.io/ut/denver-cpp-2020)
+
+* [Principles of Unit Testing With C++ - Dave Steffen and Kris Jusiak](https://www.youtube.com/watch?v=oOcuJdJJ33g)
+
+* [Empirical Unit Testing - Dave Steffen](https://www.twitch.tv/videos/686512433)
 
 </p>
 </details>
