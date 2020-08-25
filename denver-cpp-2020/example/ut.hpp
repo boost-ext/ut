@@ -60,21 +60,6 @@ export namespace ut::inline v1 {
 namespace ut::inline v1 {
 #endif
 
-namespace detail {
-/**
- * Helper to get underlying value
- * @param op operator
- * @return underlying value
- */
-constexpr auto get(auto op) {
-  if constexpr (requires { op.get(); }) {
-    return op.get();
-  } else {
-    return op;
-  }
-}
-} // namespace detail
-
 namespace concepts {
 /**
  * Streamable concept
@@ -132,6 +117,19 @@ template <class TOp> concept op = requires(TOp op) {
 } // namespace concepts
 
 namespace detail {
+/**
+ * Helper to get underlying value
+ * @param op operator
+ * @return underlying value
+ */
+constexpr auto get(auto op) {
+  if constexpr (requires { op.get(); }) {
+    return op.get();
+  } else {
+    return op;
+  }
+}
+
 /**
  * Helper to print failed expression and its location
  *
