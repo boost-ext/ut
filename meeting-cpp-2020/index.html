@@ -999,7 +999,7 @@ Running... sum with multiple args
 
 #### UT - Overview
 
-* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/krzysztof-jusiak/ut))
+* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
 <!-- .element: class="fragment" -->
 
 * #### Single header/module (2k LOC - [boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
@@ -1735,8 +1735,8 @@ void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
         ]
       });
 
-      window.addEventListener("mousedown", handleClick, false);
-      window.addEventListener("contextmenu", function(e) { e.preventDefault(); }, false);
+      <!--window.addEventListener("mousedown", handleClick, false);-->
+      <!--window.addEventListener("contextmenu", function(e) { e.preventDefault(); }, false);-->
 
       function handleClick(e) {
         if (1 >= outerHeight - innerHeight) {
