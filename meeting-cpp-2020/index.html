@@ -45,7 +45,7 @@
 
 ---
 
-### Future of Testing with C++20
+# Future of Testing with C++20
 
 ---
 
@@ -980,7 +980,7 @@ Running... sum with multiple args
 
 #### Full implementation at...
 
-* #### https://github.com/boost-ext/ut/tree/gh-pages/denver-cpp-2020/example
+* #### https://github.com/boost-ext/ut/tree/gh-pages/meeting-cpp-2020/example
 <!-- .element: class="fragment" -->
 
 * #### Header - https://godbolt.org/z/PhTdbz
@@ -1435,7 +1435,6 @@ describe("vector") = [] {
 suite parallel_1 = [] {
   "test.1.1"_test = [] { expect(1_i == 1); };
   "test.1.2"_test = [] { expect(2_i == 2); };
-  "test.1.3"_test = [] { expect(3_i == 3); };
 };
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -1444,7 +1443,6 @@ suite parallel_1 = [] {
 suite parallel_2 = [] {
   "test.2.1"_test = [] { expect(1_i == 1); };
   "test.2.2"_test = [] { expect(2_i == 2); };
-  "test.2.3"_test = [] { expect(3_i == 3); };
 };
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -1458,17 +1456,16 @@ template <> auto cfg<ut::override> = parallel_runner{};
 ---
 
 ```cpp
-test.1.1
-test.1.3
-test.1.2
-test.2.1
-test.2.3
-test.2.2
+./pr.out    ./pr.out
+test.2.1    test.1.1
+test.2.2    test.1.2
+test.1.1    test.2.1
+test.1.2    test.2.2
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-<pre><code></code> -> <font color="lime">All tests passed</font> (6 asserts in 6 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<pre><code></code> -> <font color="lime">All tests passed</font> (4 asserts in 4 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
