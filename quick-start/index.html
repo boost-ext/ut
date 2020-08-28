@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>[Boost::ext].UT - Unit Testing Framework</title>
+    <title>UT - Unit Testing Framework</title>
 
     <link rel="stylesheet" href="reveal.js/css/reveal.css">
     <link rel="stylesheet" href="reveal.js/css/theme/league.css" id="theme">
@@ -28,7 +28,7 @@
       }
     </script>
 
-    <meta name="description" content="Dependency Injection - a 25-dollar term for a 5-cent concept">
+    <meta name="description" content="UT - Quick Start">
     <meta name="author" content="Kris Jusiak">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,20 +41,12 @@
                    data-separator="^====+$"
                    data-separator-vertical="^----+$">
           <script type="text/template">
-## UT - Unit Testing Framework
+### UT - [Unit Testing Framework](https://github.com/boost-ext/ut)
 
----
-
-#### https://github.com/boost-ext/ut
-
-----
-
-#### Overview
-
-* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
+* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
 <!-- .element: class="fragment" -->
 
-* #### Single header/module ([boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
+* #### Single header/module (2k LOC - [boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
 <!-- .element: class="fragment" -->
 
 * #### Macro-free (✔️)
@@ -68,45 +60,14 @@
 * #### (\*) Limitations may apply
 <!-- .element: class="fragment" -->
 
-* #### μT is not an official Boost library
+* #### UT is not an official Boost library
 <!-- .element: class="fragment" -->
 
 ----
 
 #### Hello World - https://godbolt.org/z/Y43mXz
 
-```cpp
-// #include <boost/ut.hpp> // Single header
-//  import   boost.ut;     // Single module (C++20)
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-int main() {
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-  "hello world"_test = [] {
-    expect(true);
-  };
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-}
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
----
-
-```sh
-$CXX $CXXFLAGS hello_world.cpp -o hello_world
-```
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-<pre><code>./hello_world</code> -> <font color="lime">All tests passed</font> (1 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="5" -->
+<a href="https://godbolt.org/z/Jqb5Ye"><img src="images/ut.png" style="width: 100%; background:none; border:none; box-shadow:none;" /></a>
 
 ----
 
@@ -117,7 +78,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 <pre><code class="line-numbers">expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre> <!-- .element: class="fragment" data-fragment-index="2" -->
 
-<pre><code class="line-numbers">expect(2 == 1_i) << "should equal?";    // Expect syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>] should equal?</pre>
+<pre><code class="line-numbers">expect(2 == 1_i);                       // Expect syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 <pre><code class="line-numbers">std::vector v{1l, 2l, 3l};
@@ -126,7 +87,8 @@ v[3] == 4_l;                            // Not executed
 </code>  -> assertions.cpp:2:<font color="salmon">FAILED</font> [<font color="salmon">4 == 3</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
-<pre><code class="line-numbers">41.10_d == 42.101 and "a" == "b"sv;</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
+<pre><code class="line-numbers">41.10_d == 42.101 and "a" == "b"sv;    // Compound expression
+                                       // with floating-point</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="lime">42.1 == 42.101</font> <font color="salmon">and a == b</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
@@ -145,7 +107,7 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [=] {
+  should("resize bigger") = [v] {
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
@@ -158,7 +120,7 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
-  should("resize smaller") = [=] {
+  should("resize smaller") = [v] {
     mut(v).resize(0);
     expect(0_ul == std::size(v));
   };
@@ -169,80 +131,6 @@ v[3] == 4_l;                            // Not executed
 };
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
-
-----
-
-#### Behavior Driven Development (BDD) - https://godbolt.org/z/ps9_EQ
-
-```cpp
-"[vector]"_test = [] {
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-  given("I have a vector") = [] {
-    std::vector<int> v(5);
-    expect((5_ul == std::size(v)) >> fatal);
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-    when("I resize bigger") = [=] {
-      v.resize(10);
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-      then("The size should increase") = [=] {
-        expect(10_ul == std::size(v));
-      };
-```
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-```cpp
-    };
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-  };
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-};
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-----
-
-#### Parameterized - https://godbolt.org/z/6FHtpq
-
-```cpp
-for (auto i : std::vector{1, 2, 3}) {
-  test("args " + std::to_string(i)) = [i] {
-    expect(arg > 0_i) << "all values greater than 0";
-  };
-}
-```
-<!-- .element: class="fragment" data-fragment-index="0" -->
-
-<pre>-> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
----
-
-```cpp
-"args and types"_test =
-  []<class TArg>(TArg arg) {
-    expect(std::is_integral_v<TArg>);
-    expect(type<TArg> == type<int> or type<TArg> == type<bool>);
-  }
-```
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-<pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
@@ -276,30 +164,237 @@ suite errors = [] {
 
 ----
 
-#### Benchmarks - https://github.com/cpp-testing/ut-benchmark
+#### Parameterized - https://godbolt.org/z/6FHtpq
 
-<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+```cpp
+for (auto i : std::vector{1, 2, 3}) {
+  test("args " + std::to_string(i)) = [i] {
+    expect(arg > 0_i) << "all values greater than 0";
+  };
+}
+```
+<!-- .element: class="fragment" data-fragment-index="0" -->
 
-##### Suite+Assert+STL / 10'000 tests, 20'000 asserts, 100 cpp files
-
-----
-
-#### Benchmarks - C++20 Modules - https://github.com/cpp-testing/ut-benchmark
-
-<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-
-##### Suite+Assert+STL / 10'000 tests, 20'000 asserts, 100 cpp files
-
-----
-
+<pre>-> <font color="lime">All tests passed</font> (3 asserts in 3 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ---
 
-### "If you liked it then you "should have put a"_test on it", Beyonce rule
+```cpp
+"args and types"_test =
+  []<class TArg>(TArg arg) {
+    expect(std::is_integral_v<TArg>);
+    expect(type<TArg> == type<int> or type<TArg> == type<bool>);
+  }
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+<pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="5" -->
+
+----
+
+#### Meta-programming - https://godbolt.org/z/9oh97x
+
+```cpp
+01 constexpr auto i = 0;
+02 constant<42_i == i> and type<void> == type<int>;
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+<pre>-> meta-programming.cpp:2:<font color="salmon">FAILED</font> [(<font color="salmon">42 == 0 and void == int</font>)]</pre>
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+----
+
+#### Behavior Driven Development (`BDD`) - https://godbolt.org/z/4Mdo3K
+
+```cpp
+feature("vector") = [] {
+  scenario("size") = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+    given("I have a vector") = [] {
+      std::vector<int> v(5);
+      expect((5_ul == std::size(v)) >> fatal);
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+      when("I resize bigger") = [v] {
+        mut(v).resize(10);
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+        then("The size should increase") = [v] {
+          expect(10_ul == std::size(v));
+        };
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+```cpp
+      };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+}; };
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="5" -->
+
+----
+
+#### Gherkin - https://godbolt.org/z/jb1d8P
+
+```cpp
+"gherkin"_test = steps |
+  R"(
+    Feature: Vector
+    Scenario: Resize
+      Given I have a vector
+      When I resize bigger
+      Then The size should increase
+  )";
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+##### Might be loaded from a `gherkin.feature` file
+<!-- .element: class="fragment" data-fragment-index="2" -->
+----
+
+#### Gherkin - https://godbolt.org/z/jb1d8P
+
+```cpp
+gherkin::steps steps = [](auto& steps) {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  steps.feature("vector") = [&] {
+    steps.scenario("*") = [&] {
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+      steps.given("I have a vector") = [&] {
+        std::vector<int> v(5);
+        steps.when("I resize bigger") = [&] { v.resize(10); };
+        steps.then("The size should increase") = [&] {
+          expect(10_ul == std::size(v));
+        };
+      };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+    };
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
+#### Spec - https://godbolt.org/z/6jKKzT
+
+```cpp
+describe("vector") = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  std::vector<int> v(5);
+  expect((5_ul == std::size(v)) >> fatal);
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+  it("should resize bigger") = [v] {
+    mut(v).resize(10);
+    expect(10_ul == std::size(v));
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
+### Benchmarks
+
+#### https://github.com/cpp-testing/ut-benchmark
+
+----
+
+#### Benchmarks - [Include](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_include.png"><img src="images/Compilation_include.png" style="width: 50%; background:none; border:none; box-shadow:none;" /></a>
+
+##### 0 tests, 0 asserts, 1 cpp file
+
+----
+
+#### Benchmarks - [Suite+Assert+STL](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 10'000 tests, 20'000 asserts, 100 cpp files
+
+----
+
+#### Benchmarks - [Incremental Build](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/Compilation_incremental.suite+assert+stl.png"><img src="images/Compilation_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_incremental.suite+assert+stl.png"><img src="images/Execution_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_incremental.suite+assert+stl.png"><img src="images/BinarySize_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)
+
+----
+
+#### Benchmarks - [Headers vs Precompiled headers vs C++20 Modules](https://github.com/cpp-testing/ut-benchmark)
+
+<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<!-- .element: style="margin-left:-15%; width:130%" -->
+
+#### 10'000 tests, 20'000 asserts, 100 cpp files
+
+----
+
+### If you liked it then you _"should have put a"_test_ on it"
+
+#### _Beyonce rule_
 
 ---
 
