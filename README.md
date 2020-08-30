@@ -348,7 +348,7 @@ All tests passed (0 asserts in 1 tests)
 ```cpp
 int main() {
   "hello world"_test = [] {
-    int i = 42;
+    int i = 43;
     expect(42_i == i);
   };
 }
