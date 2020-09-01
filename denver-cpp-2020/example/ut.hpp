@@ -79,7 +79,7 @@ template <class T> concept printable = requires(std::ostream &os, T t) {
 /**
  * Test concept
  */
-template <class T, auto expr = +[] {}> concept test = requires(T test) {
+template <class T, auto expr = +[]{}> concept test = requires(T test) {
   { test.name }
   ->printable;
   { test = expr }
@@ -339,7 +339,7 @@ struct test final {
 
 /**
  * Convenient alias for creating test sections
- * @example should("return true") = [] {};
+ * @example should("return true") = []{};
  */
 constexpr inline auto should = [](const auto name) -> concepts::test auto {
   return test{name};
@@ -347,9 +347,9 @@ constexpr inline auto should = [](const auto name) -> concepts::test auto {
 
 /**
  * Convenient aliases for creating BDD tests
- * @example given("I have an object") = [] {};
- * @example when("I call it") = [] {};
- * @example then("I should get") = [] {};
+ * @example given("I have an object") = []{};
+ * @example when("I call it") = []{};
+ * @example then("I should get") = []{};
  */
 namespace bdd {
 constexpr inline auto given = [](const auto name) -> concepts::test auto {
@@ -365,7 +365,7 @@ constexpr inline auto then = [](const auto name) -> concepts::test auto {
 
 /**
  * Convenient aliases for creating Spec tests
- * @example describe("test") = [] { it("should") = [] {}; };
+ * @example describe("test") = [] { it("should") = []{}; };
  */
 namespace spec {
 constexpr inline auto describe = [](const auto name) -> concepts::test auto {

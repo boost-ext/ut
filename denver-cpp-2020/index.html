@@ -295,7 +295,7 @@ template <class T> concept printable =
 ---
 
 ```cpp
-template <class T, auto expr = +[] {}> concept test =
+template <class T, auto expr = +[]{}> concept test =
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -582,7 +582,7 @@ constexpr auto foo(auto t) {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  if constexpr(requires{ t.foo; }) {
+  if constexpr (requires{ t.foo; }) {
     return t.foo;
   } else {
     return 0;
@@ -1222,7 +1222,7 @@ struct test final {
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  // 5x faster overload -
+  // 5x faster!
   auto operator=(void (*test)()) -> void {
     std::clog << "\nRunning... " << name << '\n';
     test();
@@ -1252,7 +1252,7 @@ static_assert(not std::is_same_v<decltype([]{}), decltype([]{}));
 
 ----
 
-#### Full implementation at...
+#### Full implementation at:
 
 * #### https://github.com/boost-ext/ut/tree/gh-pages/denver-cpp-2020/example
 <!-- .element: class="fragment" -->
@@ -1349,11 +1349,11 @@ auto main(int argc, const char** argv) -> int {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "empty"_test       = [] {};
-  "single"_test      = [] {};
-  "many"_test        = [] {
-    "equal"_test     = [] {};
-    "not equal"_test = [] {};
+  "empty"_test       = []{};
+  "single"_test      = []{};
+  "many"_test        = []{
+    "equal"_test     = []{};
+    "not equal"_test = []{};
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -1823,7 +1823,7 @@ void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
 
 ----
 
-#### And more at...
+#### And more at:
 
 #### https://github.com/boost-ext/ut
 <!-- .element: class="fragment" -->
