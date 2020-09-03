@@ -334,7 +334,7 @@ struct test final {
  */
 [[nodiscard]] constexpr concepts::test auto operator""_test(const char *name,
                                                             std::size_t size) {
-  return test{{name, size}};
+  return test{.name={name, size}};
 }
 
 /**

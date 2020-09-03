@@ -59,23 +59,26 @@
 ### Agenda
 
 * #### Motivation
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 * #### Implementation*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 * #### UT - Unit Testing Framework
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 * #### Benchmarks
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 * #### Summary
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ---
 
+##### <p align="left">&nbsp;&nbsp;&nbsp;&nbsp;* Simplified (~200 LOC) / C++20</p>
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
 ##### <p align="left" style="background-color:darkblue">&nbsp;&nbsp;&nbsp;&nbsp;`darkblue background - something to remember ✓`</p>
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 ##### <p align="left" style="background-color:green">&nbsp;&nbsp;&nbsp;&nbsp;`green background - achivement unlocked 👍`</p>
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="7" -->
 
 ==============================================================================
 
@@ -176,7 +179,7 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 01 import ut;               // C++20 module
 02
 03 int main() {
-04   "sum"_test = [] {      // Running "sum"...
+04   "sum"_test = [] {      // Running... sum
 05      sum(1, 2) == 42_i;  // sum.cpp:5:FAILED [ 3 == 42 ]
 06   };                     // tests:   1 | 1 failed
 07 }                        // asserts: 1 | 0 passed | 1 failed
@@ -208,44 +211,66 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 #### ut.module
 
 ```cpp
-01 import ut;
-02
-03 int main() { }
+import ut;
 ```
 <!-- .element: class="fragment" data-fragment-index="0" -->
+
+---
+
+##### ut.hpp
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+export module ut;                // A module interface unit
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+import std;                      // Standard Template Library (STL)
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+export namespace ut::inline v1 { // Make ut namespace visible
+  // ...
+}
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
 
 #### ut.module
 
+---
+
+##### main.cpp
+<!-- .element: class="fragment" data-fragment-index="0" -->
+
 ```cpp
-export module ut;
+01 import ut;
+02
+03 int main() {
+04   // ...
+05 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-```cpp
-import std;
+---
+
+```sh
+$CXX $CXXFLAGS -emit-module-interface -c ut.hpp -o ut.pcm
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
-```cpp
-export namespace ut::inline v1 {
-  // ...
-}
+```sh
+$CXX $CXXFLAGS main.cpp ut.pcm -o main
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ---
 
-```sh
-$CXX $CXXFLAGS main.cpp -o main.out
-```
+<pre><code>./main</code> -> <font color="lime">👍</font></pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
-
-```
-./main.out # 👍
-```
-<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
@@ -354,12 +379,12 @@ auto foo(Auto auto); // Alternatively requires might be used
 
 ```cpp
 struct test final {
-  std::string_view name{}; /// test case name
+  std::string_view name{}; // test case name
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  auto operator=(std::invocable auto test) {
+  auto operator=(std::invocable auto test) -> void {
     std::clog << "\nRunning... " << name << '\n';
     test();
   }
@@ -376,7 +401,7 @@ struct test final {
 ```cpp
 [[nodiscard]] constexpr concepts::test auto operator""_test(
   const char* name, std::size_t size) {
-  return test{{name, size}};
+  return test{.name = {name, size}};
 }
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
@@ -397,9 +422,7 @@ struct test final {
 
 ---
 
-```sh
-Running... sum # 👍
-```
+<pre><code>Running... sum</code> -> <font color="lime">👍</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -411,7 +434,7 @@ Running... sum # 👍
 02
 03 int main() {
 04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; //  ut::operator==, ut::""_i
+05      sum(1, 2) == 42_i; // ut::operator==, ut::""_i
 06   };
 07 }
 ```
@@ -437,23 +460,17 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 ```
 <!-- .element: class="fragment" -->
 
-```cpp
-ERROR: overloaded 'operator==' must have at least
-       one parameter of class or enumeration type
-````
+<pre><code>constexpr auto operator==(int, int) -> bool { return {}; }</code> -> <font color="salmon">error: overloaded 'operator==' must have at least
+      one parameter of class or enumeration type
+</font></pre>
 <!-- .element: class="fragment" -->
 
 ---
 
-```cpp
-template<auto N> constexpr auto operator==(
-  std::integral_constant<int, N>, int) -> bool { return {}; }
-```
-<!-- .element: class="fragment" -->
-
-```cpp
-OK
-```
+<pre><code>template< auto N > constexpr auto operator==(
+  std::integral_constant< int, N >, int) -> bool {
+  return {};
+}</code> -> <font color="lime">👍</font></pre>
 <!-- .element: class="fragment" -->
 
 <!-- .slide: data-background="darkblue" -->
@@ -705,10 +722,8 @@ static_assert(0 + 1 + 2 == iife<3>);
 
 ---
 
-```sh
-Running... sum
-FAILED: [3 == 42] # 👍
-```
+<pre><code>Running... sum
+FAILED: [3 == 42]</code> -> <font color="gray">It's missing FILE:LINE!</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -725,20 +740,14 @@ FAILED: [3 == 42] # 👍
 
 #### Source Location / C++20 - https://godbolt.org/z/G6Pzb3
 
-```cpp
-constexpr auto operator==(
+<pre><code>constexpr auto operator==(
   auto, auto, const std::source_location& location =
                     std::source_location::current()
-) -> bool;
-```
-<!-- .element: class="fragment" -->
-
----
-
-```cpp
-ERROR: parameter of overloaded 'operator=='
-       cannot have a default argument
-```
+) -> bool {
+  return {};
+}</code> -> <font color="salmon">error: parameter of overloaded 'operator=='
+      cannot have a default argument
+</font></pre>
 <!-- .element: class="fragment" -->
 
 <!-- .slide: data-background="darkblue" -->
@@ -800,10 +809,8 @@ struct eq final {
 
 ---
 
-```sh
-Running... sum
-ut.hpp:128:FAILED: [3 == 42] # 👎
-```
+<pre><code>Running... sum
+ut.hpp:128:FAILED: [3 == 42]</code> -> <font color="gray">Wrong FILE:LINE!</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -883,10 +890,8 @@ template <op T> constexpr auto operator==(
 
 ---
 
-```sh
-Running... sum
-test.cpp:05:FAILED: [3 == 42] # 👍
-```
+<pre><code>Running... sum
+test.cpp:05:FAILED: [3 == 42]</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -910,7 +915,8 @@ test.cpp:05:FAILED: [3 == 42] # 👍
 06   "sum with multiple args"_test = [] { sum(1, 2) == 3_i;  };
 07 };
 08
-09 int main() { }
+09 int main() {
+10 }
 ```
 <!-- .element: class="fragment" -->
 
@@ -957,7 +963,8 @@ struct suite final {
 06   "sum with multiple args"_test = [] { sum(1, 2) == 3_i;  };
 07 };
 08
-09 int main() { }
+09 int main() {
+10 }
 ```
 <!-- .element: class="fragment" -->
 
@@ -1058,16 +1065,14 @@ constexpr concepts::op auto operator==(TLhs lhs, TRhs rhs);
 01 import ut;              // ✔️
 02
 03 int main() {
-04   expect(sum(1, 2) == 21_i) << "?";
+04   expect(sum(1, 2) == 21_i) << '?';
 05 }
 ```
 <!-- .element: class="fragment" -->
 
 ---
 
-```
-main.cpp:04:FAILED [3 == 21] ? # 👍
-```
+<pre><code>main.cpp:04:FAILED [3 == 21] ?</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 ----
@@ -1139,13 +1144,12 @@ constexpr auto then = [](const auto name) -> concepts::test auto {
 
 ---
 
-```sh
-Given I have a sum a sum
+<pre><code>Given I have a sum a sum
 When I add 40 and 2
 Then I should get 42
-bdd.cpp:05:FAILED: [24 == 42] # 👍
-```
-<!-- .element: class="fragment" data-fragment-index="6" -->
+bdd.cpp:05:FAILED: [24 == 42]
+</code> -> <font color="lime">✔️</font></pre>
+<!-- .element: class="fragment" -->
 
 ----
 
@@ -1198,10 +1202,9 @@ constexpr auto it = [](const auto name) -> concepts::test auto {
 
 ---
 
-```sh
-Running... sum.should add arguments
-spec.cpp:03:FAILED: [42 == 24] # 👍
-```
+<pre><code>Running... sum.should add arguments
+spec.cpp:03:FAILED: [42 == 24]
+</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
@@ -1214,7 +1217,7 @@ struct test final {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  auto operator=(std::invocable auto test) {
+  auto operator=(std::invocable auto test) -> void {
     std::clog << "\nRunning... " << name << '\n';
     test();
   }
@@ -1748,13 +1751,13 @@ suite parallel_2 = [] {
 ---
 
 ```cpp
-./pr.out    ./pr.out
-test.2.1    test.1.1
-test.2.2    test.1.2
-test.2.3    test.1.3
-test.1.1    test.2.1
-test.1.2    test.2.2
-test.1.3    test.2.3
+./parallel    ./parallel
+test.2.1      test.1.1
+test.2.2      test.1.2
+test.2.3      test.1.3
+test.1.1      test.2.1
+test.1.2      test.2.2
+test.1.3      test.2.3
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
@@ -1772,7 +1775,7 @@ struct benchmark : ut::test {
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  auto operator=(auto test) {
+  auto operator=(auto test) -> void {
     const auto start = high_resolution_clock::now();
     test();
     const auto stop = high_resolution_clock::now();
@@ -1789,7 +1792,7 @@ struct benchmark : ut::test {
 
 ```cpp
 [[nodiscard]] auto operator""_benchmark(auto name, auto size) {
-  return benchmark{{name, size}};
+  return benchmark{.name = {name, size}};
 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
