@@ -231,7 +231,7 @@ import std;                      // Standard Template Library (STL)
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-export namespace ut::inline v1 { // Make ut namespace visible
+export namespace ut::inline v1 { // Make `ut::v1` namespace visible
   // ...
 }
 ```
@@ -269,7 +269,7 @@ $CXX $CXXFLAGS main.cpp ut.pcm -o main
 
 ---
 
-<pre><code>./main</code> -> <font color="lime">👍</font></pre>
+<pre><code>./main</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
@@ -361,7 +361,8 @@ template <class T, auto expr = +[]{}> concept test =
 <!-- .element: class="fragment" -->
 
 ```cpp
-template<class T> concept Auto = true; // The least constraint concept
+template<class T>
+concept Auto = true; // The least constraint concept
 ```
 <!-- .element: class="fragment" -->
 
@@ -422,7 +423,7 @@ struct test final {
 
 ---
 
-<pre><code>Running... sum</code> -> <font color="lime">👍</font></pre>
+<pre><code>Running... sum</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -470,7 +471,7 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 <pre><code>template< auto N > constexpr auto operator==(
   std::integral_constant< int, N >, int) -> bool {
   return {};
-}</code> -> <font color="lime">👍</font></pre>
+}</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 <!-- .slide: data-background="darkblue" -->
@@ -562,7 +563,7 @@ template <class TLhs, class TRhs> eq(TLhs, TRhs) -> eq<TLhs, TRhs>;
 #### ut::detail
 
 ```cpp
-constexpr auto error(const auto &expr) -> void {
+auto error(const auto &expr) -> void {
   std::cerr << "FAILED: " << expr << '\n';
 }
 ```
@@ -757,7 +758,7 @@ FAILED: [3 == 42]</code> -> <font color="gray">It's missing FILE:LINE!</font></p
 #### Source Location / C++20
 
 ```cpp
-constexpr auto error(const auto &expr, const auto &location) -> void {
+auto error(const auto &expr, const auto &location) -> void {
   std::cerr << location.file_name() << ':' << location.line()
             << ":FAILED: " << expr << '\n';
 }
@@ -970,11 +971,10 @@ struct suite final {
 
 ---
 
-```
-Running... sum with no args
+<pre><code>Running... sum with no args
 Running... sum with single arg
 Running... sum with multiple args
-```
+</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 ----
@@ -1232,6 +1232,11 @@ struct test final {
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ----
 
