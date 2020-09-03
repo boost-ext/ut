@@ -379,14 +379,14 @@ auto foo(Auto auto); // Alternatively requires might be used
 #### ut::test
 
 ```cpp
-struct test final {
+struct test {
   std::string_view name{}; // test case name
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
   auto operator=(std::invocable auto test) -> void {
-    std::clog << "\nRunning... " << name << '\n';
+    std::clog << "Running... " << name << '\n';
     test();
   }
 ```
@@ -482,11 +482,9 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 
 ```cpp
 template <class TOp> concept op = requires(TOp op) {
-  requires requires {
-    op.lhs;
-    op.rhs;
-    requires std::convertible_to<TOp, bool>;
-  }
+  op.lhs; // left-hand side operator
+  op.rhs; // right-hand side operator
+  requires std::convertible_to<TOp, bool>;
   requires printable<TOp>;
 };
 ```
@@ -522,8 +520,8 @@ struct eq final {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  TLhs lhs{}; // Left-hand side operator
-  TRhs rhs{}; // Right-hand side operator
+  TLhs lhs{}; // left-hand side operator
+  TRhs rhs{}; // right-hand side operator
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -851,7 +849,8 @@ private:
 #### ut::value_location
 
 ```cpp
-template <op T> constexpr auto operator==(
+template <op T>
+constexpr auto operator==(
   value_location<typename T::value_type> lhs, T rhs) {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -934,7 +933,7 @@ concept suite = std::invocable<TSuite>;
 ---
 
 ```cpp
-struct suite final {
+struct suite {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -956,7 +955,7 @@ struct suite final {
 #### ut::suite
 
 ```cpp
-01 import ut;// ✔️
+01 import ut;        // ✔️
 02
 03 suite sums = [] { // ✔️
 04   "sum with no args"_test       = [] { sum()     == 0_i;  };
@@ -1006,7 +1005,7 @@ Running... sum with multiple args
 #### Expect
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut; // ✔️
 02
 03 int main() {
 04   expect(sum(1, 2) == 21_i) << "?"; // ut::expect
@@ -1018,10 +1017,8 @@ Running... sum with multiple args
 #### ut::expect
 
 ```cpp
-template <class TExpr> concept expression = requires {
-  requires std::convertible_to<TExpr, bool>;
-  requires printable<TExpr>;
-};
+template <class TExpr> concept expression =
+  std::convertible_to<TExpr, bool> and printable<TExpr>;
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
@@ -1212,13 +1209,13 @@ spec.cpp:03:FAILED: [42 == 24]
 #### Compilation-times performance boost
 
 ```cpp
-struct test final {
+struct test {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
   auto operator=(std::invocable auto test) -> void {
-    std::clog << "\nRunning... " << name << '\n';
+    std::clog << "Running... " << name << '\n';
     test();
   }
 ```
@@ -1227,7 +1224,7 @@ struct test final {
 ```cpp
   // 5x faster!
   auto operator=(void (*test)()) -> void {
-    std::clog << "\nRunning... " << name << '\n';
+    std::clog << "Running... " << name << '\n';
     test();
   }
 ```
@@ -1342,7 +1339,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 ```cpp
 auto ut_main(int argc, const char** argv) -> int {
-  cfg<override> = { .filter = argv[1] };
+  cfg<override> = {.filter = argv[1]};
   return cfg<override>.run();
 }
 ```
@@ -1807,7 +1804,9 @@ struct benchmark : ut::test {
 #### Benchmarking - https://godbolt.org/z/WqznMn
 
 ```cpp
-void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
+auto do_not_optimize(auto expr) -> void {
+  asm volatile("" :: "m"(expr) : "memory");
+}
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 

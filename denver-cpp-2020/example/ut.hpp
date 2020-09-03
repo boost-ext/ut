@@ -94,10 +94,9 @@ template <class TSuite> concept suite = std::invocable<TSuite>;
 /**
  * Expression concept
  */
-template <class TExpr> concept expression = requires {
-  requires std::convertible_to<TExpr, bool>;
-  requires printable<TExpr>;
-};
+template <class TExpr> concept expression =
+  std::convertible_to<TExpr, bool> and
+  printable<TExpr>;
 
 /**
  * Operator concept
