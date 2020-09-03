@@ -221,17 +221,17 @@ import ut;
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-export module ut;                // A module interface unit
+export module ut; // module interface unit
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-import std;                      // Standard Template Library (STL)
+import std;
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-export namespace ut::inline v1 { // Make `ut::v1` namespace visible
+export namespace ut::inline v1 {
   // ...
 }
 ```
@@ -266,8 +266,6 @@ $CXX $CXXFLAGS -emit-module-interface -c ut.hpp -o ut.pcm
 $CXX $CXXFLAGS main.cpp ut.pcm -o main
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
-
----
 
 <pre><code>./main</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="4" -->
@@ -561,7 +559,7 @@ template <class TLhs, class TRhs> eq(TLhs, TRhs) -> eq<TLhs, TRhs>;
 #### ut::detail
 
 ```cpp
-auto error(const auto &expr) -> void {
+auto error(const auto& expr) -> void {
   std::cerr << "FAILED: " << expr << '\n';
 }
 ```
@@ -624,6 +622,9 @@ constexpr struct { int bar{42}; } b;
 static_assert(0 == foo(b));
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
+
+##### https://www.youtube.com/watch?v=HdzwvY8Mo-w
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 <!-- .slide: data-background="darkblue" -->
 
@@ -756,7 +757,7 @@ FAILED: [3 == 42]</code> -> <font color="gray">It's missing FILE:LINE!</font></p
 #### Source Location / C++20
 
 ```cpp
-auto error(const auto &expr, const auto &location) -> void {
+auto error(const auto& expr, const auto& location) -> void {
   std::cerr << location.file_name() << ':' << location.line()
             << ":FAILED: " << expr << '\n';
 }
