@@ -1977,9 +1977,9 @@ auto do_not_optimize(auto expr) -> void {
 #### Catch2 - https://godbolt.org/z/jfb7jK
 
 ```cpp
-#define REQUIRE(...)   expect(that % __VA_ARGS__)
-#define TEST_CASE(...) test{"test", __VA_ARGS__} = [=]() mutable
-#define SECTION(name)  test{"section", name} = [=]() mutable
+#define REQUIRE(...)   ut::expect(that % __VA_ARGS__)
+#define TEST_CASE(...) ut::test{"test", __VA_ARGS__} = [=]() mutable
+#define SECTION(name)  ut::test{"section", name} = [=]() mutable
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
