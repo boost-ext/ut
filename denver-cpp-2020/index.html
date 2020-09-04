@@ -1486,7 +1486,7 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [v] { // section (2.1)
+  should("resize bigger") = [v] /*mutable*/ { // section (2.1)
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
@@ -1965,11 +1965,40 @@ auto do_not_optimize(auto expr) -> void {
 
 * #### UT is an example of cutting edge Unit Testing Framework
 <!-- .element: class="fragment" data-fragment-index="2" -->
-  * ##### Macro-based Frameworks can be built on top of Unit Testing primitives
-<!-- .element: class="fragment" data-fragment-index="3" -->
 
 * #### Possible standardization of Unit Testing primitives?
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+* #### Macro-based Frameworks can be built on top of Unit Testing primitives
 <!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
+#### Catch2 - https://godbolt.org/z/jfb7jK
+
+```cpp
+#define REQUIRE(...)   expect(that % __VA_ARGS__)
+#define TEST_CASE(...) test{"test", __VA_ARGS__} = [=]() mutable
+#define SECTION(name)  test{"section", name} = [=]() mutable
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+TEST_CASE("vectors can be sized and resized", "[vector]") {
+  std::vector<int> v(5);
+
+  SECTION("resize bigger") {
+    v.resize(10);
+    REQUIRE(10 == std::size(v));
+  };
+};
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+---
+
+<pre><code>./catch2</code> -> <font color="lime">All tests passed</font> (1 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ==============================================================================
 
