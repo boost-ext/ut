@@ -487,17 +487,18 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 #### ut::operator==
 
 ```cpp
-template <class TOp> concept op = 
-  requires std::convertible_to<TOp, bool> and
+template <class TOp> concept op =
   requires printable<TOp> and (
-    requires(TOp op) {
+    requires(TOp op) { // eq, ...
       op.lhs; // left-hand side operator
       op.rhs; // right-hand side operator
+      requires std::convertible_to<TOp, bool>;
     } or
-    requires(TOp op) {
-      op.value; // integral_constant
-    };
-  )
+    requires(TOp op) { // integral_constant
+      typename TOp::value_type;
+      op.value;
+    }
+  );
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -662,7 +663,7 @@ static_assert(0 == foo(b));
 
 ```cpp
 template <char... Cs>
-[[nodiscard]] constexpr auto operator""_i() {
+[[nodiscard]] constexpr auto operator""_i() { // int
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -1083,7 +1084,7 @@ constexpr concepts::op auto operator==(TLhs lhs, TRhs rhs);
 
 ---
 
-<pre><code>main.cpp:04:FAILED [3 == 21] ?</code> -> <font color="lime">✔️</font></pre>
+<pre><code>expect.cpp:04:FAILED [3 == 21] ?</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 ----
@@ -1511,7 +1512,7 @@ v[3] == 4_l;                            // Not executed
 
 ----
 
-#### Suites - https://godbolt.org/z/F3xJcJ
+#### Suites - https://godbolt.org/z/7P3Ph1
 
 ```cpp
 suite errors = [] {
@@ -1520,12 +1521,15 @@ suite errors = [] {
 
 ```cpp
   "exception"_test = [] {
-    expect(throws([] { throw 0; })) << "throws any exception";
+     expect(throws([] { throw 0; })) << "throws any exception";
+     expect(throws<std::runtime_error>([] {
+       throw std::runtime_error{"error"}; })
+     );
   };
 
   "failure"_test = [] {
-    expect(aborts([] { assert(false); }));
-  };
+     expect(aborts([] { assert(false); }));
+   };
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -1536,7 +1540,7 @@ suite errors = [] {
 
 ---
 
-<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
+<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (3 asserts in 1 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----

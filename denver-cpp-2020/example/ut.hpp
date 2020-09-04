@@ -79,7 +79,7 @@ template <class T> concept printable = requires(std::ostream &os, T t) {
 /**
  * Test concept
  */
-template <class T, auto expr = +[]{}> concept test = requires(T test) {
+template <class T, auto expr = +[] {}> concept test = requires(T test) {
   { test.name }
   ->printable;
   { test = expr }
@@ -94,9 +94,8 @@ template <class TSuite> concept suite = std::invocable<TSuite>;
 /**
  * Expression concept
  */
-template <class TExpr> concept expression =
-  std::convertible_to<TExpr, bool> and
-  printable<TExpr>;
+template <class TExpr>
+concept expression = std::convertible_to<TExpr, bool> and printable<TExpr>;
 
 /**
  * Operator concept
@@ -233,7 +232,7 @@ template <class TLhs, class TRhs>
 }
 
 namespace terse {
-template <class T>
+
 /**
  * Comparison overload for terse syntax
  * @example (42_i == 42)
@@ -241,6 +240,7 @@ template <class T>
  * @param rhs Right-hand side operator
  * @return Comparison object which check the expression on destruction
  */
+template <concepts::op T>
 constexpr concepts::op auto
 operator==(detail::value_location<typename T::value_type> lhs, T rhs) {
   using eq_t = detail::eq<decltype(lhs), decltype(rhs)>;
@@ -254,7 +254,7 @@ operator==(detail::value_location<typename T::value_type> lhs, T rhs) {
   return eq{{lhs, rhs}};
 }
 
-template <class T>
+template <concepts::op T>
 constexpr concepts::op auto
 operator==(T lhs, detail::value_location<typename T::value_type> rhs) {
   using eq_t = detail::eq<decltype(lhs), decltype(rhs)>;
@@ -333,7 +333,7 @@ struct test final {
  */
 [[nodiscard]] constexpr concepts::test auto operator""_test(const char *name,
                                                             std::size_t size) {
-  return test{.name={name, size}};
+  return test{.name = {name, size}};
 }
 
 /**
