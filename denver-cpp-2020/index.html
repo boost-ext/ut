@@ -136,18 +136,22 @@ int main() {
 ### Existing Solutions - Problems
 
 * #### Macro based*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
 * #### Boilerplate*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
 * #### Slow to compile*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
 * #### Hard to integrate*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
 * ...
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 > \* Generalized
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ----
 
@@ -318,7 +322,7 @@ template <class T> concept printable =
 ---
 
 ```cpp
-template <class T, auto expr = +[]{}> concept test =
+template <class T, auto expr = []{}> concept test =
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -360,12 +364,16 @@ template <class T, auto expr = +[]{}> concept test =
 
 ```cpp
 template<class T>
-concept Auto = true; // The least constraint concept
+concept Auto = true; // the least constraint concept
 ```
 <!-- .element: class="fragment" -->
 
 ```cpp
-auto foo(Auto auto); // Alternatively requires might be used
+auto foo(auto);                // no constraint
+auto foo(Auto auto);           // always satisfied - terse syntax
+template<Auto T> auto foo(T);  // always satisfied - instead of type
+template<class T>
+ requires Auto<T> auto foo(T); // always satisfied - requires
 ```
 <!-- .element: class="fragment" -->
 
@@ -479,12 +487,17 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 #### ut::operator==
 
 ```cpp
-template <class TOp> concept op = requires(TOp op) {
-  op.lhs; // left-hand side operator
-  op.rhs; // right-hand side operator
-  requires std::convertible_to<TOp, bool>;
-  requires printable<TOp>;
-};
+template <class TOp> concept op = 
+  requires std::convertible_to<TOp, bool> and
+  requires printable<TOp> and (
+    requires(TOp op) {
+      op.lhs; // left-hand side operator
+      op.rhs; // right-hand side operator
+    } or
+    requires(TOp op) {
+      op.value; // integral_constant
+    };
+  )
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -568,15 +581,15 @@ auto error(const auto& expr) -> void {
 ---
 
 ```cpp
-constexpr auto get(auto value) {
+constexpr auto get(auto op) { // get underlying value
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  if constexpr (requires { value.get(); }) {
-    return value.get();
+  if constexpr (requires { op.value; }) {
+    return op.value;
   } else {
-    return value;
+    return op;
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -659,7 +672,7 @@ template <char... Cs>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-    return std::integral_constant<
+    return std::integral_constant<int,
       ((std::pow(10, sizeof...(Ns) - Ns - 1)) * (Cs - '0')) + ...)
     >{};
 ```
@@ -1446,10 +1459,10 @@ v[3] == 4_l;                            // Not executed
 
 #### Misc/Logging - https://godbolt.org/z/rnanxr
 
-<pre><code class="line-numbers">(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]  should equal?</pre>
+<pre><code class="line-numbers">(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-<pre><code class="line-numbers">expect(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]  should equal?</pre>
+<pre><code class="line-numbers">expect(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 <pre><code class="line-numbers">log << "I'm here!";</code>  -> assertions.cpp:1:I'm here!</pre>
@@ -1523,7 +1536,7 @@ suite errors = [] {
 
 ---
 
-<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
+<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
@@ -1642,7 +1655,7 @@ gherkin::steps steps = [](auto& steps) {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  steps.feature("vector") = [&] {
+  steps.feature("Vector") = [&] {
     steps.scenario("*") = [&] {
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
