@@ -1805,7 +1805,7 @@ int main() {
 All tests passed (4 asserts in 3 tests)
 ```
 
-> https://godbolt.org/z/tvy-nP
+> https://godbolt.org/z/WcEKTr
 
 </p>
 </details>
