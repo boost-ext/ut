@@ -228,7 +228,7 @@ int main() {
 
     {
       static_assert("true"_b);
-      static_assert(not"true"_b != "true"_b);
+      static_assert(not "true"_b != "true"_b);
       static_assert("named"_b);
       static_assert(42 == 42_i);
       static_assert(0u == 0_u);
@@ -321,17 +321,17 @@ int main() {
       test_assert(_b(true) != _b(false));
       test_assert(_i(42) > _i({}));
       test_assert(42_i < 88);
-      test_assert("true"_b != not"true"_b);
+      test_assert("true"_b != not "true"_b);
       test_assert(42 >= 42_i);
       test_assert(43 >= 42_i);
       test_assert(42 <= 42_i);
       test_assert(42 <= 43_i);
-      test_assert(not"true"_b == not"true"_b);
+      test_assert(not "true"_b == not "true"_b);
     }
 
     {
       test_assert("true"_b and 42_i == 42_i);
-      test_assert(not"true"_b or 42_i == 42_i);
+      test_assert(not "true"_b or 42_i == 42_i);
       test_assert("true"_b or 42_i != 42_i);
       test_assert(not(42_i < 0));
     }
@@ -782,7 +782,7 @@ int main() {
       expect(1 != 2_i);
       expect(-42 != -42_i);
       expect(-1.1_d == -1.1);
-      expect((not _b(true)) == not"true"_b);
+      expect((not _b(true)) == not "true"_b);
       expect(2_i > 2_i) << "msg";
 
       test_assert(7 == std::size(test_cfg.assertion_calls));
@@ -1285,8 +1285,7 @@ int main() {
         expect(std::is_integral<T>{} or
                type<void> == type<std::remove_pointer_t<T>>)
             << "all types are integrals or void";
-      }
-      | std::tuple<bool, int, void*>{};
+      } | std::tuple<bool, int, void*>{};
 
       test_assert(3 == std::size(test_cfg.run_calls));
       test_assert("types"sv == test_cfg.run_calls[0].name);
@@ -1311,8 +1310,7 @@ int main() {
       "args and types"_test = []<class TArg>(const TArg& arg) {
         expect(42_i == arg or arg == _c('x'));
         expect(type<TArg> == type<int> or type<TArg> == type<char>);
-      }
-      | std::tuple{42, 'x'};
+      } | std::tuple{42, 'x'};
 
       test_assert(2 == std::size(test_cfg.run_calls));
       test_assert("args and types"sv == test_cfg.run_calls[0].name);

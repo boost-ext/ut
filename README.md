@@ -1457,8 +1457,6 @@ namespace boost::inline ext::ut::inline v1_1_8 {
 | Option | Description | Example |
 |-|-|-|
 | `BOOST_UT_VERSION`        | Current version | `1'1'8` |
-| `BOOST_UT_FORWARD`        | Optionally used in `.cpp` files to speed up compilation of multiple suites | |
-| `BOOST_UT_IMPLEMENTATION` | Optionally used in `main.cpp` file to provide `ut` implementation (have to be used in combination with `BOOST_UT_FORWARD`) | |
 
 </p>
 </details>
@@ -1685,8 +1683,6 @@ vs
 * Limiting preprocessor work
   * Single header/module
   * Minimal number of include files
-  * Configuration between header files and cpp files with
-    * `BOOST_UT_FORWARD` and `BOOST_UT_IMPLEMENTATION`
 
 * Simplified versions of
   * `std::function`

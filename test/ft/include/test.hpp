@@ -11,7 +11,6 @@
 
 namespace test = boost::ut;
 
-#if not defined(BOOST_UT_FORWARD)
 #include <iostream>
 
 namespace ft {
@@ -29,4 +28,3 @@ struct runner : test::runner<TReporter> {
 
 template <class... Ts>
 inline auto test::cfg<test::override, Ts...> = ft::runner<test::reporter<>>{};
-#endif

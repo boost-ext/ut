@@ -29,8 +29,7 @@ int main() {
   /// Alternative syntax
   "types"_test = []<class T>() {
     expect(std::is_integral_v<T>) << "all types are integrals";
-  }
-  | std::tuple<bool, int>{};
+  } | std::tuple<bool, int>{};
 
   /// Language syntax
   std::apply(
@@ -51,6 +50,5 @@ int main() {
     expect((std::is_integral_v<TArg>) >> fatal);
     expect(42_i == static_cast<int>(arg) or arg);
     expect(type<TArg> == type<int> or type<TArg> == type<bool>);
-  }
-  | std::tuple{42, true};
+  } | std::tuple{42, true};
 }
