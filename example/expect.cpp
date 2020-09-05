@@ -97,7 +97,7 @@ int main() {
 
   "boolean"_test = [] {
     expect("true"_b);
-    expect("true"_b or not"true"_b);
-    expect(not"true"_b != "true"_b);
+    expect("true"_b or not "true"_b);
+    expect(not "true"_b != "true"_b);
   };
 }

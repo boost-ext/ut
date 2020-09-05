@@ -31,8 +31,4 @@ endif()
 if (NOT WIN32) # WIN32 includes both MSVC and clang-cl
   add_executable(ft-link main.cpp test_suite_1.cpp test_suite_2.cpp test_suite_3.cpp)
   ut_add_custom_command_or_test(TARGET ft-link COMMAND ft-link)
-  set_source_files_properties(test_suite_1.cpp PROPERTIES COMPILE_FLAGS -DBOOST_UT_FORWARD)
-  set_source_files_properties(test_suite_2.cpp PROPERTIES COMPILE_FLAGS -DBOOST_UT_FORWARD)
-  set_source_files_properties(test_suite_3.cpp PROPERTIES COMPILE_FLAGS -DBOOST_UT_FORWARD)
-  set_source_files_properties(main.cpp PROPERTIES COMPILE_FLAGS -DBOOST_UT_IMPLEMENTATION)
 endif()
