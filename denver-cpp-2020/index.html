@@ -546,14 +546,14 @@ struct eq final {
 
 ```cpp
   [[nodiscard]] constexpr explicit(false) operator bool() const {
-    return get(lhs) == get(rhs);
+    return value(lhs) == value(rhs);
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
   friend auto& operator<<(auto& os, const eq& op) {
-    return (os << get(op.lhs) << " == " << get(op.rhs));
+    return (os << value(op.lhs) << " == " << value(op.rhs));
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
@@ -582,7 +582,7 @@ auto error(const auto& expr) -> void {
 ---
 
 ```cpp
-constexpr auto get(auto op) { // get underlying value
+constexpr auto value(auto op) { // underlying value
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -605,13 +605,13 @@ constexpr auto get(auto op) { // get underlying value
 #### Design By Introspection - https://d.godbolt.org/z/n8e4de
 
 ```cpp
-constexpr auto foo(auto t) {
+constexpr auto foo(auto v) {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  if constexpr (requires{ t.foo; }) {
-    return t.foo;
+  if constexpr (requires{ v.foo; }) {
+    return v.foo;
   } else {
     return 0;
   }
@@ -841,20 +841,13 @@ template <class TValue> struct value_location {
       value_location(TValue value,
                      const std::source_location &location =
                            std::source_location::current())
-      : value_{value}, location_{location} {}
+      : value{value}, location{location} {}
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  constexpr auto get() const { return value_; }
-  constexpr auto location() const { return location_; }
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-private:
-  TValue value_{};
-  std::source_location location_{};
+  TValue value{};
+  std::source_location location{};
 };
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -874,7 +867,7 @@ constexpr auto operator==(
   struct eq : detail::eq<decltype(lhs), decltype(rhs)> {
     ~eq() {
       if (not *this) {
-        error(*this, lhs.location());
+        error(*this, lhs.location);
       }
     }
   };
