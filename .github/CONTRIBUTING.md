@@ -11,12 +11,11 @@ you contribute:
 4. Be sure your modifications include:
   * Don't break anything (`make`)
   * Proper unit/functional tests (`make test`)
-  * Documentation updates if required (`make doc`)
-  * Regenerate preprocessed headers (`tools/pph.sh`)
-  * Update/check style using (`make check`)
-  * Verify performance (`make benchmarks`)
+  * Verify performance (`make benchmark`)
 5. Commit your changes. Your commit message should reflect your changes.
 6. Push the changes to your fork (`git push origin your_branch`).
 7. Rebase if necessary to avoid broken commits (`git rebase -i origin/master`).
 8. Open a pull request against UT's `master` branch.
-   I will do my best to respond in a timely manner. I might discuss your patch and suggest some modifications, or I might amend your patch myself and ask you for feedback. You will always be given proper credit.
+   I will do my best to respond in a timely manner.
+   I might discuss your patch and suggest some modifications, or I might amend your patch myself and ask you for feedback.
+   You will always be given proper credit.
