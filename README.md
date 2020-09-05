@@ -1838,7 +1838,7 @@ All tests passed (4 asserts in 3 tests)
 
 * [[Boost].UT - Unit Testing Framework - Kris Jusiak](https://boost-ext.github.io/ut/denver-cpp-2019)
 
-* ["If you liked it then you `"should have put a"_test` on it", Beyonce rule - Kris Jusiak](https://boost-ext.github.io/ut/denver-cpp-2020)
+* ["If you liked it then you `"should have put a"_test` on it", Beyonce rule - Kris Jusiak](https://www.youtube.com/watch?v=yCI8MjvOMeE)
 
 * [Principles of Unit Testing With C++ - Dave Steffen and Kris Jusiak](https://www.youtube.com/watch?v=oOcuJdJJ33g)
 
@@ -1846,6 +1846,14 @@ All tests passed (4 asserts in 3 tests)
 
 </p>
 </details>
+
+<a name="how-to-contribute"></a>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;How to contribute?</summary>
+<p>
+
+> [CONTRIBUTING](.github/CONTRIBUTING.md)
+
+</p></details>
 
 </p>
 </details>
@@ -1856,11 +1864,11 @@ All tests passed (4 asserts in 3 tests)
 
 | Framework | Version | Standard | License | Linkage | Test configuration |
 |-|-|-|-|-|-|
-| **[Boost.Test](https://github.com/boostorg/test)** | [1.71.0](https://www.boost.org/users/history/version_1_71_0.html) | C++03 | Boost 1.0 | single header/library | `static library` |
-| **[GoogleTest](https://github.com/google/googletest)** | [1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0) | C++11 | BSD-3 | library | `static library` |
-| **[Catch](https://github.com/catchorg/Catch2)** | [2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | C++11 | Boost 1.0 | single header | `CATCH_CONFIG_FAST_COMPILE` |
-| **[Doctest](https://github.com/onqtam/doctest)** | [2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | C++11 | MIT | single header | `DOCTEST_CONFIG_SUPER_FAST_ASSERTS` |
-| **[[Boost::ext].UT](https://github.com/boost-ext/ut)** | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++20 | Boost 1.0 | single header/module | |
+| [Boost.Test](https://github.com/boostorg/test) | [1.71.0](https://www.boost.org/users/history/version_1_71_0.html) | C++03 | Boost 1.0 | single header/library | `static library` |
+| [GoogleTest](https://github.com/google/googletest) | [1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0) | C++11 | BSD-3 | library | `static library` |
+| [Catch](https://github.com/catchorg/Catch2) | [2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | C++11 | Boost 1.0 | single header | `CATCH_CONFIG_FAST_COMPILE` |
+| [Doctest](https://github.com/onqtam/doctest) | [2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | C++11 | MIT | single header | `DOCTEST_CONFIG_SUPER_FAST_ASSERTS` |
+| [[Boost::ext].UT](https://github.com/boost-ext/ut) | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++20 | Boost 1.0 | single header/module | |
 
 <table>
   <tr>
