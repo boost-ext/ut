@@ -245,7 +245,7 @@ constexpr concepts::op auto
 operator==(detail::value_location<typename T::value_type> lhs, T rhs) {
   using eq_t = detail::eq<decltype(lhs), decltype(rhs)>;
   struct eq : eq_t {
-    ~eq() {
+    ~eq() noexcept {
       if (not *this) {
         detail::error(*this, eq_t::lhs.location());
       }
@@ -259,7 +259,7 @@ constexpr concepts::op auto
 operator==(T lhs, detail::value_location<typename T::value_type> rhs) {
   using eq_t = detail::eq<decltype(lhs), decltype(rhs)>;
   struct eq : eq_t {
-    ~eq() {
+    ~eq() noexcept {
       if (not *this) {
         detail::error(*this, eq_t::rhs.location());
       }

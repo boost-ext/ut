@@ -538,7 +538,7 @@ struct eq final {
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  ~eq() {
+  ~eq() noexcept {
     if (not *this) { error(*this); }
   }
 ```
@@ -790,7 +790,7 @@ struct eq final {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  ~eq() {
+  ~eq() noexcept {
     if (not *this) {
       error(*this, location_);
     }
@@ -865,7 +865,7 @@ constexpr auto operator==(
 
 ```cpp
   struct eq : detail::eq<decltype(lhs), decltype(rhs)> {
-    ~eq() {
+    ~eq() noexcept {
       if (not *this) {
         error(*this, lhs.location);
       }
