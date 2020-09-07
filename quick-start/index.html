@@ -43,6 +43,8 @@
           <script type="text/template">
 ### UT - [Unit Testing Framework](https://github.com/boost-ext/ut)
 
+---
+
 * #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
 <!-- .element: class="fragment" -->
 
@@ -101,13 +103,14 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
+  // set up (1)
   std::vector<int> v(5);
   expect((5_ul == std::size(v)) >> fatal);
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [v] {
+  should("resize bigger") = [v] /*mutable*/ { // section (2.1)
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
@@ -115,17 +118,22 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-  expect((5_ul == std::size(v)_ >> fatal);
+  expect((5_ul == std::size(v) >> fatal); // (3)
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
-  should("resize smaller") = [v] {
+  should("resize smaller") = [v] { // section (2.2)
     mut(v).resize(0);
     expect(0_ul == std::size(v));
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
+
+```cpp
+  // tear down (4)
+```
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 ```cpp
 };
