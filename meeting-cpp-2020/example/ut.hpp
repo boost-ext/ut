@@ -94,10 +94,8 @@ template <class TSuite> concept suite = std::invocable<TSuite>;
 /**
  * Expression concept
  */
-template <class TExpr> concept expression = requires {
-  requires std::convertible_to<TExpr, bool>;
-  requires printable<TExpr>;
-};
+template <class TExpr>
+concept expression = std::convertible_to<TExpr, bool> and printable<TExpr>;
 
 /**
  * Operator concept
@@ -234,7 +232,7 @@ template <class TLhs, class TRhs>
 }
 
 namespace terse {
-template <class T>
+
 /**
  * Comparison overload for terse syntax
  * @example (42_i == 42)
@@ -242,11 +240,12 @@ template <class T>
  * @param rhs Right-hand side operator
  * @return Comparison object which check the expression on destruction
  */
+template <concepts::op T>
 constexpr concepts::op auto
 operator==(detail::value_location<typename T::value_type> lhs, T rhs) {
   using eq_t = detail::eq<decltype(lhs), decltype(rhs)>;
   struct eq : eq_t {
-    ~eq() {
+    ~eq() noexcept {
       if (not *this) {
         detail::error(*this, eq_t::lhs.location());
       }
@@ -255,12 +254,12 @@ operator==(detail::value_location<typename T::value_type> lhs, T rhs) {
   return eq{{lhs, rhs}};
 }
 
-template <class T>
+template <concepts::op T>
 constexpr concepts::op auto
 operator==(T lhs, detail::value_location<typename T::value_type> rhs) {
   using eq_t = detail::eq<decltype(lhs), decltype(rhs)>;
   struct eq : eq_t {
-    ~eq() {
+    ~eq() noexcept {
       if (not *this) {
         detail::error(*this, eq_t::rhs.location());
       }
@@ -334,12 +333,12 @@ struct test final {
  */
 [[nodiscard]] constexpr concepts::test auto operator""_test(const char *name,
                                                             std::size_t size) {
-  return test{{name, size}};
+  return test{.name = {name, size}};
 }
 
 /**
  * Convenient alias for creating test sections
- * @example should("return true") = [] {};
+ * @example should("return true") = []{};
  */
 constexpr inline auto should = [](const auto name) -> concepts::test auto {
   return test{name};
@@ -347,9 +346,9 @@ constexpr inline auto should = [](const auto name) -> concepts::test auto {
 
 /**
  * Convenient aliases for creating BDD tests
- * @example given("I have an object") = [] {};
- * @example when("I call it") = [] {};
- * @example then("I should get") = [] {};
+ * @example given("I have an object") = []{};
+ * @example when("I call it") = []{};
+ * @example then("I should get") = []{};
  */
 namespace bdd {
 constexpr inline auto given = [](const auto name) -> concepts::test auto {
@@ -365,7 +364,7 @@ constexpr inline auto then = [](const auto name) -> concepts::test auto {
 
 /**
  * Convenient aliases for creating Spec tests
- * @example describe("test") = [] { it("should") = [] {}; };
+ * @example describe("test") = [] { it("should") = []{}; };
  */
 namespace spec {
 constexpr inline auto describe = [](const auto name) -> concepts::test auto {

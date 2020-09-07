@@ -57,23 +57,26 @@
 ### Agenda
 
 * #### Motivation
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 * #### Implementation*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 * #### UT - Unit Testing Framework
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 * #### Benchmarks
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 * #### Summary
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ---
 
+##### <p align="left">&nbsp;&nbsp;&nbsp;&nbsp;* Simplified (~200 LOC) / C++20</p>
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
 ##### <p align="left" style="background-color:darkblue">&nbsp;&nbsp;&nbsp;&nbsp;`darkblue background - something to remember ✓`</p>
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 ##### <p align="left" style="background-color:green">&nbsp;&nbsp;&nbsp;&nbsp;`green background - achivement unlocked 👍`</p>
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="7" -->
 
 ==============================================================================
 
@@ -131,18 +134,22 @@ int main() {
 ### Existing Solutions - Problems
 
 * #### Macro based*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
 * #### Boilerplate*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
 * #### Slow to compile*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
 * #### Hard to integrate*
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
 * ...
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 > \* Generalized
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ----
 
@@ -174,7 +181,7 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 01 import ut;               // C++20 module
 02
 03 int main() {
-04   "sum"_test = [] {      // Running "sum"...
+04   "sum"_test = [] {      // Running... sum
 05      sum(1, 2) == 42_i;  // sum.cpp:5:FAILED [ 3 == 42 ]
 06   };                     // tests:   1 | 1 failed
 07 }                        // asserts: 1 | 0 passed | 1 failed
@@ -185,9 +192,9 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 01 import ut;
 02
 03 suite sums = [] {
-04   "sum with no args"_test       = [] { sum()     == 0_i;  };
-05   "sum with single arg"_test    = [] { sum(42)   == 42_i; };
-06   "sum with multiple args"_test = [] { sum(1, 2) == 3_i;  };
+04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
+05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
+06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
 07 };
 08
 09 int main() {              // tests:   3 | 0 failed
@@ -206,44 +213,64 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 #### ut.module
 
 ```cpp
-01 import ut;
-02
-03 int main() { }
+import ut;
 ```
 <!-- .element: class="fragment" data-fragment-index="0" -->
 
-----
+---
 
-#### ut.module
+##### ut.hpp
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-export module ut;
+export module ut; // module interface unit
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
 import std;
 ```
-<!-- .element: class="fragment" data-fragment-index="2" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
 export namespace ut::inline v1 {
   // ...
 }
 ```
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
+#### ut.module
+
+---
+
+##### main.cpp
+<!-- .element: class="fragment" data-fragment-index="0" -->
+
+```cpp
+01 import ut;
+02
+03 int main() {
+04   // ...
+05 }
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ---
 
 ```sh
-$CXX $CXXFLAGS main.cpp -o main.out
+$CXX $CXXFLAGS -emit-module-interface -c ut.hpp -o ut.pcm
 ```
-<!-- .element: class="fragment" data-fragment-index="4" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
+```sh
+$CXX $CXXFLAGS main.cpp ut.pcm -o main
 ```
-./main.out # 👍
-```
-<!-- .element: class="fragment" data-fragment-index="5" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+<pre><code>./main</code> -> <font color="lime">✔️</font></pre>
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
 ----
 
@@ -293,7 +320,7 @@ template <class T> concept printable =
 ---
 
 ```cpp
-template <class T, auto expr = +[] {}> concept test =
+template <class T, auto expr = []{}> concept test =
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -334,12 +361,17 @@ template <class T, auto expr = +[] {}> concept test =
 <!-- .element: class="fragment" -->
 
 ```cpp
-template<class T> concept Auto = true; // The least constraint concept
+template<class T>
+concept Auto = true; // the least constraint concept
 ```
 <!-- .element: class="fragment" -->
 
 ```cpp
-auto foo(Auto auto); // Alternatively requires might be used
+auto foo(auto);                // no constraint
+auto foo(Auto auto);           // always satisfied - terse syntax
+template<Auto T> auto foo(T);  // always satisfied - instead of type
+template<class T>
+ requires Auto<T> auto foo(T); // always satisfied - requires
 ```
 <!-- .element: class="fragment" -->
 
@@ -351,14 +383,14 @@ auto foo(Auto auto); // Alternatively requires might be used
 #### ut::test
 
 ```cpp
-struct test final {
-  std::string_view name{}; /// test case name
+struct test {
+  std::string_view name{}; // test case name
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  auto operator=(std::invocable auto test) {
-    std::clog << "\nRunning... " << name << '\n';
+  auto operator=(std::invocable auto test) -> void {
+    std::clog << "Running... " << name << '\n';
     test();
   }
 ```
@@ -374,7 +406,7 @@ struct test final {
 ```cpp
 [[nodiscard]] constexpr concepts::test auto operator""_test(
   const char* name, std::size_t size) {
-  return test{{name, size}};
+  return test{.name = {name, size}};
 }
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
@@ -395,9 +427,7 @@ struct test final {
 
 ---
 
-```sh
-Running... sum # 👍
-```
+<pre><code>Running... sum</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -409,7 +439,7 @@ Running... sum # 👍
 02
 03 int main() {
 04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; //  ut::operator==, ut::""_i
+05      sum(1, 2) == 42_i; // ut::operator==, ut::""_i
 06   };
 07 }
 ```
@@ -435,23 +465,17 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 ```
 <!-- .element: class="fragment" -->
 
-```cpp
-ERROR: overloaded 'operator==' must have at least
-       one parameter of class or enumeration type
-````
+<pre><code>constexpr auto operator==(int, int) -> bool { return {}; }</code> -> <font color="salmon">error: overloaded 'operator==' must have at least
+      one parameter of class or enumeration type
+</font></pre>
 <!-- .element: class="fragment" -->
 
 ---
 
-```cpp
-template<auto N> constexpr auto operator==(
-  std::integral_constant<int, N>, int) -> bool { return {}; }
-```
-<!-- .element: class="fragment" -->
-
-```cpp
-OK
-```
+<pre><code>template< auto N > constexpr auto operator==(
+  std::integral_constant< int, N >, int) -> bool {
+  return {};
+}</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 <!-- .slide: data-background="darkblue" -->
@@ -461,14 +485,18 @@ OK
 #### ut::operator==
 
 ```cpp
-template <class TOp> concept op = requires(TOp op) {
-  requires requires {
-    op.lhs;
-    op.rhs;
-    requires std::convertible_to<TOp, bool>;
-  }
-  requires printable<TOp>;
-};
+template <class TOp> concept op =
+  requires printable<TOp> and (
+    requires(TOp op) { // eq, ...
+      op.lhs; // left-hand side operator
+      op.rhs; // right-hand side operator
+      requires std::convertible_to<TOp, bool>;
+    } or
+    requires(TOp op) { // integral_constant
+      typename TOp::value_type;
+      op.value;
+    }
+  );
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -502,13 +530,13 @@ struct eq final {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  TLhs lhs{}; // Left-hand side operator
-  TRhs rhs{}; // Right-hand side operator
+  TLhs lhs{}; // left-hand side operator
+  TRhs rhs{}; // right-hand side operator
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  ~eq() {
+  ~eq() noexcept {
     if (not *this) { error(*this); }
   }
 ```
@@ -516,14 +544,14 @@ struct eq final {
 
 ```cpp
   [[nodiscard]] constexpr explicit(false) operator bool() const {
-    return get(lhs) == get(rhs);
+    return value(lhs) == value(rhs);
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
   friend auto& operator<<(auto& os, const eq& op) {
-    return (os << get(op.lhs) << " == " << get(op.rhs));
+    return (os << value(op.lhs) << " == " << value(op.rhs));
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
@@ -543,7 +571,7 @@ template <class TLhs, class TRhs> eq(TLhs, TRhs) -> eq<TLhs, TRhs>;
 #### ut::detail
 
 ```cpp
-constexpr auto error(const auto &expr) -> void {
+auto error(const auto& expr) -> void {
   std::cerr << "FAILED: " << expr << '\n';
 }
 ```
@@ -552,15 +580,15 @@ constexpr auto error(const auto &expr) -> void {
 ---
 
 ```cpp
-constexpr auto get(auto value) {
+constexpr auto value(auto op) { // underlying value
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  if constexpr (requires { value.get(); }) {
-    return value.get();
+  if constexpr (requires { op.value; }) {
+    return op.value;
   } else {
-    return value;
+    return op;
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -575,13 +603,13 @@ constexpr auto get(auto value) {
 #### Design By Introspection - https://d.godbolt.org/z/n8e4de
 
 ```cpp
-constexpr auto foo(auto t) {
+constexpr auto foo(auto v) {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  if constexpr(requires{ t.foo; }) {
-    return t.foo;
+  if constexpr (requires{ v.foo; }) {
+    return v.foo;
   } else {
     return 0;
   }
@@ -607,6 +635,9 @@ static_assert(0 == foo(b));
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
+##### https://www.youtube.com/watch?v=HdzwvY8Mo-w
+<!-- .element: class="fragment" data-fragment-index="6" -->
+
 <!-- .slide: data-background="darkblue" -->
 
 ----
@@ -630,7 +661,7 @@ static_assert(0 == foo(b));
 
 ```cpp
 template <char... Cs>
-[[nodiscard]] constexpr auto operator""_i() {
+[[nodiscard]] constexpr auto operator""_i() { // int
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -640,7 +671,7 @@ template <char... Cs>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-    return std::integral_constant<
+    return std::integral_constant<int,
       ((std::pow(10, sizeof...(Ns) - Ns - 1)) * (Cs - '0')) + ...)
     >{};
 ```
@@ -703,10 +734,8 @@ static_assert(0 + 1 + 2 == iife<3>);
 
 ---
 
-```sh
-Running... sum
-FAILED: [3 == 42] # 👍
-```
+<pre><code>Running... sum
+FAILED: [3 == 42]</code> -> <font color="gray">It's missing FILE:LINE!</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -723,20 +752,14 @@ FAILED: [3 == 42] # 👍
 
 #### Source Location / C++20 - https://godbolt.org/z/G6Pzb3
 
-```cpp
-constexpr auto operator==(
+<pre><code>constexpr auto operator==(
   auto, auto, const std::source_location& location =
                     std::source_location::current()
-) -> bool;
-```
-<!-- .element: class="fragment" -->
-
----
-
-```cpp
-ERROR: parameter of overloaded 'operator=='
-       cannot have a default argument
-```
+) -> bool {
+  return {};
+}</code> -> <font color="salmon">error: parameter of overloaded 'operator=='
+      cannot have a default argument
+</font></pre>
 <!-- .element: class="fragment" -->
 
 <!-- .slide: data-background="darkblue" -->
@@ -746,7 +769,7 @@ ERROR: parameter of overloaded 'operator=='
 #### Source Location / C++20
 
 ```cpp
-constexpr auto error(const auto &expr, const auto &location) -> void {
+auto error(const auto& expr, const auto& location) -> void {
   std::cerr << location.file_name() << ':' << location.line()
             << ":FAILED: " << expr << '\n';
 }
@@ -765,7 +788,7 @@ struct eq final {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  ~eq() {
+  ~eq() noexcept {
     if (not *this) {
       error(*this, location_);
     }
@@ -798,10 +821,8 @@ struct eq final {
 
 ---
 
-```sh
-Running... sum
-ut.hpp:128:FAILED: [3 == 42] # 👎
-```
+<pre><code>Running... sum
+ut.hpp:128:FAILED: [3 == 42]</code> -> <font color="gray">Wrong FILE:LINE!</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -818,20 +839,13 @@ template <class TValue> struct value_location {
       value_location(TValue value,
                      const std::source_location &location =
                            std::source_location::current())
-      : value_{value}, location_{location} {}
+      : value{value}, location{location} {}
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  constexpr auto get() const { return value_; }
-  constexpr auto location() const { return location_; }
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-private:
-  TValue value_{};
-  std::source_location location_{};
+  TValue value{};
+  std::source_location location{};
 };
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -841,16 +855,17 @@ private:
 #### ut::value_location
 
 ```cpp
-template <op T> constexpr auto operator==(
+template <op T>
+constexpr auto operator==(
   value_location<typename T::value_type> lhs, T rhs) {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
   struct eq : detail::eq<decltype(lhs), decltype(rhs)> {
-    ~eq() {
+    ~eq() noexcept {
       if (not *this) {
-        error(*this, lhs.location());
+        error(*this, lhs.location);
       }
     }
   };
@@ -881,10 +896,8 @@ template <op T> constexpr auto operator==(
 
 ---
 
-```sh
-Running... sum
-test.cpp:05:FAILED: [3 == 42] # 👍
-```
+<pre><code>Running... sum
+test.cpp:05:FAILED: [3 == 42]</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
@@ -897,19 +910,92 @@ test.cpp:05:FAILED: [3 == 42] # 👍
 
 ----
 
-#### ut::suite
+#### ut::suite / ut::expect
 
 ```cpp
 01 import ut;// ✔️
 02
 03 suite sums = [] { // ut::suite
-04   "sum with no args"_test       = [] { sum()     == 0_i;  };
-05   "sum with single arg"_test    = [] { sum(42)   == 42_i; };
-06   "sum with multiple args"_test = [] { sum(1, 2) == 3_i;  };
+04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
+05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
+06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
 07 };
 08
-09 int main() { }
+09 int main() {
+10 }
 ```
+<!-- .element: class="fragment" -->
+
+----
+
+#### ut::expect
+
+```cpp
+01 import ut; // ✔️
+02
+03 int main() {
+04   expect(sum(1, 2) == 21_i) << "?"; // ut::expect
+05 }
+```
+
+----
+
+#### ut::expect
+
+```cpp
+template <class TExpr> concept expression =
+  std::convertible_to<TExpr, bool> and printable<TExpr>;
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+---
+
+```cpp
+constexpr concepts::streamable auto& expect(
+  concepts::expression auto expr,
+  const std::source_location &location =
+        std::source_location::current()) {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  if (not expr) {
+    error(expr, location);
+  }
+  return std::cerr;
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+```
+}
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+```cpp
+template <class TLhs, class TRhs>
+  requires concepts::op<TLhs> or concepts::op<TRhs>
+constexpr concepts::op auto operator==(TLhs lhs, TRhs rhs);
+```
+<!-- .element: class="fragment" data-fragment-index="6" -->
+
+----
+
+#### ut::expect - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+01 import ut;              // ✔️
+02
+03 int main() {
+04   expect(sum(1, 2) == 21_i) << '?';
+05 }
+```
+<!-- .element: class="fragment" -->
+
+---
+
+<pre><code>expect.cpp:04:FAILED [3 == 21] ?</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 ----
@@ -925,7 +1011,7 @@ concept suite = std::invocable<TSuite>;
 ---
 
 ```cpp
-struct suite final {
+struct suite {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -944,28 +1030,28 @@ struct suite final {
 
 ----
 
-#### ut::suite
+#### ut::suite / ut::expect
 
 ```cpp
-01 import ut;// ✔️
+01 import ut;        // ✔️
 02
 03 suite sums = [] { // ✔️
-04   "sum with no args"_test       = [] { sum()     == 0_i;  };
-05   "sum with single arg"_test    = [] { sum(42)   == 42_i; };
-06   "sum with multiple args"_test = [] { sum(1, 2) == 3_i;  };
+04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
+05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
+06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
 07 };
 08
-09 int main() { }
+09 int main() {
+10 }
 ```
 <!-- .element: class="fragment" -->
 
 ---
 
-```
-Running... sum with no args
+<pre><code>Running... sum with no args
 Running... sum with single arg
 Running... sum with multiple args
-```
+</code> -> <font color="lime">✔️</font></pre>
 <!-- .element: class="fragment" -->
 
 ----
@@ -978,15 +1064,15 @@ Running... sum with multiple args
 
 ----
 
-#### Full implementation at...
+#### Full implementation at:
 
 * #### https://github.com/boost-ext/ut/tree/gh-pages/meeting-cpp-2020/example
 <!-- .element: class="fragment" -->
 
-* #### Header - https://godbolt.org/z/PhTdbz
+* #### Header - https://godbolt.org/z/a7Mses
 <!-- .element: class="fragment" -->
 
-* #### Module - https://wandbox.org/permlink/z0aVn2E7DsYaJHAk
+* #### Module - https://wandbox.org/permlink/LRz6YCZJX9aff34x
 <!-- .element: class="fragment" -->
 
 ==============================================================================
@@ -1060,7 +1146,7 @@ $CXX $CXXFLAGS hello_world.cpp -o hello_world
 
 ```cpp
 auto ut_main(int argc, const char** argv) -> int {
-  cfg<override> = { .filter = argv[1] };
+  cfg<override> = {.filter = argv[1]};
   return cfg<override>.run();
 }
 ```
@@ -1075,11 +1161,11 @@ auto main(int argc, const char** argv) -> int {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  "empty"_test       = [] {};
-  "single"_test      = [] {};
-  "many"_test        = [] {
-    "equal"_test     = [] {};
-    "not equal"_test = [] {};
+  "empty"_test       = []{};
+  "single"_test      = []{};
+  "many"_test        = []{
+    "equal"_test     = []{};
+    "not equal"_test = []{};
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -1166,10 +1252,10 @@ v[3] == 4_l;                            // Not executed
 
 #### Misc/Logging - https://godbolt.org/z/rnanxr
 
-<pre><code class="line-numbers">(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]  should equal?</pre>
+<pre><code class="line-numbers">(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-<pre><code class="line-numbers">expect(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]  should equal?</pre>
+<pre><code class="line-numbers">expect(1_i == 2) << "should equal?";</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>] should equal?</pre>
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 <pre><code class="line-numbers">log << "I'm here!";</code>  -> assertions.cpp:1:I'm here!</pre>
@@ -1185,13 +1271,14 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
+  // set up (1)
   std::vector<int> v(5);
   expect((5_ul == std::size(v)) >> fatal);
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [v] {
+  should("resize bigger") = [v] /*mutable*/ { // section (2.1)
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
@@ -1199,17 +1286,22 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-  expect((5_ul == std::size(v)_ >> fatal);
+  expect((5_ul == std::size(v) >> fatal); // (3)
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
-  should("resize smaller") = [v] {
+  should("resize smaller") = [v] { // section (2.2)
     mut(v).resize(0);
     expect(0_ul == std::size(v));
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
+
+```cpp
+  // tear down (4)
+```
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 ```cpp
 };
@@ -1218,7 +1310,7 @@ v[3] == 4_l;                            // Not executed
 
 ----
 
-#### Suites - https://godbolt.org/z/F3xJcJ
+#### Suites - https://godbolt.org/z/7P3Ph1
 
 ```cpp
 suite errors = [] {
@@ -1227,12 +1319,15 @@ suite errors = [] {
 
 ```cpp
   "exception"_test = [] {
-    expect(throws([] { throw 0; })) << "throws any exception";
+     expect(throws([] { throw 0; })) << "throws any exception";
+     expect(throws<std::runtime_error>([] {
+       throw std::runtime_error{"error"}; })
+     );
   };
 
   "failure"_test = [] {
-    expect(aborts([] { assert(false); }));
-  };
+     expect(aborts([] { assert(false); }));
+   };
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -1243,7 +1338,7 @@ suite errors = [] {
 
 ---
 
-<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (2 asserts in 2 tests)</pre>
+<pre><code>int main() { }</code> -> <font color="lime">All tests passed</font> (3 asserts in 1 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
@@ -1362,7 +1457,7 @@ gherkin::steps steps = [](auto& steps) {
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  steps.feature("vector") = [&] {
+  steps.feature("Vector") = [&] {
     steps.scenario("*") = [&] {
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
@@ -1432,12 +1527,21 @@ describe("vector") = [] {
 #### Parallel execution - https://godbolt.org/z/M7z1qv
 
 ```cpp
+template <> auto cfg<ut::override> = parallel_runner{};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+----
+
+#### Parallel execution - https://godbolt.org/z/M7z1qv
+
+```cpp
 suite parallel_1 = [] {
   "test.1.1"_test = [] { expect(1_i == 1); };
   "test.1.2"_test = [] { expect(2_i == 2); };
 };
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
 suite parallel_2 = [] {
@@ -1445,34 +1549,30 @@ suite parallel_2 = [] {
   "test.2.2"_test = [] { expect(2_i == 2); };
 };
 ```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-template <> auto cfg<ut::override> = parallel_runner{};
-```
 <!-- .element: class="fragment" data-fragment-index="3" -->
-
 
 ---
 
 ```cpp
-./pr.out    ./pr.out
-test.2.1    test.1.1
-test.2.2    test.1.2
-test.1.1    test.2.1
-test.1.2    test.2.2
+./parallel    ./parallel
+test.2.1      test.1.1
+test.2.2      test.1.2
+test.1.1      test.2.1
+test.1.2      test.2.2
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 <pre><code></code> -> <font color="lime">All tests passed</font> (4 asserts in 4 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="5" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
 
 #### Benchmarking - https://godbolt.org/z/WqznMn
 
 ```cpp
-void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
+auto do_not_optimize(auto expr) -> void {
+  asm volatile("" :: "m"(expr) : "memory");
+}
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -1496,7 +1596,7 @@ void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
 
 ----
 
-#### And more at...
+#### And more at:
 
 #### https://github.com/boost-ext/ut
 <!-- .element: class="fragment" -->
@@ -1520,50 +1620,6 @@ void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
 <a href="images/Compilation_include.png"><img src="images/Compilation_include.png" style="width: 50%; background:none; border:none; box-shadow:none;" /></a>
 
 ##### 0 tests, 0 asserts, 1 cpp file
-
-----
-
-#### Benchmarks - [Assert](https://github.com/cpp-testing/ut-benchmark)
-
-<a href="images/Compilation_assert.png"><img src="images/Compilation_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_assert.png"><img src="images/Execution_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_assert.png"><img src="images/BinarySize_assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<!-- .element: style="margin-left:-15%; width:130%" -->
-
-##### 1 test, 1'000'000 asserts, 1 cpp file
-
-----
-
-#### Benchmarks - [Test](https://github.com/cpp-testing/ut-benchmark)
-
-<a href="images/Compilation_test.png"><img src="images/Compilation_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_test.png"><img src="images/Execution_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_test.png"><img src="images/BinarySize_test.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<!-- .element: style="margin-left:-15%; width:130%" -->
-
-#### 1'000 tests, 0 asserts, 1 cpp file
-
-----
-
-#### Benchmarks - [Suite](https://github.com/cpp-testing/ut-benchmark)
-
-<a href="images/Compilation_suite.png"><img src="images/Compilation_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_suite.png"><img src="images/Execution_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_suite.png"><img src="images/BinarySize_suite.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<!-- .element: style="margin-left:-15%; width:130%" -->
-
-#### 10'000 tests, 0 asserts, 100 cpp files
-
-----
-
-#### Benchmarks - [Suite+Assert](https://github.com/cpp-testing/ut-benchmark)
-
-<a href="images/Compilation_suite+assert.png"><img src="images/Compilation_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_suite+assert.png"><img src="images/Execution_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_suite+assert.png"><img src="images/BinarySize_suite+assert.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<!-- .element: style="margin-left:-15%; width:130%" -->
-
-#### 10'000 tests, 40'000 asserts, 100 cpp files
 
 ----
 
@@ -1607,11 +1663,40 @@ void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
 
 * #### UT is an example of cutting edge Unit Testing Framework
 <!-- .element: class="fragment" data-fragment-index="2" -->
-  * ##### Macro-based Frameworks can be built on top of Unit Testing primitives
-<!-- .element: class="fragment" data-fragment-index="3" -->
 
 * #### Possible standardization of Unit Testing primitives?
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+* #### Macro-based Frameworks can be built on top of Unit Testing primitives
 <!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
+#### Catch2 - https://godbolt.org/z/jfb7jK
+
+```cpp
+#define REQUIRE(...)   ut::expect(that % __VA_ARGS__)
+#define TEST_CASE(...) ut::test{"test", __VA_ARGS__} = [=]() mutable
+#define SECTION(name)  ut::test{"section", name} = [=]() mutable
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+TEST_CASE("vectors can be sized and resized", "[vector]") {
+  std::vector<int> v(5);
+
+  SECTION("resize bigger") {
+    v.resize(10);
+    REQUIRE(10 == std::size(v));
+  };
+};
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+---
+
+<pre><code>./catch2</code> -> <font color="lime">All tests passed</font> (1 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ==============================================================================
 
@@ -1622,7 +1707,6 @@ void do_not_optimize(auto t) { asm volatile("" ::"m"(t) : "memory"); }
 ---
 
 #### https://github.com/boost-ext/ut
-
           </script>
         </section>
 
