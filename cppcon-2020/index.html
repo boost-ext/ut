@@ -45,14 +45,14 @@
 
 ---
 
-## Macro-free testing with C++20
+## Macro-free testing
+## with C++20
 
 ---
 
 ###### [kris@jusiak.net](mailto:kris@jusiak.net) | [@krisjusiak](https://twitter.com/krisjusiak) | [linkedin.com/in/kris-jusiak](https://www.linkedin.com/in/kris-jusiak)
 
-
-==============================================================================
+----
 
 #### UT - https://github.com/boost-ext/ut
 
@@ -89,9 +89,10 @@
 <pre><code class="line-numbers">1_i == 2;                               // Terse syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-<pre><code class="line-numbers">expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre> <!-- .element: class="fragment" data-fragment-index="2" -->
-
 <pre><code class="line-numbers">expect(2 == 1_i);                       // Expect syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">2 == 1</font>]</pre>
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+<pre><code class="line-numbers">expect(that % 1 == 2);                  // Matchers syntax</code>  -> assertions.cpp:1:<font color="salmon">FAILED</font> [<font color="salmon">1 == 2</font>]</pre>
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 <pre><code class="line-numbers">std::vector v{1l, 2l, 3l};
@@ -210,19 +211,6 @@ for (auto i : std::vector{1, 2, 3}) {
 
 <pre><code>| std::tuple{true, 42};</code> -> <font color="lime">All tests passed</font> (4 asserts in 2 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
-
-----
-
-#### Meta-programming - https://godbolt.org/z/9oh97x
-
-```cpp
-01 constexpr auto i = 0;
-02 constant<42_i == i> and type<void> == type<int>;
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-<pre>-> meta-programming.cpp:2:<font color="salmon">FAILED</font> [(<font color="salmon">42 == 0 and void == int</font>)]</pre>
-<!-- .element: class="fragment" data-fragment-index="2" -->
 
 ----
 
@@ -364,27 +352,6 @@ describe("vector") = [] {
 
 ----
 
-#### And much more at:
-
-#### https://github.com/boost-ext/ut
-<!-- .element: class="fragment" -->
-
-==============================================================================
-
-### Benchmarks
-
-#### https://github.com/cpp-testing/ut-benchmark
-
-----
-
-#### Benchmarks - [Include](https://github.com/cpp-testing/ut-benchmark)
-
-<a href="images/Compilation_include.png"><img src="images/Compilation_include.png" style="width: 50%; background:none; border:none; box-shadow:none;" /></a>
-
-##### 0 tests, 0 asserts, 1 cpp file
-
-----
-
 #### Benchmarks - [Suite+Assert+STL](https://github.com/cpp-testing/ut-benchmark)
 
 <a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
@@ -407,16 +374,7 @@ describe("vector") = [] {
 
 ----
 
-#### Benchmarks - [Headers vs Precompiled headers vs C++20 Modules](https://github.com/cpp-testing/ut-benchmark)
-
-<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<!-- .element: style="margin-left:-15%; width:130%" -->
-
-#### 10'000 tests, 20'000 asserts, 100 cpp files
-
-==============================================================================
+---
 
 ### If you liked it then you _"should have put a"_test_ on it"
 
