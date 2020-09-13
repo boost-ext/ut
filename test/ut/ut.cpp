@@ -109,6 +109,100 @@ struct fake_cfg {
   std::string test_filter{};
 };
 
+struct test_reporter : ut::reporter<ut::printer> {
+  using reporter::asserts_;
+  using reporter::tests_;
+  using reporter::operator=;
+};
+
+struct test_runner : ut::runner<test_reporter> {
+  using runner::reporter_;
+  using runner::run_;
+  using runner::operator=;
+};
+
+struct test_empty {
+  auto operator()() -> void {}
+};
+
+struct test_throw {
+  auto operator()() -> void { throw 42; }
+};
+
+struct test_throw_runtime_error {
+  auto operator()() -> void { throw std::runtime_error("exception"); }
+};
+
+struct test_assertion_true {
+  explicit test_assertion_true(test_runner& run) : run{run} {}
+
+  auto operator()() -> void {
+    void(run.on(ut::events::assertion<bool>{.expr = true, .location = {}}));
+  }
+
+ private:
+  test_runner& run;
+};
+
+struct test_assertion_false {
+  explicit test_assertion_false(test_runner& run) : run{run} {}
+
+  auto operator()() -> void {
+    void(run.on(ut::events::assertion<bool>{.expr = false, .location = {}}));
+  }
+
+ private:
+  test_runner& run;
+};
+
+struct test_assertions {
+  explicit test_assertions(test_runner& run) : run{run} {}
+
+  auto operator()() -> void {
+    void(run.on(ut::events::assertion<bool>{.expr = false, .location = {}}));
+    run.on(ut::events::fatal_assertion{});
+    void(run.on(ut::events::assertion<bool>{.expr = true, .location = {}}));
+  }
+
+ private:
+  test_runner& run;
+};
+
+struct test_sub_section {
+  explicit test_sub_section(test_runner& run) : run{run} {}
+
+  auto operator()() -> void {
+    run.on(ut::events::test<test_empty>{.type = "test",
+                                        .name = "sub-section",
+                                        .location = {},
+                                        .arg = ut::none{},
+                                        .run = test_empty{}});
+  }
+
+ private:
+  test_runner& run;
+};
+
+struct test_sub_sections {
+  explicit test_sub_sections(test_runner& run) : run{run} {}
+
+  auto operator()() -> void {
+    run.on(ut::events::test<test_empty>{.type = "test",
+                                        .name = "sub-section-1",
+                                        .location = {},
+                                        .arg = ut::none{},
+                                        .run = test_empty{}});
+    run.on(ut::events::test<test_throw>{.type = "test",
+                                        .name = "sub-section-2",
+                                        .location = {},
+                                        .arg = ut::none{},
+                                        .run = test_throw{}});
+  }
+
+ private:
+  test_runner& run;
+};
+
 namespace ns {
 template <char... Cs>
 constexpr auto operator""_i() -> int {
@@ -365,12 +459,6 @@ int main() {
       static_assert(type<int> != type<void>);
     }
 
-    struct test_reporter : reporter<printer> {
-      using reporter::asserts_;
-      using reporter::tests_;
-      using reporter::operator=;
-    };
-
     {
       std::stringstream out{};
       std::stringstream err{};
@@ -409,22 +497,15 @@ int main() {
     }
 
     {
-      struct test_runner : runner<test_reporter> {
-        using runner::reporter_;
-        using runner::run_;
-        using runner::operator=;
-      };
-
       auto run = test_runner{};
       auto& reporter = run.reporter_;
       run.run_ = true;
 
-      const auto test_empty = [] {};
-      run.on(events::test<decltype(test_empty)>{.type = "test",
-                                                .name = "run",
-                                                .location = {},
-                                                .arg = none{},
-                                                .run = test_empty});
+      run.on(events::test<test_empty>{.type = "test",
+                                      .name = "run",
+                                      .location = {},
+                                      .arg = none{},
+                                      .run = test_empty{}});
       test_assert(1 == reporter.tests_.pass);
       test_assert(0 == reporter.tests_.fail);
       test_assert(0 == reporter.tests_.skip);
@@ -435,173 +516,138 @@ int main() {
       test_assert(1 == reporter.tests_.skip);
 
       run = {.filter = "unknown"};
-      run.on(events::test<decltype(test_empty)>{.type = "test",
-                                                .name = "filter",
-                                                .location = {},
-                                                .arg = none{},
-                                                .run = test_empty});
+      run.on(events::test<test_empty>{.type = "test",
+                                      .name = "filter",
+                                      .location = {},
+                                      .arg = none{},
+                                      .run = test_empty{}});
       test_assert(1 == reporter.tests_.pass);
       test_assert(0 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
+
       run = options{};
 
       run = {.filter = "filter"};
-      run.on(events::test<decltype(test_empty)>{.type = "test",
-                                                .name = "filter",
-                                                .location = {},
-                                                .arg = none{},
-                                                .run = test_empty});
+      run.on(events::test<test_empty>{.type = "test",
+                                      .name = "filter",
+                                      .location = {},
+                                      .arg = none{},
+                                      .run = test_empty{}});
       test_assert(2 == reporter.tests_.pass);
       test_assert(0 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
+
       run = options{};
 
-      const auto test_assertion_true = [&run] {
-        void(run.on(events::assertion<bool>{.expr = true, .location = {}}));
-      };
-      run.on(events::test<decltype(test_assertion_true)>{
-          .type = "test",
-          .name = "pass",
-          .location = {},
-          .arg = none{},
-          .run = test_assertion_true});
+      run.on(
+          events::test<test_assertion_true>{.type = "test",
+                                            .name = "pass",
+                                            .location = {},
+                                            .arg = none{},
+                                            .run = test_assertion_true{run}});
 
       test_assert(3 == reporter.tests_.pass);
       test_assert(0 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
 
-      const auto test_assertion_false = [&run] {
-        void(run.on(events::assertion<bool>{.expr = false, .location = {}}));
-      };
-      run.on(events::test<decltype(test_assertion_false)>{
-          .type = "test",
-          .name = "fail",
-          .location = {},
-          .arg = none{},
-          .run = test_assertion_false});
+      run.on(
+          events::test<test_assertion_false>{.type = "test",
+                                             .name = "fail",
+                                             .location = {},
+                                             .arg = none{},
+                                             .run = test_assertion_false{run}});
       test_assert(3 == reporter.tests_.pass);
       test_assert(1 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
 
-      const auto test_throw = [] { throw 42; };
-      run.on(events::test<decltype(test_throw)>{.type = "test",
-                                                .name = "exception",
-                                                .location = {},
-                                                .arg = none{},
-                                                .run = test_throw});
+      run.on(events::test<test_throw>{.type = "test",
+                                      .name = "exception",
+                                      .location = {},
+                                      .arg = none{},
+                                      .run = test_throw{}});
       test_assert(3 == reporter.tests_.pass);
       test_assert(2 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
 
-      const auto test_throw_runtime_error = [] {
-        throw std::runtime_error("exception");
-      };
-      run.on(events::test<decltype(test_throw_runtime_error)>{
+      run.on(events::test<test_throw_runtime_error>{
           .type = "test",
           .name = "exception",
           .location = {},
           .arg = none{},
-          .run = test_throw_runtime_error});
+          .run = test_throw_runtime_error{}});
       test_assert(3 == reporter.tests_.pass);
       test_assert(3 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
 
-      const auto test_sub_section = [&run, test_empty] {
-        run.on(events::test<decltype(test_empty)>{.type = "test",
-                                                  .name = "sub-section",
-                                                  .location = {},
-                                                  .arg = none{},
-                                                  .run = test_empty});
-      };
-      run.on(events::test<decltype(test_sub_section)>{.type = "test",
-                                                      .name = "section",
-                                                      .location = {},
-                                                      .arg = none{},
-                                                      .run = test_sub_section});
+      run.on(events::test<test_sub_section>{.type = "test",
+                                            .name = "section",
+                                            .location = {},
+                                            .arg = none{},
+                                            .run = test_sub_section{run}});
       test_assert(4 == reporter.tests_.pass);
       test_assert(3 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
 
-      const auto test_sub_sections = [&run, test_empty, test_throw] {
-        run.on(events::test<decltype(test_empty)>{.type = "test",
-                                                  .name = "sub-section-1",
-                                                  .location = {},
-                                                  .arg = none{},
-                                                  .run = test_empty});
-        run.on(events::test<decltype(test_throw)>{.type = "test",
-                                                  .name = "sub-section-2",
-                                                  .location = {},
-                                                  .arg = none{},
-                                                  .run = test_throw});
-      };
       run = {.filter = "section"};
-      run.on(
-          events::test<decltype(test_sub_sections)>{.type = "test",
-                                                    .name = "section",
-                                                    .location = {},
-                                                    .arg = none{},
-                                                    .run = test_sub_sections});
+      run.on(events::test<test_sub_sections>{.type = "test",
+                                             .name = "section",
+                                             .location = {},
+                                             .arg = none{},
+                                             .run = test_sub_sections{run}});
       test_assert(4 == reporter.tests_.pass);
       test_assert(4 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
+
       run = options{};
 
       run = {.filter = "section.sub-section-1"};
-      run.on(
-          events::test<decltype(test_sub_sections)>{.type = "test",
-                                                    .name = "section",
-                                                    .location = {},
-                                                    .arg = none{},
-                                                    .run = test_sub_sections});
+      run.on(events::test<test_sub_sections>{.type = "test",
+                                             .name = "section",
+                                             .location = {},
+                                             .arg = none{},
+                                             .run = test_sub_sections{run}});
       test_assert(5 == reporter.tests_.pass);
       test_assert(4 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
       run = options{};
 
       run = {.filter = "section.sub-section-2"};
-      run.on(
-          events::test<decltype(test_sub_sections)>{.type = "test",
-                                                    .name = "section",
-                                                    .location = {},
-                                                    .arg = none{},
-                                                    .run = test_sub_sections});
+      run.on(events::test<test_sub_sections>{.type = "test",
+                                             .name = "section",
+                                             .location = {},
+                                             .arg = none{},
+                                             .run = test_sub_sections{run}});
       test_assert(5 == reporter.tests_.pass);
       test_assert(5 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
       run = options{};
 
       run = {.filter = "section.sub-section-*"};
-      run.on(
-          events::test<decltype(test_sub_sections)>{.type = "test",
-                                                    .name = "section",
-                                                    .location = {},
-                                                    .arg = none{},
-                                                    .run = test_sub_sections});
+      run.on(events::test<test_sub_sections>{.type = "test",
+                                             .name = "section",
+                                             .location = {},
+                                             .arg = none{},
+                                             .run = test_sub_sections{run}});
       test_assert(5 == reporter.tests_.pass);
       test_assert(6 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
       run = options{};
 
-      const auto test_assertions = [&run] {
-        void(run.on(events::assertion<bool>{.expr = false, .location = {}}));
-        run.on(events::fatal_assertion{});
-        void(run.on(events::assertion<bool>{.expr = true, .location = {}}));
-      };
-      run.on(events::test<decltype(test_assertions)>{.type = "test",
-                                                     .name = "fatal",
-                                                     .location = {},
-                                                     .arg = none{},
-                                                     .run = test_assertions});
+      run.on(events::test<test_assertions>{.type = "test",
+                                           .name = "fatal",
+                                           .location = {},
+                                           .arg = none{},
+                                           .run = test_assertions{run}});
       test_assert(5 == reporter.tests_.pass);
       test_assert(7 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
 
-      run.on(events::test<decltype(test_assertion_true)>{
-          .type = "test",
-          .name = "normal",
-          .location = {},
-          .arg = none{},
-          .run = test_assertion_true});
+      run.on(
+          events::test<test_assertion_true>{.type = "test",
+                                            .name = "normal",
+                                            .location = {},
+                                            .arg = none{},
+                                            .run = test_assertion_true{run}});
       test_assert(6 == reporter.tests_.pass);
       test_assert(7 == reporter.tests_.fail);
       test_assert(1 == reporter.tests_.skip);
