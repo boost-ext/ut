@@ -384,6 +384,28 @@ describe("vector") = [] {
 
 #### https://github.com/boost-ext/ut
 
+----
+
+#### Catch2 - https://godbolt.org/z/jfb7jK
+
+```cpp
+#define REQUIRE(...)   ut::expect(that % __VA_ARGS__)
+#define TEST_CASE(...) ut::test{"test", __VA_ARGS__} = [=]() mutable
+#define SECTION(name)  ut::test{"section", name} = [=]() mutable
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+TEST_CASE("vectors can be sized and resized", "[vector]") {
+  std::vector<int> v(5);
+
+  SECTION("resize bigger") {
+    v.resize(10);
+    REQUIRE(10 == std::size(v));
+  };
+};
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
           </script>
         </section>
 
