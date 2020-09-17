@@ -145,7 +145,7 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-set(package_directory "${CMAKE_INSTALL_LIBDIR}/cmake/ut")
+set(package_directory "${CMAKE_INSTALL_PREFIX}/lib/cmake/ut")
 set(config_output "${CMAKE_CURRENT_BINARY_DIR}/ut-config.cmake")
 
 # Generate config file.
