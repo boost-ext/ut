@@ -56,25 +56,25 @@
 
 #### UT - https://github.com/boost-ext/ut
 
-* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
-<!-- .element: class="fragment" -->
+* #### Single header/module (2k LOC - [ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
-* #### Single header/module (2k LOC - [boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
-<!-- .element: class="fragment" -->
+* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 * #### Macro-free (✔️)
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 * #### Features ([Assertions](https://github.com/boost-ext/ut/tree/master/example/expect.cpp), [Suites](https://github.com/boost-ext/ut/tree/master/example/suite.cpp), [Tests](https://github.com/boost-ext/ut/tree/master/example/skip.cpp), [Sections](https://github.com/boost-ext/ut/tree/master/example/section.cpp), [BDD](https://github.com/boost-ext/ut/tree/master/example/BDD.cpp), [Matchers](https://github.com/boost-ext/ut/tree/master/example/matcher.cpp), [Logging](https://github.com/boost-ext/ut/tree/master/example/log.cpp), [...](https://github.com/boost-ext/ut/tree/master/example))
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
 ---
 
 * #### (\*) Limitations may apply
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 * #### UT is not an official Boost library
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 ----
 
@@ -122,7 +122,7 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [v] /*mutable*/ { // section (2.1)
+  should("resize bigger") = [v] { // section (2.1)
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
@@ -214,6 +214,39 @@ for (auto i : std::vector{1, 2, 3}) {
 
 ----
 
+#### Spec - https://godbolt.org/z/6jKKzT
+
+```cpp
+describe("vector") = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  std::vector<int> v(5);
+  expect((5_ul == std::size(v)) >> fatal);
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+  it("should resize bigger") = [v] {
+    mut(v).resize(10);
+    expect(10_ul == std::size(v));
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
 #### Behavior Driven Development (`BDD`) - https://godbolt.org/z/4Mdo3K
 
 ```cpp
@@ -248,7 +281,8 @@ feature("vector") = [] {
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-}; };
+  };
+};
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -261,94 +295,37 @@ feature("vector") = [] {
 
 #### Gherkin - https://godbolt.org/z/jb1d8P
 
-```cpp
-"gherkin"_test = steps |
-  R"(
-    Feature: Vector
-    Scenario: Resize
-      Given I have a vector
-      When I resize bigger
-      Then The size should increase
-  )";
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+###### vector.feature
+<!-- .element: class="fragment" data-fragment-index="0" -->
 
-##### Might be loaded from a `gherkin.feature` file
-<!-- .element: class="fragment" data-fragment-index="2" -->
-----
-
-#### Gherkin - https://godbolt.org/z/jb1d8P
-
-```cpp
-gherkin::steps steps = [](auto& steps) {
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-  steps.feature("vector") = [&] {
-    steps.scenario("*") = [&] {
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-      steps.given("I have a vector") = [&] {
-        std::vector<int> v(5);
-        steps.when("I resize bigger") = [&] { v.resize(10); };
-        steps.then("The size should increase") = [&] {
-          expect(10_ul == std::size(v));
-        };
-      };
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-    };
-  };
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-};
+```gherkin
+Feature: Vector
+  Scenario: Resize
+    Given I have a vector
+    When I resize bigger
+    Then The size should increase
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ---
 
-<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-----
-
-#### Spec - https://godbolt.org/z/6jKKzT
-
-```cpp
-describe("vector") = [] {
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-  std::vector<int> v(5);
-  expect((5_ul == std::size(v)) >> fatal);
-```
+###### vector.cpp
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  it("should resize bigger") = [v] {
-    mut(v).resize(10);
-    expect(10_ul == std::size(v));
+gherkin::steps steps = [](auto& s) {
+ s.feature("Vector") = [&] {
+  s.scenario("*") = [&]{
+   s.given("I have a vector") = [&] {
+    std::vector<int> v(5);
+    s.when("I resize bigger") = [&] { v.resize(10); };
+    s.then("The size should increase") = [&]{ 10_u == std::size(v); };
+   };
   };
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
+ };
 };
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
----
-
-<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="4" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
 
@@ -373,6 +350,8 @@ describe("vector") = [] {
 #### 1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)
 
 ----
+
+#### https://godbolt.org/z/Y43mXz
 
 ---
 
