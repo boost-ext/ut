@@ -1085,64 +1085,35 @@ Running... sum with multiple args
 
 #### UT - Overview
 
-* #### No dependencies (C++17\*/[C++20](https://en.cppreference.com/w/cpp/compiler_support#cpp2a), Tested Compilers: [GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
-<!-- .element: class="fragment" -->
+* #### C++20 ([GCC-9+, Clang-9.0+, Apple Clang-11.0.0+](https://travis-ci.org/boost-ext/ut), [MSVC-2019+*](https://ci.appveyor.com/project/boost-ext/ut))
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
-* #### Single header/module (2k LOC - [boost/ut.hpp](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
-<!-- .element: class="fragment" -->
+* #### Single [header/module](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) (2k LOC) with no external dependencies
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 * #### Macro-free (✔️)
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 * #### Features ([Assertions](https://github.com/boost-ext/ut/tree/master/example/expect.cpp), [Suites](https://github.com/boost-ext/ut/tree/master/example/suite.cpp), [Tests](https://github.com/boost-ext/ut/tree/master/example/skip.cpp), [Sections](https://github.com/boost-ext/ut/tree/master/example/section.cpp), [BDD](https://github.com/boost-ext/ut/tree/master/example/BDD.cpp), [Matchers](https://github.com/boost-ext/ut/tree/master/example/matcher.cpp), [Logging](https://github.com/boost-ext/ut/tree/master/example/log.cpp), [...](https://github.com/boost-ext/ut/tree/master/example))
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
 
 ---
 
 * #### (\*) Limitations may apply
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 * #### UT is not an official Boost library
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="6" -->
 
 ----
 
 #### Hello World - https://godbolt.org/z/Y43mXz
 
-```cpp
-// #include <boost/ut.hpp> // Single header
-//  import   boost.ut;     // Single module (C++20)
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-int main() {
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-  "hello world"_test = []{};
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-}
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
----
-
-```sh
-$CXX $CXXFLAGS hello_world.cpp -o hello_world
-```
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-<pre><code>./hello_world</code> -> <font color="lime">All tests passed</font> (0 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="5" -->
+<a href="https://godbolt.org/z/Jqb5Ye"><img src="images/ut.png" style="width: 100%; background:none; border:none; box-shadow:none;" /></a>
 
 ----
 
-#### Main - https://godbolt.org/z/f1ba1j
+#### UT main - https://godbolt.org/z/f1ba1j
 
 ```cpp
 auto ut_main(int argc, const char** argv) -> int {
@@ -1153,7 +1124,7 @@ auto ut_main(int argc, const char** argv) -> int {
 
 ----
 
-#### Main - https://godbolt.org/z/f1ba1j
+#### main - https://godbolt.org/z/f1ba1j
 
 ```cpp
 auto main(int argc, const char** argv) -> int {
@@ -1279,7 +1250,7 @@ v[3] == 4_l;                            // Not executed
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  should("resize bigger") = [v] /*mutable*/ { // section (2.1)
+  should("resize bigger") = [v] { // section (2.1)
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
@@ -1387,6 +1358,39 @@ for (auto i : std::vector{1, 2, 3}) {
 
 ----
 
+#### Spec - https://godbolt.org/z/6jKKzT
+
+```cpp
+describe("vector") = [] {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  std::vector<int> v(5);
+  expect((5_ul == std::size(v)) >> fatal);
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+  it("should resize bigger") = [v] {
+    mut(v).resize(10);
+    expect(10_ul == std::size(v));
+  };
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+----
+
 #### Behavior Driven Development (`BDD`) - https://godbolt.org/z/4Mdo3K
 
 ```cpp
@@ -1421,7 +1425,8 @@ feature("vector") = [] {
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-}; };
+  };
+};
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -1434,23 +1439,24 @@ feature("vector") = [] {
 
 #### Gherkin - https://godbolt.org/z/jb1d8P
 
-```cpp
-"gherkin"_test = steps |
-  R"(
-    Feature: Vector
-    Scenario: Resize
-      Given I have a vector
-      When I resize bigger
-      Then The size should increase
-  )";
+###### vector.feature
+<!-- .element: class="fragment" data-fragment-index="0" -->
+
+```gherkin
+Feature: Vector
+  Scenario: Resize
+    Given I have a vector
+    When I resize bigger
+    Then The size should increase
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-##### Might be loaded from a `gherkin.feature` file
-<!-- .element: class="fragment" data-fragment-index="2" -->
 ----
 
 #### Gherkin - https://godbolt.org/z/jb1d8P
+
+###### vector.cpp
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
 gherkin::steps steps = [](auto& steps) {
@@ -1485,52 +1491,29 @@ gherkin::steps steps = [](auto& steps) {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
----
-
-<pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
 ----
 
-#### Spec - https://godbolt.org/z/6jKKzT
+#### Gherkin - https://godbolt.org/z/jb1d8P
 
 ```cpp
-describe("vector") = [] {
+int main() {
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
-  std::vector<int> v(5);
-  expect((5_ul == std::size(v)) >> fatal);
+  "gherkin"_test = steps | "vector.feature"_file;
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
-  it("should resize bigger") = [v] {
-    mut(v).resize(10);
-    expect(10_ul == std::size(v));
-  };
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-```cpp
-};
+}
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
 ---
 
 <pre>-> <font color="lime">All tests passed</font> (2 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-----
-
-#### Parallel execution - https://godbolt.org/z/M7z1qv
-
-```cpp
-template <> auto cfg<ut::override> = parallel_runner{};
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
 
@@ -1542,7 +1525,7 @@ suite parallel_1 = [] {
   "test.1.2"_test = [] { expect(2_i == 2); };
 };
 ```
-<!-- .element: class="fragment" data-fragment-index="2" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 ```cpp
 suite parallel_2 = [] {
@@ -1550,9 +1533,14 @@ suite parallel_2 = [] {
   "test.2.2"_test = [] { expect(2_i == 2); };
 };
 ```
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 ---
+
+```cpp
+template <> auto cfg<ut::override> = parallel_runner{};
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
 ./parallel    ./parallel
@@ -1564,7 +1552,7 @@ test.1.2      test.2.2
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 <pre><code></code> -> <font color="lime">All tests passed</font> (4 asserts in 4 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ----
 
@@ -1597,7 +1585,7 @@ auto do_not_optimize(auto expr) -> void {
 
 ----
 
-#### And more at:
+#### And much more at:
 
 #### https://github.com/boost-ext/ut
 <!-- .element: class="fragment" -->
@@ -1729,7 +1717,7 @@ TEST_CASE("vectors can be sized and resized", "[vector]") {
         controls: false,
 
         // Display a presentation progress bar
-        progress: true,
+        progress: false,
 
         // Display the page number of the current slide
         slideNumber: 'c/t',
