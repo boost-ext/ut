@@ -70,9 +70,12 @@ int main(int argc, const char** argv) {
   // clang-format on
 
   if (argc == 2) {
-    const auto path = std::string{argv[1]};
-    std::ifstream file{path};
-    test(path) = steps | std::string{(std::istreambuf_iterator<char>(file)),
-                                     std::istreambuf_iterator<char>()};
+    const auto file = [](const auto path) {
+      std::ifstream file{path};
+      return std::string{(std::istreambuf_iterator<char>(file)),
+                         std::istreambuf_iterator<char>()};
+    };
+
+    "Calculator"_test = steps | file(argv[1]);
   }
 }
