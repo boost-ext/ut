@@ -1273,14 +1273,14 @@ class runner {
     path_[level_] = test.name;
 
     auto execute = std::empty(test.tag);
-    for (const auto& tag : test.tag) {
-      if (utility::is_match(tag, "skip")) {
+    for (const auto& tag_element : test.tag) {
+      if (utility::is_match(tag_element, "skip")) {
         on(events::skip<>{.type = test.type, .name = test.name});
         return;
       }
 
       for (const auto& ftag : tag_) {
-        if (utility::is_match(tag, ftag)) {
+        if (utility::is_match(tag_element, ftag)) {
           execute = true;
           break;
         }
