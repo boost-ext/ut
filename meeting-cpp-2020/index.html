@@ -346,35 +346,36 @@ template <class T, auto expr = []{}> concept test =
 
 ----
 
-#### Concepts / C++20
-
-* #### http://eel.is/c++draft/concepts
-<!-- .element: class="fragment" -->
+#### Concepts / C++20 - http://eel.is/c++draft/concepts
 
 * #### Type constraints (act like documentation for interfaces)
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 * #### Better error messages (Point of Instantiation (`POI`))
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 * #### Faster compilation times (in comparison to Substitution Failure is Not an Error (`SFINAE`))
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
 template<class T>
-concept Auto = true; // the least constraint concept
+concept Auto = true; // the least constraint concept (same as auto)
 ```
-<!-- .element: class="fragment" -->
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+---
+
+###### Equivalent syntax
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ```cpp
-auto foo(auto);                // no constraint
-auto foo(Auto auto);           // always satisfied - terse syntax
-template<Auto T> auto foo(T);  // always satisfied - instead of type
-template<class T>
- requires Auto<T> auto foo(T); // always satisfied - requires
+                                   auto foo(auto arg);
+template<class T> requires Auto<T> auto foo(T arg);
+template<class T>                  auto foo(T arg) requires Auto<T>;
+template<Auto T>                   auto foo(T arg);
+                                   auto foo(Auto auto arg);
 ```
-<!-- .element: class="fragment" -->
-
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 <!-- .slide: data-background="darkblue" -->
 
