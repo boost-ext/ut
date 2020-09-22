@@ -274,22 +274,18 @@ $CXX $CXXFLAGS main.cpp ut.pcm -o main
 
 ----
 
-#### Modules / C++20
+#### Modules / C++20 / [C++draft/module](http://eel.is/c++draft/module)
 
 <img src="images/modules.png" style="width: 100%; background:none; border:none; box-shadow:none;" />
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-##### http://eel.is/c++draft/module
-<!-- .element: class="fragment" data-fragment-index="1" -->
 
 * #### "Similar" to Precompiled Headers (`PCH`)
-<!-- .element: class="fragment" data-fragment-index="2" -->
+<!-- .element: class="fragment" data-fragment-index="1" -->
 
 * #### Allow to hide implementation details (detail namespace)
-<!-- .element: class="fragment" data-fragment-index="3" -->
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 * #### Faster compilation times (across translation units)
-<!-- .element: class="fragment" data-fragment-index="4" -->
+<!-- .element: class="fragment" data-fragment-index="3" -->
 
 <!-- .slide: data-background="darkblue" -->
 
@@ -346,7 +342,9 @@ template <class T, auto expr = []{}> concept test =
 
 ----
 
-#### Concepts / C++20 - http://eel.is/c++draft/concepts
+#### Concepts / C++20 / [C++draft/concepts](http://eel.is/c++draft/concepts)
+
+---
 
 * #### Type constraints (act like documentation for interfaces)
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -447,13 +445,9 @@ struct test {
 
 ----
 
-#### Operator overloading
+#### Operator overloading / [C++draft/over.match.oper](http://eel.is/c++draft/over.match.oper)
 
 <img src="images/over.match.oper.png" style="width: 100%; background:none; border:none; box-shadow:none;" />
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-##### http://eel.is/c++draft/over.match.oper
-<!-- .element: class="fragment" data-fragment-index="1" -->
 
 <!-- .slide: data-background="darkblue" -->
 
@@ -636,6 +630,8 @@ static_assert(0 == foo(b));
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
+---
+
 ##### https://www.youtube.com/watch?v=HdzwvY8Mo-w
 <!-- .element: class="fragment" data-fragment-index="6" -->
 
@@ -741,16 +737,12 @@ FAILED: [3 == 42]</code> -> <font color="gray">It's missing FILE:LINE!</font></p
 
 ----
 
-#### Source Location / C++20
+#### Source Location / C++20 / [C++draft/support.srcloc#source.location.syn](http://eel.is/c++draft/support.srcloc#source.location.syn)
+
+<img src="images/source_location.png" style="width: 50%; background:none; border:none; box-shadow:none;" />
 
 ##### Macro-free replacement for `__FILE__`, `__LINE__`, `__function__`
 <!-- .element: class="fragment" data-fragment-index="1" -->
-
-<img src="images/source_location.png" style="width: 50%; background:none; border:none; box-shadow:none;" />
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-##### http://eel.is/c++draft/support.srcloc#source.location.syn
-<!-- .element: class="fragment" data-fragment-index="2" -->
 
 <!-- .slide: data-background="darkblue" -->
 
