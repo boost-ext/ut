@@ -1672,7 +1672,7 @@ vs
 * `Type-name` erasure (allows types/function memoization)
 
 ```cpp
-  eq<integral_constant<42>, int>{{}, 42}
+  eq<integral_constant<42>, int>{ {}, 42 }
 
 vs
 
