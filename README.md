@@ -469,8 +469,13 @@ int main() {
           std::vector<int> v(5);
           expect((5_ul == std::size(v)) >> fatal);
 
-          steps.when("I resize bigger") = [&] { v.resize(10); };
-          steps.then("The size should increase") = [&] { expect(10_ul == std::size(v)); };
+          steps.when("I resize bigger") = [&] {
+            v.resize(10);
+          };
+
+          steps.then("The size should increase") = [&] {
+            expect(10_ul == std::size(v));
+          };
         };
       };
     };
@@ -782,8 +787,12 @@ int main() {
       steps.scenario("*") = [&] {
         steps.given("I have a number {value}") = [&](int value) {
           auto number = value;
-          steps.when("I add {value} to it") = [&](int value) { number += value; };
-          steps.then("I expect number to be {value}") = [&](int value) { expect(that % number == value); };
+          steps.when("I add {value} to it") = [&](int value) {
+            number += value;
+          };
+          steps.then("I expect number to be {value}") = [&](int value) {
+            expect(that % number == value);
+          };
         };
       };
     };
@@ -1143,7 +1152,7 @@ namespace boost::inline ext::ut::inline v1_1_8 {
    * Evaluates an expression
    * @example expect(42 == 42_i and 1 != 2_i);
    * @param expr expression to be evaluated
-   * @param location [source code location](https://en.cppreference.com/w/cpp/utility/source_location))
+   * @param source location https://en.cppreference.com/w/cpp/utility/source_location
    * @return stream
    */
   constexpr OStream& expect(
@@ -1285,7 +1294,8 @@ namespace boost::inline ext::ut::inline v1_1_8 {
         .colors  = { .none = "" },
         .dry__run = true
        };
-     * @param options.filter {default: "*"} runs all tests which names matches test.section.* filter
+     * @param options.filter {default: "*"} runs all tests which names
+                                            matches test.section.* filter
      * @param options.colors {default: {
                                .none = "\033[0m",
                                .pass = "\033[32m",
@@ -1527,7 +1537,7 @@ namespace boost::inline ext::ut::inline v1_1_8 {
    * Evaluates an expression
    * @example expect(42_i == 42);
    * @param expr expression to be evaluated
-   * @param location [source code location](https://en.cppreference.com/w/cpp/utility/source_location))
+   * @param source location https://en.cppreference.com/w/cpp/utility/source_location
    * @return stream
    */
   constexpr OStream& expect(
