@@ -17,7 +17,7 @@
 <p>
 
 <p align="center">
-  <a href="https://godbolt.org/z/Jqb5Ye"><img src="https://github.com/boost-ext/ut/raw/master/doc/images/ut.png"></a>
+  <a href="https://godbolt.org/z/Jqb5Ye"><img src="https://github.com/boost-ext/ut/raw/gh-pages/images/ut.png"></a>
 </p>
 
 <a name="motivation"></a>
@@ -1971,4 +1971,4 @@ All tests passed (4 asserts in 3 tests)
 
 **Disclaimer** `[Boost::ext].UT` is not an official Boost library.
 
-<p align="left"><img width="5%" src="https://github.com/boost-ext/ut/raw/master/doc/images/logo.png" /></p>
+<p align="left"><img width="5%" src="https://github.com/boost-ext/ut/raw/gh-pages/images/logo.png" /></p>
