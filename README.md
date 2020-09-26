@@ -787,8 +787,12 @@ int main() {
       steps.scenario("*") = [&] {
         steps.given("I have a number {value}") = [&](int value) {
           auto number = value;
-          steps.when("I add {value} to it") = [&](int value) { number += value; };
-          steps.then("I expect number to be {value}") = [&](int value) { expect(that % number == value); };
+          steps.when("I add {value} to it") = [&](int value) {
+            number += value;
+          };
+          steps.then("I expect number to be {value}") = [&](int value) {
+            expect(that % number == value);
+          };
         };
       };
     };
