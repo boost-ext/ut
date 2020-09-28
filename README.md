@@ -109,7 +109,7 @@ Sounds intriguing/interesting? Learn more at
 * Macro-free ([How does it work?](#how-it-works))
 * Easy to use ([Minimal API](#api) - `test, suite, operators, literals, [expect]`)
 * Fast to compile/execute ([Benchmarks](#benchmarks))
-* Features ([Assertions](example/expect.cpp), [Suites](example/suite.cpp), [Tests](example/test.cpp), [Sections](example/section.cpp), [Parameterized](example/parameterized.cpp), [BDD](example/BDD.cpp), [Gherkin](example/gherkin.cpp), [Spec](example/spec.cpp), [Matchers](example/matcher.cpp), [Logging](example/log.cpp), [Runners](example/cfg/runner.cpp), [Reporters](example/cfg/reporter.cpp), [...](example))
+* Features ([Assertions](https://github.com/boost-ext/ut/blob/master/example/expect.cpp), [Suites](https://github.com/boost-ext/ut/blob/master/example/suite.cpp), [Tests](https://github.com/boost-ext/ut/blob/master/example/test.cpp), [Sections](https://github.com/boost-ext/ut/blob/master/example/section.cpp), [Parameterized](https://github.com/boost-ext/ut/blob/master/example/parameterized.cpp), [BDD](https://github.com/boost-ext/ut/blob/master/example/BDD.cpp), [Gherkin](https://github.com/boost-ext/ut/blob/master/example/gherkin.cpp), [Spec](https://github.com/boost-ext/ut/blob/master/example/spec.cpp), [Matchers](https://github.com/boost-ext/ut/blob/master/example/matcher.cpp), [Logging](https://github.com/boost-ext/ut/blob/master/example/log.cpp), [Runners](https://github.com/boost-ext/ut/blob/master/example/cfg/runner.cpp), [Reporters](https://github.com/boost-ext/ut/blob/master/example/cfg/reporter.cpp), [...](https://github.com/boost-ext/ut/blob/master/example))
 * Integrations ([ApprovalTests.cpp](https://github.com/approvals/ApprovalTests.cpp/releases/tag/v.7.0.0))
 
 </p>
@@ -613,35 +613,49 @@ expect(0_i == sum());
 expect(2_i != sum(1, 2));
 expect(sum(1) >= 0_i);
 expect(sum(1) <= 1_i);
+```
 
+```cpp
 // message
 expect(3_i == sum(1, 2)) << "wrong sum";
+```
 
-//expressions
+```cpp
+// expressions
 expect(0_i == sum() and 42_i == sum(40, 2));
 expect(0_i == sum() or 1_i == sum()) << "compound";
+```
 
-// that
+```cpp
+// matchers
 expect(that % 0 == sum());
 expect(that % 42 == sum(40, 2) and that % (1 + 2) == sum(1, 2));
 expect(that % 1 != 2 or 2_i > 3);
+```
 
+```cpp
 // eq/neq/gt/ge/lt/le
 expect(eq(42, sum(40, 2)));
 expect(neq(1, 2));
 expect(eq(sum(1), 1) and neq(sum(1, 2), 2));
 expect(eq(1, 1) and that % 1 == 1 and 1_i == 1);
+```
 
+```cpp
 // floating points
 expect(42.1_d == 42.101) << "epsilon=0.1";
 expect(42.10_d == 42.101) << "epsilon=0.01";
 expect(42.10000001 == 42.1_d) << "epsilon=0.1";
+```
 
+```cpp
 // constant
 constexpr auto compile_time_v = 42;
 auto run_time_v = 99;
 expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
+```
 
+```cpp
 // failure
 expect(1_i == 2) << "should fail";
 expect(sum() == 1_i or 2_i == sum()) << "sum?";
