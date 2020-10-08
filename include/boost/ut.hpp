@@ -207,7 +207,8 @@ template <class TPattern, class TStr>
     } else if (pattern[pi] != str[si]) {
       return {};
     }
-    ++pi, ++si;
+    ++pi;
+    ++si;
   }
 
   if (si < str.size() or pi < std::size(pattern)) {

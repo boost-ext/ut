@@ -12,6 +12,7 @@
 #include <array>
 #include <cstdlib>
 #include <map>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -1571,4 +1572,76 @@ int main() {
     test_assert('\n' == std::any_cast<char>(test_cfg.log_calls[0]));
     test_assert("fatal"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
   }
+
+#if not defined(_MSC_VER)
+  {
+    using namespace ut;
+    auto& test_cfg = ut::cfg<ut::override>;
+    test_cfg = fake_cfg{};
+
+    class calculator {
+     public:
+      auto enter(const int& value) -> void { values_.push_back(value); }
+      auto add() -> void {
+        result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
+      }
+      auto sub() -> void {
+        result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
+                                  values_.front(), std::minus{});
+      }
+      auto get() const -> int { return result_; }
+
+     private:
+      std::vector<int> values_{};
+      int result_{};
+    };
+
+    bdd::gherkin::steps steps = [](auto& steps) {
+      steps.feature("Calculator") = [&] {
+        steps.scenario("*") = [&] {
+          steps.given("I have calculator") = [&] {
+            calculator calc{};
+            steps.when("I enter {value}") = [&](int value) {
+              calc.enter(value);
+            };
+            steps.when("I press add") = [&] { calc.add(); };
+            steps.when("I press sub") = [&] { calc.sub(); };
+            steps.then("I expect {value}") = [&](int result) {
+              expect(that % calc.get() == result);
+            };
+          };
+        };
+      };
+    };
+
+    // clang-format off
+  "Calculator"_test = steps |
+    R"(
+      Feature: Calculator
+
+        Scenario: Addition
+          Given I have calculator
+           When I enter 40
+           When I enter 2
+           When I press add
+           Then I expect 42
+
+        Scenario: Subtraction
+          Given I have calculator
+           When I enter 4
+           When I enter 2
+           When I press sub
+           Then I expect 2
+    )";
+    // clang-format on
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+
+    test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
+    test_assert(test_cfg.assertion_calls[0].result);
+
+    test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
+    test_assert(test_cfg.assertion_calls[1].result);
+  }
+#endif
 }

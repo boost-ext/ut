@@ -14,8 +14,6 @@ int main() {
   using namespace boost::ut::literals;
   using boost::ut::fatal;
 
-  static constexpr auto value = 42;  // Change to std::nullopt
-
   "fatal"_test = [] {
     using namespace boost::ut::operators;
     using boost::ut::expect;
