@@ -450,6 +450,7 @@ int main() {
                   to_string("true"_b or (42.42_d == 12.34)));
       test_assert("(not 1 == 2 and str == str2)" ==
                   to_string(not(1_i == 2) and ("str"sv == "str2"sv)));
+      test_assert("lhs == rhs" == to_string("lhs"_b == "rhs"_b));
     }
 
     {

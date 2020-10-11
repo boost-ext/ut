@@ -9,11 +9,11 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 namespace benchmark {
 struct benchmark : boost::ut::detail::test {
-  template <class TName>
-  explicit benchmark(const TName& name)
+  explicit benchmark(std::string_view name)
       : boost::ut::detail::test{"benchmark", name} {}
 
   template <class Test>
@@ -31,7 +31,7 @@ struct benchmark : boost::ut::detail::test {
 
 [[nodiscard]] auto operator""_benchmark(const char* name,
                                         decltype(sizeof("")) size) {
-  return ::benchmark::benchmark{boost::ut::utility::string_view{name, size}};
+  return ::benchmark::benchmark{{name, size}};
 }
 
 #if defined(__GNUC__) or defined(__clang__)
