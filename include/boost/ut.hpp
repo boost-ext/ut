@@ -75,40 +75,6 @@ namespace ut {
 
 inline namespace v1_1_8 {
 namespace utility {
-class string_view {
- public:
-  constexpr string_view() = default;
-  template <class TStr>
-  constexpr /*explicit(false)*/ string_view(const TStr& str)
-      : data_{str.c_str()}, size_{str.size()} {}
-  constexpr /*explicit(false)*/ string_view(const char* const data)
-      : data_{data}, size_{[data] {
-          decltype(sizeof("")) size{};
-          for (size = {}; data[size] != '\0'; ++size)
-            ;
-          return size;
-        }()} {}
-  constexpr string_view(const char* const data, decltype(sizeof("")) size)
-      : data_{data}, size_{size} {}
-  template <auto N>
-  constexpr string_view(const char (&data)[N]) : data_{data}, size_{N - 1} {}
-
-  template <class T>
-  [[nodiscard]] constexpr operator T() const {
-    return T{data_, size_};
-  }
-
-  template <class TOs>
-  friend auto operator<<(TOs& os, const string_view& sv) -> TOs& {
-    os.write(sv.data_, long(sv.size_));
-    return os;
-  }
-
- private:
-  const char* data_{};
-  decltype(sizeof("")) size_{};
-};
-
 template <class>
 class function;
 template <class R, class... TArgs>
@@ -260,13 +226,13 @@ class source_location {
 };
 
 template <class T>
-[[nodiscard]] constexpr auto type_name() -> utility::string_view {
+[[nodiscard]] constexpr auto type_name() -> std::string_view {
 #if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[105], sizeof(__FUNCSIG__) - 113};
+  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
 #elif defined(__clang__)
-  return {&__PRETTY_FUNCTION__[74], sizeof(__PRETTY_FUNCTION__) - 76};
+  return {&__PRETTY_FUNCTION__[70], sizeof(__PRETTY_FUNCTION__) - 72};
 #elif defined(__GNUC__)
-  return {&__PRETTY_FUNCTION__[113], sizeof(__PRETTY_FUNCTION__) - 115};
+  return {&__PRETTY_FUNCTION__[85], sizeof(__PRETTY_FUNCTION__) - 136};
 #endif
 }
 }  // namespace reflection
@@ -455,15 +421,15 @@ struct none {};
 
 namespace events {
 struct test_begin {
-  utility::string_view type{};
-  utility::string_view name{};
+  std::string_view type{};
+  std::string_view name{};
   reflection::source_location location{};
 };
 template <class Test, class TArg = none>
 struct test {
-  utility::string_view type{};
-  utility::string_view name{};
-  std::vector<utility::string_view> tag{};
+  std::string_view type{};
+  std::string_view name{};
+  std::vector<std::string_view> tag{};
   reflection::source_location location{};
   TArg arg{};
   Test run{};
@@ -487,7 +453,7 @@ struct test {
   }
 };
 template <class Test, class TArg>
-test(utility::string_view, utility::string_view, utility::string_view,
+test(std::string_view, std::string_view, std::string_view,
      reflection::source_location, TArg, Test) -> test<Test, TArg>;
 template <class TSuite>
 struct suite {
@@ -498,20 +464,20 @@ struct suite {
 template <class TSuite>
 suite(TSuite) -> suite<TSuite>;
 struct test_run {
-  utility::string_view type{};
-  utility::string_view name{};
+  std::string_view type{};
+  std::string_view name{};
 };
 template <class TArg = none>
 struct skip {
-  utility::string_view type{};
-  utility::string_view name{};
+  std::string_view type{};
+  std::string_view name{};
   TArg arg{};
 };
 template <class TArg>
-skip(utility::string_view, utility::string_view, TArg) -> skip<TArg>;
+skip(std::string_view, std::string_view, TArg) -> skip<TArg>;
 struct test_skip {
-  utility::string_view type{};
-  utility::string_view name{};
+  std::string_view type{};
+  std::string_view name{};
 };
 template <class TExpr>
 struct assertion {
@@ -535,14 +501,14 @@ struct assertion_fail {
 template <class TExpr>
 assertion_fail(TExpr) -> assertion_fail<TExpr>;
 struct test_end {
-  utility::string_view type{};
-  utility::string_view name{};
+  std::string_view type{};
+  std::string_view name{};
 };
 template <class TMsg>
 struct log {
   TMsg msg{};
 };
-template <class TMsg = utility::string_view>
+template <class TMsg = std::string_view>
 log(TMsg) -> log<TMsg>;
 struct fatal_assertion {};
 struct exception {
@@ -987,7 +953,7 @@ class printer {
     return *this;
   }
 
-  auto& operator<<(utility::string_view sv) {
+  auto& operator<<(std::string_view sv) {
     out_ << sv;
     return *this;
   }
@@ -1054,8 +1020,8 @@ class printer {
   template <class TExpr, class TException>
   auto& operator<<(const detail::throws_<TExpr, TException>& op) {
     return (*this << color(op) << "throws<"
-                  << std::string_view{reflection::type_name<TException>()}
-                  << ">" << colors_.none);
+                  << reflection::type_name<TException>() << ">"
+                  << colors_.none);
   }
 
   template <class TExpr>
@@ -1078,7 +1044,7 @@ class printer {
 
   template <class T>
   auto& operator<<(const detail::type_<T>&) {
-    return (*this << std::string_view{reflection::type_name<T>()});
+    return (*this << reflection::type_name<T>());
   }
 
   auto str() const { return out_.str(); }
@@ -1407,7 +1373,7 @@ template <class = override, class...>
 
 namespace detail {
 struct tag {
-  std::vector<utility::string_view> name{};
+  std::vector<std::string_view> name{};
 };
 
 template <class... Ts, class TEvent>
@@ -1429,9 +1395,9 @@ struct test_location {
 };
 
 struct test {
-  utility::string_view type{};
-  utility::string_view name{};
-  std::vector<utility::string_view> tag{};
+  std::string_view type{};
+  std::string_view name{};
+  std::vector<std::string_view> tag{};
 
   template <class... Ts>
   constexpr auto operator=(test_location<void (*)()> test) {
@@ -1458,15 +1424,15 @@ struct test {
     return test;
   }
 
-  constexpr auto operator=(void (*test)(utility::string_view)) {
+  constexpr auto operator=(void (*test)(std::string_view)) {
     return test(name);
   }
 
   template <class Test,
             type_traits::requires_t<not type_traits::is_convertible_v<
-                Test, void (*)(utility::string_view)>> = 0>
+                Test, void (*)(std::string_view)>> = 0>
   constexpr auto operator=(Test test)
-      -> decltype(test(type_traits::declval<utility::string_view>())) {
+      -> decltype(test(type_traits::declval<std::string_view>())) {
     return test(name);
   }
 };
@@ -1607,7 +1573,7 @@ struct expect_ {
 namespace literals {
 [[nodiscard]] inline auto operator""_test(const char* name,
                                           decltype(sizeof("")) size) {
-  return detail::test{"test", utility::string_view{name, size}};
+  return detail::test{"test", std::string_view{name, size}};
 }
 
 template <char... Cs>
@@ -1678,13 +1644,21 @@ template <char... Cs>
       math::den<unsigned long long, Cs...>(),
       math::den_size<unsigned long long, Cs...>()>{};
 }
-constexpr auto operator""_b(const char*, decltype(sizeof(""))) {
-  return detail::integral_constant<true>{};
+
+constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
+  struct named : std::string_view, detail::op {
+    using value_type = bool;
+    [[nodiscard]] constexpr operator value_type() const { return true; }
+    [[nodiscard]] constexpr auto operator==(const named&) const { return true; }
+    [[nodiscard]] constexpr auto operator==(const bool other) const {
+      return other;
+    }
+  };
+  return named{{name, size}};
 }
 }  // namespace literals
 
 namespace operators {
-#if defined(__cpp_lib_string_view) or defined(__APPLE__)
 [[nodiscard]] constexpr auto operator==(std::string_view lhs,
                                         std::string_view rhs) {
   return detail::eq_{lhs, rhs};
@@ -1694,7 +1668,6 @@ namespace operators {
                                         std::string_view rhs) {
   return detail::neq_{lhs, rhs};
 }
-#endif
 
 template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
 [[nodiscard]] constexpr auto operator==(T&& lhs, T&& rhs) {
@@ -1783,7 +1756,7 @@ template <class Test>
 
 [[nodiscard]] inline auto operator/(const detail::tag& lhs,
                                     const detail::tag& rhs) {
-  std::vector<utility::string_view> tag{};
+  std::vector<std::string_view> tag{};
   for (const auto& name : lhs.name) {
     tag.push_back(name);
   }
@@ -1832,7 +1805,7 @@ namespace terse {
 #pragma clang diagnostic ignored "-Wunused-comparison"
 #endif
 
-static inline struct {
+[[maybe_unused]] constexpr struct {
 } _t;
 
 template <class T>
