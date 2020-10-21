@@ -34,7 +34,7 @@ int main() {
   "terse"_test = [] {
     6_i == sum(1, 2, 3);
     sum(1, 1) == 2_i;
-    42_i == sum(40, 2) and 0_i != sum(1) or 4_i == 3;
+    (42_i == sum(40, 2) and 0_i != sum(1)) or (4_i == 3);   // FIXED: compiler-warning/error due to missing parenthesis (clang, gcc-10, ..)
   };
 
   // clang-format off

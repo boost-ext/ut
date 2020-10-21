@@ -5,7 +5,7 @@
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 cmake_minimum_required(VERSION 3.1)
-project(boost.ut CXX)
+project(boost.ut VERSION 1.1.8 LANGUAGES CXX)
 
 include(CTest)
 
@@ -24,11 +24,25 @@ option(BOOST_UT_ENABLE_RUN_AFTER_BUILD "Automatically run built artifacts. If di
 option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
+option(BUILD_UT_ENABLE_CPP17_EXAMPLES "Use C++17 examples for boost.ut" ON)
+
+
+# -- ARTIFACT DIRECTORY LAYOUT in CMAKE_CURRENT_BINARY_DIR/PROJECT_BINARY_DIR:
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+
 
 add_library(boost.ut INTERFACE)
-target_include_directories(boost.ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
+target_include_directories(boost.ut INTERFACE
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+target_compile_features(boost.ut INTERFACE cxx_std_20)
 add_library(boost::ut ALIAS boost.ut)
 
+message(STATUS "USING: CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID} (compiler.version: ${CMAKE_CXX_COMPILER_VERSION})")
+message(STATUS "USING: CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} (required: ${CMAKE_CXX_STANDARD_REQUIRED}, extensions: ${CMAKE_CXX_EXTENSIONS})")
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   if (WIN32) # clang-cl
     target_compile_options(boost.ut INTERFACE
@@ -54,7 +68,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
                         -Wno-class-varargs
                         -Wno-padded
                         -Wno-missing-prototypes
-                        -Wno-ctad-maybe-unsupported)
+                        -Wno-ctad-maybe-unsupported
+                        # -- TO-BE-DISCUSSED:
+                        # NEEDED-BY: AppleClang 12.x, clang-10, ...
+                        -Wno-missing-field-initializers
+                        # MAYBE: -Wno-error=missing-field-initializers
+        )
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   target_compile_options(boost.ut INTERFACE
@@ -85,7 +104,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
                       -Wduplicated-branches
                       -Wcast-align=strict
                       -Wmissing-include-dirs
-                      -Wno-missing-declarations)
+                      -Wno-missing-declarations
+                      # -- TO-BE-DISCUSSED:
+                      # NEEDED-BY: gcc-10, ...
+                      -Wno-missing-field-initializers
+                      # MAYBE: -Wno-error=float-equal
+                      # -- REQUIRED-FOR: gcc-9.x
+                      -Wno-error=undef
+  )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   target_compile_options(boost.ut INTERFACE
                       /W4
@@ -123,14 +149,22 @@ function(ut_add_custom_command_or_test)
           ${ARGN})
 
   if (BOOST_UT_ENABLE_RUN_AFTER_BUILD)
-    add_custom_command(TARGET ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
+    add_custom_command(TARGET ${PARSE_TARGET} COMMAND ${PARSE_COMMAND}
+            WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
   else()
-    add_test(NAME ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
+    add_test(NAME ${PARSE_TARGET} COMMAND ${PARSE_COMMAND}
+            WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
   endif()
 endfunction()
 
-include_directories(include)
+# AVOID: include_directories(include)
+# USE INSTEAD: target_link_librries(my_target PUBLIC boost::ut)
 
+if (BOOST_UT_BUILD_BENCHMARKS OR BOOST_UT_BUILD_EXAMPLES OR BOOST_UT_BUILD_TESTS)
+  enable_testing()
+endif()
 if (BOOST_UT_BUILD_BENCHMARKS)
   add_subdirectory(benchmark)
 endif()

@@ -4,12 +4,15 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-include_directories(include)
 
 add_executable(ft main.cpp test_suite_1.cpp test_suite_2.cpp test_suite_3.cpp)
+target_link_libraries(ft PRIVATE boost::ut)
+target_include_directories(ft PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 ut_add_custom_command_or_test(TARGET ft COMMAND ft)
 
 add_executable(ft-no-exceptions main.cpp test_suite_1.cpp test_suite_2.cpp test_suite_3.cpp)
+target_link_libraries(ft-no-exceptions PRIVATE boost::ut)
+target_include_directories(ft-no-exceptions PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 ut_add_custom_command_or_test(TARGET ft-no-exceptions COMMAND ft-no-exceptions)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -30,5 +33,18 @@ endif()
 
 if (NOT WIN32) # WIN32 includes both MSVC and clang-cl
   add_executable(ft-link main.cpp test_suite_1.cpp test_suite_2.cpp test_suite_3.cpp)
+  target_link_libraries(ft-link PRIVATE boost::ut)
+  target_include_directories(ft-link PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
   ut_add_custom_command_or_test(TARGET ft-link COMMAND ft-link)
+endif()
+
+
+# ---------------------------------------------------------------------------
+# CTEST DESCRIPTION
+# ---------------------------------------------------------------------------
+# ALREADY: enable_testing()
+add_test(NAME test.ft COMMAND ft)
+add_test(NAME test.ft-no-exceptions COMMAND ft-no-exceptions)
+if(TARGET ft-link)
+    add_test(NAME test.ft-link COMMAND ft-link)
 endif()
