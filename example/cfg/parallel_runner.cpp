@@ -41,8 +41,8 @@ class parallel_runner : public ut::runner<> {
 };
 }  // namespace cfg
 
-template <>
-auto ut::cfg<ut::override> = cfg::parallel_runner{};
+template <class... Ts>
+inline auto ut::cfg<ut::override, Ts...> = cfg::parallel_runner{};
 
 ut::suite parallel_1 = [] {
   using namespace ut;
