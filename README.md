@@ -1861,11 +1861,10 @@ All tests passed (4 asserts in 3 tests)
 <p>
 
 * [[Boost].UT - Unit Testing Framework - Kris Jusiak](https://boost-ext.github.io/ut/denver-cpp-2019)
-
+* [Future of Testing with C++20 - Kris Jusiak](https://boost-ext.github.io/ut/meeting-cpp-2020)
+* [Macro-Free Testing with C++20 - Kris Jusiak](https://www.youtube.com/watch?v=irdgFyxOs_Y)
 * ["If you liked it then you `"should have put a"_test` on it", Beyonce rule - Kris Jusiak](https://www.youtube.com/watch?v=yCI8MjvOMeE)
-
 * [Principles of Unit Testing With C++ - Dave Steffen and Kris Jusiak](https://www.youtube.com/watch?v=oOcuJdJJ33g)
-
 * [Empirical Unit Testing - Dave Steffen](https://www.twitch.tv/videos/686512433)
 
 </p>
