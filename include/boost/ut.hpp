@@ -1654,7 +1654,7 @@ constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
       return other;
     }
   };
-  return named{{name, size}};
+  return named{{name, size}, {}};
 }
 }  // namespace literals
 
