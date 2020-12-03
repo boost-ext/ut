@@ -369,17 +369,28 @@ int main() {
     }
 
     {
+      static_assert(not std::is_same_v<decltype(_sc(42)), decltype(_c(42))>);
+      static_assert(not std::is_same_v<decltype(42_sc), decltype(42_c)>);
+      static_assert(not std::is_same_v<decltype(_sc(42)), decltype(_uc(42u))>);
+      static_assert(not std::is_same_v<decltype(42_sc), decltype(42_uc)>);
+    }
+
+    {
       static_assert(_i(42) == 42_i);
       static_assert(_b(true));
       static_assert(not _b(false));
       static_assert(_s(42) == 42_s);
       static_assert(_c(42) == 42_c);
+      static_assert(_sc(42) == 42_sc);
       static_assert(_l(42) == 42_l);
       static_assert(_ll(42) == 42_ll);
       static_assert(_uc(42u) == 42_uc);
       static_assert(_us(42u) == 42_us);
       static_assert(_us(42u) == 42_us);
       static_assert(_ul(42u) == 42_ul);
+      static_assert(_ull(42u) == 42_ull);
+      static_assert(_ull(18'446'744'073'709'551'615ull) ==
+                    18'446'744'073'709'551'615_ull);
     }
 
     {

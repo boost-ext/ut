@@ -1592,6 +1592,11 @@ template <char... Cs>
 }
 
 template <char... Cs>
+[[nodiscard]] constexpr auto operator""_sc() {
+  return detail::integral_constant<math::num<signed char, Cs...>()>{};
+}
+
+template <char... Cs>
 [[nodiscard]] constexpr auto operator""_l() {
   return detail::integral_constant<math::num<long, Cs...>()>{};
 }
@@ -1619,6 +1624,11 @@ template <char... Cs>
 template <char... Cs>
 [[nodiscard]] constexpr auto operator""_ul() {
   return detail::integral_constant<math::num<unsigned long, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_ull() {
+  return detail::integral_constant<math::num<unsigned long long, Cs...>()>{};
 }
 
 template <char... Cs>
@@ -2054,6 +2064,7 @@ template <class TExpr>
 
 using _b = detail::value<bool>;
 using _c = detail::value<char>;
+using _sc = detail::value<signed char>;
 using _s = detail::value<short>;
 using _i = detail::value<int>;
 using _l = detail::value<long>;
@@ -2062,6 +2073,7 @@ using _u = detail::value<unsigned>;
 using _uc = detail::value<unsigned char>;
 using _us = detail::value<unsigned short>;
 using _ul = detail::value<unsigned long>;
+using _ull = detail::value<unsigned long long>;
 using _f = detail::value<float>;
 using _d = detail::value<double>;
 using _ld = detail::value<long double>;
@@ -2270,6 +2282,7 @@ using literals::operator""_b;
 using literals::operator""_i;
 using literals::operator""_s;
 using literals::operator""_c;
+using literals::operator""_sc;
 using literals::operator""_l;
 using literals::operator""_ll;
 using literals::operator""_u;
@@ -2279,6 +2292,7 @@ using literals::operator""_ul;
 using literals::operator""_f;
 using literals::operator""_d;
 using literals::operator""_ld;
+using literals::operator""_ull;
 
 using operators::operator==;
 using operators::operator!=;
