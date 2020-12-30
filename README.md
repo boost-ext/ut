@@ -153,7 +153,18 @@ cd build && make install # install
 
 > [Optional] CMake integration
 
-* [cmake/ut-config.cmake.in](cmake/ut-config.cmake.in)
+This project provides a CMake config and target.
+Just load `ut` with `find_package` to import the `boost::ut` target.
+Linking against this target will add the necessary include directory for the single header file.
+This is demonstrated in the following example.
+
+```cmake
+find_package(ut REQUIRED)
+
+add_library(my_test my_test.cpp)
+
+target_link_libraries(my_test PRIVATE boost::ut)
+```
 
 > [Optional] [Conan](https://conan.io) integration
 
