@@ -157,7 +157,8 @@ cd build && make install # install
 
 > [Optional] [Conan](https://conan.io) integration
 
-* [conanfile.py](conanfile.py)
+The [boost-ext-ut](https://conan.io/center/boost-ext-ut) package is available from [Conan Center](https://conan.io/center/).
+Just include it in your project's Conanfile with `boost-ext-ut/1.1.8`.
 
 </p>
 </details>
