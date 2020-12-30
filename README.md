@@ -1,11 +1,11 @@
 <a href="https://www.boost.org/LICENSE_1_0.txt" target="_blank">![Boost Licence](https://img.shields.io/badge/license-boost-blue.svg)</a>
 <a href="https://github.com/boost-ext/ut/releases" target="_blank">![Version](https://badge.fury.io/gh/boost-ext%2Fut.svg)</a>
+<a href="https://conan.io/center/boost-ext-ut">![conan](https://img.shields.io/badge/conan-ut-blue)</a>
 <a href="https://travis-ci.org/boost-ext/ut" target="_blank">![Build Status](https://img.shields.io/travis/boost-ext/ut/master.svg?label=linux/osx)</a>
 <a href="https://ci.appveyor.com/project/boost-ext/ut" target="_blank">![Build Status](https://img.shields.io/appveyor/ci/boost-ext/ut/master.svg?label=windows)</a>
 <a href="https://codecov.io/gh/boost-ext/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-ext/ut/branch/master/graph/badge.svg)</a>
 <a href="https://www.codacy.com/manual/boost-ext/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-ext/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
 <a href="https://godbolt.org/z/Jqb5Ye">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
-<a href="https://gitter.im/boost-ext/ut?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">![Chat](https://badges.gitter.im/boost-ext/ut.svg)</a>
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
 
