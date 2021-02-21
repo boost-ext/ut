@@ -86,7 +86,7 @@ class function<R(TArgs...)> {
       : invoke_{invoke_impl<T>},
         destroy_{destroy_impl<T>},
         data_{new T{static_cast<T&&>(data)}} {}
-  constexpr function(function&& other)
+  constexpr function(function&& other) noexcept
       : invoke_{static_cast<decltype(other.invoke_)&&>(other.invoke_)},
         destroy_{static_cast<decltype(other.destroy_)&&>(other.destroy_)},
         data_{static_cast<decltype(other.data_)&&>(other.data_)} {
@@ -1223,7 +1223,7 @@ class runner {
     }
   }
 
-  auto operator=(options options) {
+  auto operator=(const options& options) {
     filter_ = options.filter;
     tag_ = options.tag;
     dry_run_ = options.dry_run;
@@ -2182,7 +2182,8 @@ class steps {
               log << step;
               auto i = 0;
               const auto& ms = utility::match(pattern, step);
-              expr(TArgs{std::stoi(ms[i++])}...);
+              expr(TArgs{std::stoi(
+                  ms[i++])}...);  // FIXME: g++-10 [-Werror=sign-conversion]
             }
             (typename type_traits::function_traits<TExpr>::args{});
           });

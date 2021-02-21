@@ -323,7 +323,7 @@ int main() {
 
     {
       static_assert("true"_b);
-      static_assert(not "true"_b != "true"_b);
+      static_assert((not "true"_b) != "true"_b);
       static_assert("named"_b);
       static_assert(42 == 42_i);
       static_assert(0u == 0_u);
@@ -338,7 +338,8 @@ int main() {
       static_assert(42u == 42_ul);
       static_assert(42.42f == 42.42_f);
       static_assert(42.42 == 42.42_d);
-      static_assert(240.209996948 == 240.209996948);
+      static_assert(240.209996948 ==
+                    240.209996948);  // FIXME: g++-10 [-Werror=float-equal]
       static_assert(static_cast<long double>(42.42) == 42.42_ld);
       static_assert(240.20999694824218 == 240.20999694824218_ld);
       static_assert(0 == 0_i);
@@ -432,7 +433,7 @@ int main() {
       test_assert(43 >= 42_i);
       test_assert(42 <= 42_i);
       test_assert(42 <= 43_i);
-      test_assert(not "true"_b == not "true"_b);
+      test_assert((not "true"_b) == (not "true"_b));
     }
 
     {
@@ -1547,7 +1548,7 @@ int main() {
     // clang-format off
     42_i == 42;
     1 == 2_i;
-    0_i == 1 and 1_i > 2 or 3 <= 3_i;
+    (0_i == 1 and 1_i > 2) or 3 <= 3_i;
     try {
     ("true"_b == false) >> fatal and 1_i > 0;
     } catch(const ut::events::fatal_assertion&) {}

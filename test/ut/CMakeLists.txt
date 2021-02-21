@@ -6,16 +6,23 @@
 #
 find_program(BOOST_UT_MEMORYCHECK_COMMAND valgrind)
 
-if (BOOST_UT_ENABLE_MEMCHECK AND BOOST_UT_MEMORYCHECK_COMMAND)
+if(BOOST_UT_ENABLE_MEMCHECK AND BOOST_UT_MEMORYCHECK_COMMAND)
   function(ut name)
-    add_executable(${name} ${name}.cpp)
-    ut_add_custom_command_or_test(TARGET ${name} COMMAND ${BOOST_UT_MEMORYCHECK_COMMAND}
-        --leak-check=full --error-exitcode=1 ./${name})
+    add_executable(${name}_test ${name}.cpp)
+    ut_add_custom_command_or_test(
+      TARGET
+      ${name}_test
+      COMMAND
+      ${BOOST_UT_MEMORYCHECK_COMMAND}
+      --leak-check=full
+      --error-exitcode=1
+      ./${name}_test
+    )
   endfunction()
 else()
   function(ut name)
-    add_executable(${name} ${name}.cpp)
-    ut_add_custom_command_or_test(TARGET ${name} COMMAND ${name})
+    add_executable(${name}_test ${name}.cpp)
+    ut_add_custom_command_or_test(TARGET ${name}_test COMMAND ${name}_test)
   endfunction()
 endif()
 
