@@ -39,9 +39,9 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 # see https://github.com/cpm-cmake/CPM.cmake for more info
 
 if(CMAKE_VERSION VERSION_LESS 3.20.0)
-  include(cmake/PackageProject.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/PackageProject.cmake)
 else()
-  include(cmake/CPM.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
 
   # PackageProject.cmake will be used to make our target installable
   CPMAddPackage(
@@ -134,7 +134,9 @@ packageProject(
   # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
 )
 
-include(cmake/AddCustomCommandOrTest.cmake)
+# Note: this needs the target Boost::ut
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/AddCustomCommandOrTest.cmake)
+
 if(BOOST_UT_BUILD_BENCHMARKS)
   add_subdirectory(benchmark)
 endif()
