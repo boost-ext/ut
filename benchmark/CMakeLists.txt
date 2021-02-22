@@ -7,7 +7,7 @@
 function(benchmark name file)
   add_executable(b${name} ${file}.cpp)
   target_compile_options(b${name} PRIVATE ${ARGN})
-  target_link_libraries(b${name} PRIVATE boost::boost_ut)
+  target_link_libraries(b${name} PRIVATE Boost::ut)
   ut_add_custom_command_or_test(TARGET b${name} COMMAND b${name})
 endfunction()
 

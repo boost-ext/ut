@@ -4,7 +4,7 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-cmake_minimum_required(VERSION 3.14...3.20)
+cmake_minimum_required(VERSION 3.12...3.20)
 project(
   ut
   VERSION 1.1.8
@@ -38,79 +38,71 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 # ---- Add dependencies via CPM ----
 # see https://github.com/cpm-cmake/CPM.cmake for more info
 
-include(cmake/CPM.cmake)
-CPMUsePackageLock(package-lock.cmake)
+if(CMAKE_VERSION VERSION_LESS 3.20.0)
+  include(cmake/PackageProject.cmake)
+else()
+  include(cmake/CPM.cmake)
 
-# PackageProject.cmake will be used to make our target installable
-CPMAddPackage(
-  NAME PackageProject.cmake
-  GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-  VERSION 1.5.0
-)
+  # PackageProject.cmake will be used to make our target installable
+  CPMAddPackage(
+    NAME PackageProject.cmake
+    GITHUB_REPOSITORY TheLartians/PackageProject.cmake
+    VERSION 1.5.0
+  )
+endif()
 
-add_library(boost_ut INTERFACE)
-# XXX add_library(Boost::ut ALIAS boost_ut)
-# XXX add_library(boost.ut ALIAS boost_ut)
+add_library(ut INTERFACE)
 
+# FIXME add_library(boost.ut ALIAS ut)
 # /usr/local/include/boost -> ../Cellar/boost/1.75.0_1/include/boost
 # TODO: set(INCLUDE_INSTALL_DIR boost-${BOOST_VERSION}/include)
-set(INCLUDE_INSTALL_DIR include)
-target_include_directories(
-  boost_ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
-)
-target_compile_features(boost_ut INTERFACE cxx_std_20)
+
+set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
+# XXX variant: set(INCLUDE_INSTALL_DIR include)
+target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
+if(APPLE)
+  target_compile_features(ut INTERFACE cxx_std_20)
+else()
+  target_compile_features(ut INTERFACE cxx_std_17)
+endif()
 
 # TODO: no good idea; this will be exported! CK
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  if(WIN32) # clang-cl
-    target_compile_options(
-      boost_ut
-      INTERFACE -Weverything
-                -Werror
-                -pedantic
-                -pedantic-errors
-                -Wno-c++98-compat
-                -Wno-c++98-compat-pedantic
-                -Wno-c99-extensions
-    )
-  else()
-    target_compile_options(boost_ut INTERFACE -Wall -Wextra -Werror -Wpedantic)
-  endif()
+  add_compile_options(-Wall -Wextra -Wpedantic)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-  target_compile_options(
-    boost_ut
-    INTERFACE -Wall
-              -Wextra
-              -Werror
-              -Wpedantic
-              -Wfloat-equal
-              -Wlogical-op
-              -Wundef
-              -Wredundant-decls
-              -Wpointer-arith
-              -Wcast-qual
-              -Wcast-align
-              -Wuseless-cast
-              -Wold-style-cast
-              -Wswitch-enum
-              -Wsign-conversion
-              -Wmissing-declarations
-              -Wunused-but-set-variable
-              -Wunused-result
-              -Wdouble-promotion
-              -Wtrampolines
-              -Wzero-as-null-pointer-constant
-              -Wnull-dereference
-              -Wduplicated-cond
-              -Wduplicated-branches
-              -Wcast-align=strict
-              -Wmissing-include-dirs
-              -Wno-missing-declarations
-              -Wno-sign-conversion
-              -Wno-float-equal
+  add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wfloat-equal
+    -Wlogical-op
+    -Wundef
+    -Wredundant-decls
+    -Wpointer-arith
+    -Wcast-qual
+    -Wcast-align
+    -Wuseless-cast
+    -Wold-style-cast
+    -Wswitch-enum
+    -Wsign-conversion
+    -Wmissing-declarations
+    -Wunused-but-set-variable
+    -Wunused-result
+    -Wdouble-promotion
+    -Wtrampolines
+    -Wzero-as-null-pointer-constant
+    -Wnull-dereference
+    -Wduplicated-cond
+    -Wduplicated-branches
+    -Wcast-align=strict
+    -Wmissing-include-dirs
+    # TODO
+    -Wno-missing-declarations
+    -Wno-sign-conversion
+    -Wno-float-equal
   )
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  target_compile_options(boost_ut INTERFACE /W4 /WX)
+  add_compile_options(/W4 /WX)
 endif()
 
 add_custom_target(style)
@@ -128,21 +120,19 @@ if(BOOST_UT_ENABLE_SANITIZERS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak -fsanitize=undefined")
 endif()
 
-# Create imported target boost::boost_ut
+# Create imported target Boost::ut
 packageProject(
-  NAME boost_ut
+  NAME ${PROJECT_NAME}
   VERSION ${PROJECT_VERSION}
-  NAMESPACE boost
+  NAMESPACE Boost
   BINARY_DIR ${PROJECT_BINARY_DIR}
   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
   INCLUDE_DESTINATION ${INCLUDE_INSTALL_DIR}
-  NO_VERSION_SUFFIX
+  # XXX variant: NO_VERSION_SUFFIX
   # Optional VERSION_HEADER ${VERSION_HEADER_LOCATION}
   COMPATIBILITY SameMajorVersion
   # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
 )
-
-include_directories(include)
 
 include(cmake/AddCustomCommandOrTest.cmake)
 if(BOOST_UT_BUILD_BENCHMARKS)

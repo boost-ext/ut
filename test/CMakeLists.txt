@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.14...3.20)
 project(boost.ut.test LANGUAGES CXX)
 
 if(TEST_INSTALLED_VERSION)
-  find_package(boost_ut 1.1 REQUIRED)
+  find_package(ut 1.1 REQUIRED)
   include(../cmake/AddCustomCommandOrTest.cmake)
   enable_testing()
 endif()
