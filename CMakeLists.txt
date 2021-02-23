@@ -39,6 +39,7 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 # see https://github.com/cpm-cmake/CPM.cmake for more info
 
 if(CMAKE_VERSION VERSION_LESS 3.20.0)
+  # see https://github.com/TheLartians/PackageProject.cmake/pull/19
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/PackageProject.cmake)
 else()
   include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
@@ -47,7 +48,7 @@ else()
   CPMAddPackage(
     NAME PackageProject.cmake
     GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-    VERSION 1.5.0
+    VERSION 1.6.0
   )
 endif()
 
@@ -128,7 +129,7 @@ packageProject(
   BINARY_DIR ${PROJECT_BINARY_DIR}
   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
   INCLUDE_DESTINATION ${INCLUDE_INSTALL_DIR}
-  # XXX variant: NO_VERSION_SUFFIX
+  # XXX variant: DISABLE_VERSION_SUFFIX YES
   # Optional VERSION_HEADER ${VERSION_HEADER_LOCATION}
   COMPATIBILITY SameMajorVersion
   # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"

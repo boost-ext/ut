@@ -32,13 +32,14 @@ example(cfg/runner runner)
 
 example(cfg/parallel_runner parallel_runner)
 
-if(DEFINED ENV{TBB_ROOT})
-  set(TBB_ROOT $ENV{TBB_ROOT})
-  include(${TBB_ROOT}/cmake/TBBBuild.cmake)
-  tbb_build(TBB_ROOT ${TBB_ROOT} CONFIG_DIR TBB_DIR MAKE_ARGS stdver="c++17")
-  find_package(TBB)
-  target_link_libraries(boost_ut_parallel_runner ${TBB_IMPORTED_TARGETS})
-endif()
+# if(DEFINED ENV{TBB_ROOT})
+#   set(TBB_ROOT $ENV{TBB_ROOT})
+#   # FIXME: include could not find load file:
+#   include(${TBB_ROOT}/cmake/TBBBuild.cmake)
+#   tbb_build(TBB_ROOT ${TBB_ROOT} CONFIG_DIR TBB_DIR MAKE_ARGS stdver="c++17")
+#   find_package(TBB)
+#   target_link_libraries(boost_ut_parallel_runner ${TBB_IMPORTED_TARGETS})
+# endif()
 
 example(cfg/reporter reporter)
 
