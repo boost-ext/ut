@@ -1,3 +1,27 @@
+# ------------------------------------------------------------------------------
+# MIT License
+#
+# Copyright (c) 2020 Lars Melchior
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ------------------------------------------------------------------------------
+
 set(PACKAGE_PROJECT_ROOT_PATH
     "${CMAKE_CURRENT_LIST_DIR}"
     CACHE INTERNAL "The path to the PackageProject directory"
@@ -8,28 +32,30 @@ function(packageProject)
   include(GNUInstallDirs)
 
   cmake_parse_arguments(
-    PROJECT "NO_VERSION_SUFFIX"
-    "NAME;VERSION;INCLUDE_DIR;INCLUDE_DESTINATION;BINARY_DIR;COMPATIBILITY;EXPORT_HEADER;VERSION_HEADER;NAMESPACE" "DEPENDENCIES"
+    PROJECT
+    ""
+    "NAME;VERSION;INCLUDE_DIR;INCLUDE_DESTINATION;BINARY_DIR;COMPATIBILITY;EXPORT_HEADER;VERSION_HEADER;NAMESPACE;DISABLE_VERSION_SUFFIX"
+    "DEPENDENCIES"
     ${ARGN}
   )
 
-  # For the <options> keywords, these will always be defined, to TRUE or FALSE, whether the option
-  # is in the argument list or not.
-  if(PROJECT_NO_VERSION_SUFFIX)
+  # optional feature: TRUE or FALSE or UNDEFINED! These variables will then hold the respective
+  # value from the argument list or be undefined if the associated one_value_keyword could not be
+  # found.
+  if(DEFINED PROJECT_DISABLE_VERSION_SUFFIX AND PROJECT_DISABLE_VERSION_SUFFIX)
     unset(PROJECT_VERSION_SUFFIX)
   else()
     set(PROJECT_VERSION_SUFFIX -${PROJECT_VERSION})
   endif()
 
-  # handle default arguments: These variables will then hold the respective value from the argument
-  # list or be undefined if the associated one_value_keyword could not be found.
+  # handle default arguments:
   if(NOT DEFINED PROJECT_COMPATIBILITY)
     set(PROJECT_COMPATIBILITY AnyNewerVersion)
   endif()
 
-  # we wanto to automatically add :: to our namespace, so only append if a namespace was given in
-  # the first place we also provide an alias to ensure that local and installed versions have the
-  # same name
+  # we want to automatically add :: to our namespace, so only append if a namespace was given in the
+  # first place we also provide an alias to ensure that local and installed versions have the same
+  # name
   if(DEFINED PROJECT_NAMESPACE)
     set(PROJECT_NAMESPACE ${PROJECT_NAMESPACE}::)
     add_library(${PROJECT_NAMESPACE}${PROJECT_NAME} ALIAS ${PROJECT_NAME})
