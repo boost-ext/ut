@@ -79,7 +79,6 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     -Werror
     -Wfloat-equal
     -Wlogical-op
-    -Wundef
     -Wredundant-decls
     -Wpointer-arith
     -Wcast-qual
@@ -100,6 +99,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     -Wcast-align=strict
     -Wmissing-include-dirs
     # TODO
+    -Wno-undef
     -Wno-missing-declarations
     -Wno-sign-conversion
     -Wno-float-equal
