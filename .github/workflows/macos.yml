@@ -56,5 +56,5 @@ jobs:
           pwd && ls -l build
           export PATH=/usr/local/opt/llvm/bin/:${PATH}
           /usr/local/opt/llvm/share/clang/run-clang-tidy.py \
-            -p build example ||
+            -p build test ||
           echo IGNORED
