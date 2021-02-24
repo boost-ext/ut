@@ -39,8 +39,8 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'8
 
-
-#if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and not defined(__clang__)
+#if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and \
+    not defined(__clang__)
 #undef __has_builtin
 #endif
 
@@ -285,8 +285,9 @@ template <class T, char... Cs>
   constexpr const char cs[]{Cs...};
   T result{};
   auto i = 0u;
-  while (cs[i++] != '.')
-    ;
+  while (cs[i++] != '.') {
+  }
+
   for (auto j = i; j < sizeof...(Cs); ++j) {
     result += pow(T(10), sizeof...(Cs) - j) * T(cs[j] - '0');
   }
@@ -297,8 +298,9 @@ template <class T, char... Cs>
 [[nodiscard]] constexpr auto den_size() -> T {
   constexpr const char cs[]{Cs...};
   T i{};
-  while (cs[i++] != '.')
-    ;
+  while (cs[i++] != '.') {
+  }
+
   return T(sizeof...(Cs)) - i + T(1);
 }
 
@@ -514,7 +516,7 @@ log(TMsg) -> log<TMsg>;
 struct fatal_assertion {};
 struct exception {
   const char* msg{};
-  auto what() const -> const char* { return msg; }
+  [[nodiscard]] auto what() const -> const char* { return msg; }
 };
 struct summary {};
 }  // namespace events
@@ -1311,12 +1313,12 @@ class runner {
       reporter_.on(events::assertion_pass<TExpr>{
           .expr = assertion.expr, .location = assertion.location});
       return true;
-    } else {
-      ++fails_;
-      reporter_.on(events::assertion_fail<TExpr>{
-          .expr = assertion.expr, .location = assertion.location});
-      return false;
     }
+
+    ++fails_;
+    reporter_.on(events::assertion_fail<TExpr>{.expr = assertion.expr,
+                                               .location = assertion.location});
+    return false;
   }
 
   auto on(events::fatal_assertion fatal_assertion) {
@@ -1425,7 +1427,7 @@ struct test {
     return test;
   }
 
-  constexpr auto operator=(void (*test)(std::string_view)) {
+  constexpr auto operator=(void (*test)(std::string_view)) const {
     return test(name);
   }
 

@@ -1602,7 +1602,7 @@ int main() {
         result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
                                   values_.front(), std::minus{});
       }
-      auto get() const -> int { return result_; }
+      [[nodiscard]] auto get() const -> int { return result_; }
 
      private:
       std::vector<int> values_{};
