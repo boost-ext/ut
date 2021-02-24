@@ -30,7 +30,9 @@ endfunction()
 example(cfg/printer printer)
 example(cfg/runner runner)
 
-example(cfg/parallel_runner parallel_runner)
+if(NOT LINUX)
+  example(cfg/parallel_runner parallel_runner)
+endif()
 
 # if(DEFINED ENV{TBB_ROOT})
 #   set(TBB_ROOT $ENV{TBB_ROOT})
