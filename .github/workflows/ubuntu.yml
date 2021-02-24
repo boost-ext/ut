@@ -1,0 +1,40 @@
+---
+name: Ubuntu
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: build
+        run: cmake --build build -j4
+
+#       - name: test
+#         run: |
+#           cd build
+#           ctest --build-config Debug

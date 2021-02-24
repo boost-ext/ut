@@ -40,9 +40,9 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 
 if(CMAKE_VERSION VERSION_LESS 3.20.0)
   # see https://github.com/TheLartians/PackageProject.cmake/pull/19
-  include(${CMAKE_CURRENT_LIST_DIR}/cmake/PackageProject.cmake)
+  include(cmake/PackageProject.cmake)
 else()
-  include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
+  include(cmake/CPM.cmake)
 
   # PackageProject.cmake will be used to make our target installable
   CPMAddPackage(
@@ -54,7 +54,9 @@ endif()
 
 add_library(ut INTERFACE)
 
-# FIXME add_library(boost.ut ALIAS ut)
+#
+# FIXME: IMHO NO! add_library(boost.ut ALIAS ut) CK
+#
 # /usr/local/include/boost -> ../Cellar/boost/1.75.0_1/include/boost
 # TODO: set(INCLUDE_INSTALL_DIR boost-${BOOST_VERSION}/include)
 
@@ -63,18 +65,18 @@ set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
 if(APPLE)
   target_compile_features(ut INTERFACE cxx_std_20)
-else()
-  target_compile_features(ut INTERFACE cxx_std_17)
+# else() target_compile_features(ut INTERFACE cxx_std_17)
 endif()
 
-# TODO: no good idea; this will be exported! CK
+# Note: we do not export this options! CK
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   add_compile_options(
     -Wall
     -Wextra
     -Wpedantic
+    -Werror
     -Wfloat-equal
     -Wlogical-op
     -Wundef
@@ -136,7 +138,7 @@ packageProject(
 )
 
 # Note: this needs the target Boost::ut
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/AddCustomCommandOrTest.cmake)
+include(cmake/AddCustomCommandOrTest.cmake)
 
 if(BOOST_UT_BUILD_BENCHMARKS)
   add_subdirectory(benchmark)
