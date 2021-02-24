@@ -27,13 +27,29 @@ jobs:
           path: "**/cpm_modules"
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
+      - name: Install ninja and python
+        shell: bash
+        run: brew install clang-format ninja python
+
+      - name: Install builddriver
+        shell: bash
+        run: pip3 install builddriver cmake_format==0.6.11 pyyaml
+
       - name: configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
 
       - name: build
         run: cmake --build build -j4
 
-#       - name: test
-#         run: |
-#           cd build
-#           ctest --build-config Debug
+      - name: test
+        run: |
+          cd build
+          ctest --build-config Debug
+
+      - name: Run clang-tidy
+        shell: bash
+        run: |
+          export PATH=/usr/local/opt/llvm/bin/:${PATH}
+          /usr/local/opt/llvm/share/clang/run-clang-tidy.py \
+            -p ${{runner.workspace}}/build example ||
+          echo IGNORED

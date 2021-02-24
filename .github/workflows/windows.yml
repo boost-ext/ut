@@ -28,12 +28,14 @@ jobs:
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
       - name: configure
-        run: cmake -S . -B build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO \
+          -G "Visual Studio 16 2019" -T ClangCL
 
       - name: build
         run: cmake --build build --config Debug -j4
 
-#       - name: test
-#         run: |
-#           cd build
-#           ctest --build-config Debug
+      - name: test
+        run: |
+          cd build
+          ctest --build-config Debug

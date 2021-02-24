@@ -29,12 +29,12 @@ jobs:
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
       - name: configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
 
       - name: build
         run: cmake --build build -j4
 
-#       - name: test
-#         run: |
-#           cd build
-#           ctest --build-config Debug
+      - name: test
+        run: |
+          cd build
+          ctest --build-config Debug
