@@ -16,18 +16,15 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
-set(CMAKE_CXX_STANDARD
-    20
-    CACHE STRING "Default value for CXX_STANDARD property of targets."
-)
-set(CMAKE_CXX_STANDARD_REQUIRED
-    YES
-    CACHE BOOL "Default value for CXX_STANDARD_REQUIRED property of targets."
-)
-set(CMAKE_CXX_EXTENSIONS
-    NO
-    CACHE BOOL "Default value for CXX_EXTENSIONS property of targets."
-)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD
+      20
+      CACHE STRING "Default value for CXX_STANDARD property of targets."
+  )
+  option(CMAKE_CXX_STANDARD_REQUIRED "Default value for CXX_STANDARD_REQUIRED property of targets." YES)
+  option(CMAKE_CXX_EXTENSIONS "Default value for CXX_EXTENSIONS property of targets." NO)
+endif()
+
 option(BOOST_UT_ENABLE_MEMCHECK "Run the unit tests and examples under valgrind if it is found" OFF)
 option(BOOST_UT_ENABLE_COVERAGE "Run coverage" OFF)
 option(BOOST_UT_ENABLE_SANITIZERS "Run static analysis" OFF)
@@ -55,7 +52,7 @@ endif()
 add_library(ut INTERFACE)
 
 #
-# FIXME: IMHO NO! add_library(boost.ut ALIAS ut) CK
+# TODO: IMHO NO! add_library(boost.ut ALIAS ut) CK
 #
 # /usr/local/include/boost -> ../Cellar/boost/1.75.0_1/include/boost
 # TODO: set(INCLUDE_INSTALL_DIR boost-${BOOST_VERSION}/include)
@@ -70,18 +67,18 @@ endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   if(WIN32)
-    # FIXME: we do not export this pedantic options! CK
-    target_compile_options(ut INTERFACE -Wall -Wextra -Werror -Wno-c++98-c++11-compat)
+    # FIXME: we should not export this pedantic options! CK
+    target_compile_options(ut INTERFACE -Wall -Wextra -Werror -Wno-c++98-compat -Wno-c++98-c++11-compat)
   else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
   endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-  # FIXME: we do not export this pedantic options! CK
+  # FIXME: we should not export this pedantic options! CK
   target_compile_options(
     ut
     INTERFACE -Wall
               -Wextra
-              # TODO -Wpedantic
+              # TODO: why not simpply -Wpedantic
               -Werror
               -Wcast-align
               -Wcast-align=strict
@@ -99,12 +96,12 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
               -Wsign-conversion
               -Wswitch-enum
               -Wtrampolines
-              -Wundef
               -Wunused-but-set-variable
               -Wunused-result
               -Wuseless-cast
               -Wzero-as-null-pointer-constant
-              # TODO
+              # FIXME
+              -Wno-undef
               -Wno-missing-declarations
               -Wno-sign-conversion
               -Wno-float-equal
