@@ -30,7 +30,7 @@ endfunction()
 example(cfg/printer printer)
 example(cfg/runner runner)
 
-if(NOT LINUX)
+if(APPLE OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   example(cfg/parallel_runner parallel_runner)
 endif()
 
