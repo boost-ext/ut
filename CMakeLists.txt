@@ -65,44 +65,45 @@ set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
 if(APPLE)
   target_compile_features(ut INTERFACE cxx_std_20)
-# else() target_compile_features(ut INTERFACE cxx_std_17)
+  # else() target_compile_features(ut INTERFACE cxx_std_17)
 endif()
 
-# Note: we do not export this options! CK
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-  add_compile_options(
-    -Wall
-    -Wextra
-    # TODO -Wpedantic
-    -Werror
-    -Wfloat-equal
-    -Wlogical-op
-    -Wredundant-decls
-    -Wpointer-arith
-    -Wcast-qual
-    -Wcast-align
-    -Wuseless-cast
-    -Wold-style-cast
-    -Wswitch-enum
-    -Wsign-conversion
-    -Wmissing-declarations
-    -Wunused-but-set-variable
-    -Wunused-result
-    -Wdouble-promotion
-    -Wtrampolines
-    -Wzero-as-null-pointer-constant
-    -Wnull-dereference
-    -Wduplicated-cond
-    -Wduplicated-branches
-    -Wcast-align=strict
-    -Wmissing-include-dirs
-    # TODO
-    -Wno-undef
-    -Wno-missing-declarations
-    -Wno-sign-conversion
-    -Wno-float-equal
+  # FIXME: we do not export this pedantic options! CK
+  target_compile_options(
+    ut
+    INTERFACE -Wall
+              -Wextra
+              # TODO -Wpedantic
+              -Werror
+              -Wfloat-equal
+              -Wlogical-op
+              -Wredundant-decls
+              -Wpointer-arith
+              -Wcast-qual
+              -Wcast-align
+              -Wuseless-cast
+              -Wold-style-cast
+              -Wswitch-enum
+              -Wsign-conversion
+              -Wmissing-declarations
+              -Wunused-but-set-variable
+              -Wunused-result
+              -Wdouble-promotion
+              -Wtrampolines
+              -Wzero-as-null-pointer-constant
+              -Wnull-dereference
+              -Wduplicated-cond
+              -Wduplicated-branches
+              -Wcast-align=strict
+              -Wmissing-include-dirs
+              # TODO
+              -Wno-undef
+              -Wno-missing-declarations
+              -Wno-sign-conversion
+              -Wno-float-equal
   )
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_compile_options(/W4 /WX)
