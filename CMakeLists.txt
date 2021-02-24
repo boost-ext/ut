@@ -66,9 +66,20 @@ if(APPLE)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  if(WIN32)
+  if(WIN32) # clang-cl
     # FIXME: we should not export this pedantic options! CK
-    target_compile_options(ut INTERFACE -Wall -Wextra -Werror -Wno-c++98-compat -Wno-c++98-c++11-compat)
+    target_compile_options(
+      ut
+      INTERFACE -Wall
+                -Wextra
+                # FIXME -Werror
+                -Wno-c++98-c++11-c++14-c++17-compat-pedantic
+                -Wno-c++98-c++11-compat
+                -Wno-c++98-compat
+                -Wno-c++98-compat-pedantic
+                -Wno-c99-extensions
+                -Wno-pedantic
+    )
   else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
   endif()
