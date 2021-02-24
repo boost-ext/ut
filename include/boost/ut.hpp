@@ -39,12 +39,13 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'8
 
-#if defined(__has_builtin) and (__GNUC__ < 10) and not defined(__clang__)
+
+#if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and not defined(__clang__)
 #undef __has_builtin
 #endif
 
 #if not defined(__has_builtin)
-#if (__GNUC__ >= 9)
+#if defined(__GNUC__) and (__GNUC__ >= 9)
 #define __has___builtin_FILE 1
 #define __has___builtin_LINE 1
 #endif

@@ -69,7 +69,12 @@ if(APPLE)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+  if(WIN32)
+    # FIXME: we do not export this pedantic options! CK
+    target_compile_options(ut INTERFACE -Wall -Wextra -Werror -Wno-c++98-c++11-compat)
+  else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+  endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   # FIXME: we do not export this pedantic options! CK
   target_compile_options(
@@ -78,29 +83,28 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
               -Wextra
               # TODO -Wpedantic
               -Werror
-              -Wfloat-equal
-              -Wlogical-op
-              -Wredundant-decls
-              -Wpointer-arith
-              -Wcast-qual
               -Wcast-align
-              -Wuseless-cast
-              -Wold-style-cast
-              -Wswitch-enum
-              -Wsign-conversion
+              -Wcast-align=strict
+              -Wcast-qual
+              -Wdouble-promotion
+              -Wduplicated-branches
+              -Wduplicated-cond
+              -Wlogical-op
               -Wmissing-declarations
+              -Wmissing-include-dirs
+              -Wnull-dereference
+              -Wold-style-cast
+              -Wpointer-arith
+              -Wredundant-decls
+              -Wsign-conversion
+              -Wswitch-enum
+              -Wtrampolines
+              -Wundef
               -Wunused-but-set-variable
               -Wunused-result
-              -Wdouble-promotion
-              -Wtrampolines
+              -Wuseless-cast
               -Wzero-as-null-pointer-constant
-              -Wnull-dereference
-              -Wduplicated-cond
-              -Wduplicated-branches
-              -Wcast-align=strict
-              -Wmissing-include-dirs
               # TODO
-              -Wno-undef
               -Wno-missing-declarations
               -Wno-sign-conversion
               -Wno-float-equal
