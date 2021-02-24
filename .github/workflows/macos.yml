@@ -36,12 +36,16 @@ jobs:
         run: pip3 install builddriver cmake_format==0.6.11 pyyaml
 
       - name: configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+        shell: bash
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: build
         run: cmake --build build -j4
 
       - name: test
+        shell: bash
         run: |
           cd build
           ctest --build-config Debug
