@@ -55,5 +55,5 @@ jobs:
         run: |
           export PATH=/usr/local/opt/llvm/bin/:${PATH}
           /usr/local/opt/llvm/share/clang/run-clang-tidy.py \
-            -p build test ||
-          echo IGNORED
+            -p build test 2>&1 | tee .run-clang-tidy.log
+          builddriver cat .run-clang-tidy.log
