@@ -1,0 +1,32 @@
+---
+Checks: "-*,\
+boost-*,\
+-cert-*,\
+clang-analyzer-*,\
+-cppcoreguidelines-*,\
+-hicpp-*,\
+hicpp-exception-baseclass,\
+hicpp-no-array-decay,\
+misc-*,\
+-misc-no-recursion,\
+-misc-non-private-member-variables-in-classes,\
+-misc-redundant-expression,\
+-misc-unconventional-assign-operator,\
+modernize-*,\
+-modernize-pass-by-value,\
+-modernize-use-trailing-return-type,\
+performance-*,\
+portability-*,\
+readability-*,\
+-*implicit-bool-conversion,\
+-*magic-numbers,\
+-*named-parameter,\
+-*uppercase-literal-suffix,\
+"
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle:     file
+User:            clausklein
+...
+

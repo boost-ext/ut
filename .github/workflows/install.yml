@@ -1,0 +1,48 @@
+---
+name: Install
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      # - name: install ninja
+      #   sudo apt-get install ninja-build
+
+      - name: build and install library
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+          sudo cmake --build build --target install
+          rm -rf build
+
+      - name: configure
+        run: cmake -S test -B build -DTEST_INSTALLED_VERSION=1 -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+
+      - name: build
+        run: cmake --build build --config Debug -j4
+
+      - name: test
+        run: |
+          cd build
+          ctest --build-config Debug

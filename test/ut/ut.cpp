@@ -323,7 +323,7 @@ int main() {
 
     {
       static_assert("true"_b);
-      static_assert(not "true"_b != "true"_b);
+      static_assert((not "true"_b) != "true"_b);
       static_assert("named"_b);
       static_assert(42 == 42_i);
       static_assert(0u == 0_u);
@@ -432,7 +432,7 @@ int main() {
       test_assert(43 >= 42_i);
       test_assert(42 <= 42_i);
       test_assert(42 <= 43_i);
-      test_assert(not "true"_b == not "true"_b);
+      test_assert((not "true"_b) == (not "true"_b));
     }
 
     {
@@ -1547,7 +1547,7 @@ int main() {
     // clang-format off
     42_i == 42;
     1 == 2_i;
-    0_i == 1 and 1_i > 2 or 3 <= 3_i;
+    (0_i == 1 and 1_i > 2) or 3 <= 3_i;
     try {
     ("true"_b == false) >> fatal and 1_i > 0;
     } catch(const ut::events::fatal_assertion&) {}
@@ -1601,7 +1601,7 @@ int main() {
         result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
                                   values_.front(), std::minus{});
       }
-      auto get() const -> int { return result_; }
+      [[nodiscard]] auto get() const -> int { return result_; }
 
      private:
       std::vector<int> values_{};

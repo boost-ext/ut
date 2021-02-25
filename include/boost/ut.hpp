@@ -39,12 +39,13 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'8
 
-#if defined(__has_builtin) and (__GNUC__ < 10) and not defined(__clang__)
+#if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and \
+    not defined(__clang__)
 #undef __has_builtin
 #endif
 
 #if not defined(__has_builtin)
-#if (__GNUC__ >= 9)
+#if defined(__GNUC__) and (__GNUC__ >= 9)
 #define __has___builtin_FILE 1
 #define __has___builtin_LINE 1
 #endif
@@ -86,7 +87,7 @@ class function<R(TArgs...)> {
       : invoke_{invoke_impl<T>},
         destroy_{destroy_impl<T>},
         data_{new T{static_cast<T&&>(data)}} {}
-  constexpr function(function&& other)
+  constexpr function(function&& other) noexcept
       : invoke_{static_cast<decltype(other.invoke_)&&>(other.invoke_)},
         destroy_{static_cast<decltype(other.destroy_)&&>(other.destroy_)},
         data_{static_cast<decltype(other.data_)&&>(other.data_)} {
@@ -284,8 +285,9 @@ template <class T, char... Cs>
   constexpr const char cs[]{Cs...};
   T result{};
   auto i = 0u;
-  while (cs[i++] != '.')
-    ;
+  while (cs[i++] != '.') {
+  }
+
   for (auto j = i; j < sizeof...(Cs); ++j) {
     result += pow(T(10), sizeof...(Cs) - j) * T(cs[j] - '0');
   }
@@ -296,8 +298,9 @@ template <class T, char... Cs>
 [[nodiscard]] constexpr auto den_size() -> T {
   constexpr const char cs[]{Cs...};
   T i{};
-  while (cs[i++] != '.')
-    ;
+  while (cs[i++] != '.') {
+  }
+
   return T(sizeof...(Cs)) - i + T(1);
 }
 
@@ -513,7 +516,7 @@ log(TMsg) -> log<TMsg>;
 struct fatal_assertion {};
 struct exception {
   const char* msg{};
-  auto what() const -> const char* { return msg; }
+  [[nodiscard]] auto what() const -> const char* { return msg; }
 };
 struct summary {};
 }  // namespace events
@@ -1223,7 +1226,7 @@ class runner {
     }
   }
 
-  auto operator=(options options) {
+  auto operator=(const options& options) {
     filter_ = options.filter;
     tag_ = options.tag;
     dry_run_ = options.dry_run;
@@ -1310,12 +1313,12 @@ class runner {
       reporter_.on(events::assertion_pass<TExpr>{
           .expr = assertion.expr, .location = assertion.location});
       return true;
-    } else {
-      ++fails_;
-      reporter_.on(events::assertion_fail<TExpr>{
-          .expr = assertion.expr, .location = assertion.location});
-      return false;
     }
+
+    ++fails_;
+    reporter_.on(events::assertion_fail<TExpr>{.expr = assertion.expr,
+                                               .location = assertion.location});
+    return false;
   }
 
   auto on(events::fatal_assertion fatal_assertion) {
@@ -1424,7 +1427,7 @@ struct test {
     return test;
   }
 
-  constexpr auto operator=(void (*test)(std::string_view)) {
+  constexpr auto operator=(void (*test)(std::string_view)) const {
     return test(name);
   }
 
@@ -2182,7 +2185,8 @@ class steps {
               log << step;
               auto i = 0;
               const auto& ms = utility::match(pattern, step);
-              expr(TArgs{std::stoi(ms[i++])}...);
+              expr(TArgs{std::stoi(
+                  ms[i++])}...);  // FIXME: g++-10 [-Werror=sign-conversion]
             }
             (typename type_traits::function_traits<TExpr>::args{});
           });

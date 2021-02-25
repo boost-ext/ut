@@ -33,15 +33,24 @@ int main() {
 
   using namespace std::literals;
 
-  std::stringstream str{};
+  {
+    std::stringstream str{};
 
-  "[str1]"_test = [str{std::move(str)}] {
-    mut(str) << '1';
-    expect(str.str() == "1"sv);
-  };
+    "[str1]"_test = [str{std::move(str)}] {
+      mut(str) << '1';
+      expect(str.str() == "1"sv);
+    };
+  }
 
-  "[str2]"_test = [str{std::move(str)}] {
-    mut(str) << '2';
-    expect(str.str() == "2"sv);
-  };
+  // FIXME: [clang-analyzer-cplusplus.Move,-warnings-as-errors]
+  // Note: Object 'str' of type 'std::__1::basic_stringstream' is left in a
+  // valid but unspecified state after move
+  {
+    std::stringstream str{};
+
+    "[str2]"_test = [str{std::move(str)}] {
+      mut(str) << '2';
+      expect(str.str() == "2"sv);
+    };
+  }
 }

@@ -1,0 +1,59 @@
+---
+name: MacOS
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: Install ninja and python
+        shell: bash
+        run: brew install clang-format ninja python
+
+      - name: Install builddriver
+        shell: bash
+        run: pip3 install builddriver cmake_format==0.6.11 pyyaml
+
+      - name: configure
+        shell: bash
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: build
+        run: cmake --build build -j4
+
+      - name: test
+        shell: bash
+        run: |
+          cd build
+          ctest --build-config Debug
+
+      - name: Run clang-tidy
+        shell: bash
+        run: |
+          export PATH=/usr/local/opt/llvm/bin/:${PATH}
+          /usr/local/opt/llvm/share/clang/run-clang-tidy.py \
+            -p build test 2>&1 | tee .run-clang-tidy.log
+          builddriver cat .run-clang-tidy.log
