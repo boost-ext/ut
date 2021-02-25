@@ -51,18 +51,13 @@ endif()
 
 add_library(ut INTERFACE)
 
-#
-# TODO: IMHO NO! add_library(boost.ut ALIAS ut) CK
-#
-# /usr/local/include/boost -> ../Cellar/boost/1.75.0_1/include/boost
-# TODO: set(INCLUDE_INSTALL_DIR boost-${BOOST_VERSION}/include)
-
 set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
 # XXX variant: set(INCLUDE_INSTALL_DIR include)
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
 if(APPLE)
   target_compile_features(ut INTERFACE cxx_std_20)
-  # else() target_compile_features(ut INTERFACE cxx_std_17)
+else()
+  target_compile_features(ut INTERFACE cxx_std_17)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -136,7 +131,7 @@ if(BOOST_UT_ENABLE_SANITIZERS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak -fsanitize=undefined")
 endif()
 
-# Create imported target Boost::ut
+# Create target Boost::ut and install target
 packageProject(
   NAME ${PROJECT_NAME}
   VERSION ${PROJECT_VERSION}
@@ -150,7 +145,7 @@ packageProject(
   # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
 )
 
-# Note: this needs the target Boost::ut
+# Note: now we can use the target Boost::ut
 include(cmake/AddCustomCommandOrTest.cmake)
 
 if(BOOST_UT_BUILD_BENCHMARKS)
