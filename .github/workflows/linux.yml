@@ -1,5 +1,5 @@
 ---
-name: Ubuntu
+name: Linux
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
       - name: configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+        run: cmake -S . -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
 
       - name: build
         run: cmake --build build -j4

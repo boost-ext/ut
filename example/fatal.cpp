@@ -43,7 +43,7 @@ int main() {
   using namespace boost::ut::operators;
   using boost::ut::expect;
 
-  std::vector v{1};
+  std::vector v{1u};
   expect((std::size(v) == 1_ul) >> fatal) << "fatal assertion";
-  expect(v[0] == 1_i);
+  expect(v[0] == 1_u);
 }
