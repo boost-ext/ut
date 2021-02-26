@@ -32,12 +32,12 @@ jobs:
 
       - name: build and install library
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+          cmake -S . -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
           sudo cmake --build build --target install
           rm -rf build
 
       - name: configure
-        run: cmake -S test -B build -DTEST_INSTALLED_VERSION=1 -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+        run: cmake -S test -B build -DCMAKE_CXX_STANDARD=17 -DTEST_INSTALLED_VERSION=1 -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
 
       - name: build
         run: cmake --build build --config Debug -j4

@@ -87,7 +87,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
               # TODO: why not simpply -Wpedantic
               -Werror
               -Wcast-align
-              -Wcast-align=strict
+              #-Wcast-align=strict
               -Wcast-qual
               -Wdouble-promotion
               -Wduplicated-branches
