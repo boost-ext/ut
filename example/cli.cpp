@@ -10,7 +10,7 @@
 int main(int argc, const char** argv) {
   using namespace boost::ut;
 
-  cfg<override> = {.filter = argc > 1 ? argv[1] : "",
+  cfg<override> = options{.filter = argc > 1 ? argv[1] : "",
                    .colors = argc > 2 and argv[2][0] == '0'
                                  ? colors{.none = "", .pass = "", .fail = ""}
                                  : colors{},
