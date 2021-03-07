@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="extensions/css/highlight-styles/zenburn.css">
     <link rel="stylesheet" href="extensions/css/custom.css">
 
+    <style>
+      .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5 { text-transform: none; }
+    </style>
+
     <script>
       var link = document.createElement( 'link' );
       link.rel = 'stylesheet';
@@ -48,9 +52,12 @@
 <br />&nbsp;
 <br />&nbsp;
 <br />&nbsp;
-<br />&nbsp;
-###### https://boost-ext.github.io/ut/accu-2021 / [kris@jusiak.net](mailto:kris@jusiak.net) | [@krisjusiak](https://twitter.com/krisjusiak) | [linkedin.com/in/kris-jusiak](https://www.linkedin.com/in/kris-jusiak)
-</script>
+<p style="background-color:black; font-size: 22px;">
+https://boost-ext.github.io/ut/accu-2021
+<br />
+kris@jusiak.net | @krisjusiak
+</p>
+          </script>
           </section>
           <section data-markdown=""
                    data-separator="^====+$"
@@ -105,7 +112,7 @@ int main() {
 
 * #### No ability to list/run specific tests
 <!-- .element: class="fragment" -->
-* #### No useful information why the test failed
+* #### No useful information when the test failed
 <!-- .element: class="fragment" -->
 * #### Hard to scale/integrate/debug
 <!-- .element: class="fragment" -->
@@ -124,7 +131,7 @@ int main() {
 <!-- .element: class="fragment" -->
 * #### [Boost.Test](https://github.com/boostorg/test)
 <!-- .element: class="fragment" -->
-* #### [Catch](https://github.com/catchorg/Catch2)
+* #### [Catch2](https://github.com/catchorg/Catch2)
 <!-- .element: class="fragment" -->
 * #### [DocTest](https://github.com/onqtam/doctest)
 <!-- .element: class="fragment" -->
@@ -151,7 +158,7 @@ int main() {
 <!-- .element: class="fragment" data-fragment-index="5" -->
 
 > \* Generalized
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="0" -->
 
 ----
 
@@ -351,10 +358,10 @@ template <class T, auto expr = []{}> concept test =
 * #### Type constraints (act like documentation for interfaces)
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
-* #### Better error messages (Point of Instantiation (`POI`))
+* #### Better error messages (Point Of Instantiation - POI)
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
-* #### Faster compilation times (in comparison to Substitution Failure is Not an Error (`SFINAE`))
+* #### Faster compilation times (In comparison to Substitution Failure is Not an Error - SFINAE)
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
@@ -462,7 +469,7 @@ constexpr auto operator==(int, int) -> bool { return {}; }
 ```
 <!-- .element: class="fragment" -->
 
-<pre><code>constexpr auto operator==(int, int) -> bool { return {}; }</code> -> <font color="salmon">error: overloaded 'operator==' must have at least
+<pre> -> <font color="salmon">error: overloaded 'operator==' must have at least
       one parameter of class or enumeration type
 </font></pre>
 <!-- .element: class="fragment" -->
@@ -487,9 +494,9 @@ template <class TOp> concept op =
     requires(TOp op) { // eq, ...
       op.lhs; // left-hand side operator
       op.rhs; // right-hand side operator
-      requires std::convertible_to<TOp, bool>;
+      requires std::convertible_to<TOp, bool>; // expect
     } or
-    requires(TOp op) { // integral_constant
+    requires(TOp op) { // integral_constant, 42_i
       typename TOp::value_type;
       op.value;
     }
@@ -634,7 +641,7 @@ static_assert(0 == foo(b));
 
 ---
 
-##### "Design by Introspection - Andrei Alexandrescu" - https://www.youtube.com/watch?v=HdzwvY8Mo-w
+##### Andrei Alexandrescu - https://www.youtube.com/watch?v=HdzwvY8Mo-w
 <!-- .element: class="fragment" data-fragment-index="6" -->
 
 <!-- .slide: data-background="darkblue" -->
@@ -653,6 +660,25 @@ static_assert(0 == foo(b));
 07 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
+
+----
+
+#### User Defined Literals (`UDL`) - [C++draft/over.literal](http://eel.is/c++draft/over.literal)
+
+<img src="images/over.literal.png" style="width: 100%; background:none; border:none; box-shadow:none;" />
+
+---
+
+```cpp
+constexpr int operator""_i(int);
+```
+<!-- .element: class="fragment" -->
+
+<pre> -> <font color="salmon">error: invalid literal operator parameter type 'int',
+      did you mean 'unsigned long long'?</font></pre>
+<!-- .element: class="fragment" -->
+
+<!-- .slide: data-background="darkblue" -->
 
 ----
 
@@ -834,10 +860,10 @@ template <class TValue> struct value_location {
 
 ```cpp
   constexpr explicit(false)
-      value_location(TValue value,
-                     const std::source_location &location =
-                           std::source_location::current())
-      : value{value}, location{location} {}
+    value_location(TValue value,
+                   const std::source_location &location =
+                         std::source_location::current())
+    : value{value}, location{location} {}
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
@@ -1243,27 +1269,27 @@ v[3] == 4_l;                            // Not executed
 ```cpp
   // set up (1)
   std::vector<int> v(5);
-  expect((5_ul == std::size(v)) >> fatal);
+  (5_ul == std::size(v)) >> fatal;
 ```
 <!-- .element: class="fragment" data-fragment-index="2" -->
 
 ```cpp
   should("resize bigger") = [v] { // section (2.1)
     mut(v).resize(10);
-    expect(10_ul == std::size(v));
+    10_ul == std::size(v);
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
 
 ```cpp
-  expect((5_ul == std::size(v) >> fatal); // (3)
+  (5_ul == std::size(v)) >> fatal; // (3)
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
 
 ```cpp
   should("resize smaller") = [v] { // section (2.2)
     mut(v).resize(0);
-    expect(0_ul == std::size(v));
+    0_ul == std::size(v);
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="5" -->
@@ -1446,8 +1472,8 @@ feature("vector") = [] {
 Feature: Vector
   Scenario: Resize
     Given I have a vector
-    When I resize bigger
-    Then The size should increase
+     When I resize bigger
+     Then The size should increase
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -1616,9 +1642,9 @@ auto do_not_optimize(auto expr) -> void {
 
 #### Benchmarks - [Suite+Assert+STL](https://github.com/cpp-testing/ut-benchmark)
 
-<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Compilation_suite+assert+stl.png"><img src="images/Compilation_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_suite+assert+stl.png"><img src="images/Execution_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_suite+assert+stl.png"><img src="images/BinarySize_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
 <!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 10'000 tests, 20'000 asserts, 100 cpp files
@@ -1627,9 +1653,9 @@ auto do_not_optimize(auto expr) -> void {
 
 #### Benchmarks - [Incremental Build](https://github.com/cpp-testing/ut-benchmark)
 
-<a href="images/Compilation_incremental.suite+assert+stl.png"><img src="images/Compilation_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/Execution_incremental.suite+assert+stl.png"><img src="images/Execution_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/BinarySize_incremental.suite+assert+stl.png"><img src="images/BinarySize_incremental.suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Compilation_incremental.suite+assert+stl.png"><img src="images/Compilation_incremental.suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/Execution_incremental.suite+assert+stl.png"><img src="images/Execution_incremental.suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/BinarySize_incremental.suite+assert+stl.png"><img src="images/BinarySize_incremental.suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
 <!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 1 cpp file change (1'000 tests, 20'000 asserts, 100 cpp files)
@@ -1638,9 +1664,9 @@ auto do_not_optimize(auto expr) -> void {
 
 #### Benchmarks - [Headers vs Precompiled headers vs C++20 Modules](https://github.com/cpp-testing/ut-benchmark)
 
-<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
-<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 32%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_Compilation_suite+assert+stl.png"><img src="images/ut_Compilation_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_Execution_suite+assert+stl.png"><img src="images/ut_Execution_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
+<a href="images/ut_BinarySize_suite+assert+stl.png"><img src="images/ut_BinarySize_suite+assert+stl.png" style="width: 30%; background:none; border:none; box-shadow:none;" /></a>
 <!-- .element: style="margin-left:-15%; width:130%" -->
 
 #### 10'000 tests, 20'000 asserts, 100 cpp files
@@ -1663,7 +1689,7 @@ auto do_not_optimize(auto expr) -> void {
 
 ----
 
-#### Catch - https://godbolt.org/z/jfb7jK
+#### Catch2 - https://godbolt.org/z/jfb7jK
 
 ```cpp
 #define REQUIRE(...)   ut::expect(that % __VA_ARGS__)
