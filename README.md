@@ -1,6 +1,4 @@
-<a href="LICENSE.md" target="_blank">![Boost Licence](https://img.shields.io/badge/license-boost-blue.svg)</a>
-<a href="https://github.com/boost-ext/ut/releases" target="_blank">![Version](https://badge.fury.io/gh/boost-ext%2Fut.svg)</a>
-<a href="https://conan.io/center/boost-ext-ut">![conan](https://img.shields.io/badge/conan-ut-blue)</a>
+<a href="https://conan.io/center/boost-ext-ut" target="_blank">![Version](https://badge.fury.io/gh/boost-ext%2Fut.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/linux.yml" target="_blank">![Linux](https://github.com/boost-ext/ut/actions/workflows/linux.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/macos.yml" target="_blank">![MacOs](https://github.com/boost-ext/ut/actions/workflows/macos.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/windows.yml" target="_blank">![Windows](https://github.com/boost-ext/ut/actions/workflows/windows.yml/badge.svg)</a>
