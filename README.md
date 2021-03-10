@@ -52,7 +52,7 @@ There are quite a few problems with the approach above
 * Hard to follow good practises such as `TDD/BDD` (Lack of support for sections and declarative expressions)
 * ...
 
-`[Boost::ext].UT` is trying to address these issues by simplifying testing experience with a few simple steps:
+`UT` is trying to address these issues by simplifying testing experience with a few simple steps:
 
 * Just get a single [header/module](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp)
 * Integrate it into your project
@@ -60,14 +60,14 @@ There are quite a few problems with the approach above
 
 And you good to go!
 
-Okay, great, but why I would use `[Boost::ext].UT` over other/similar testing frameworks already available in C++?
+Okay, great, but why I would use `UT` over other/similar testing frameworks already available in C++?
 
 * [Boost.Test](https://github.com/boostorg/test)
 * [GoogleTest](https://github.com/google/googletest)
 * [Catch](https://github.com/catchorg/Catch2)
 * [...](https://en.wikipedia.org/wiki/List_of_unit_testing_frameworks#C++)
 
-Great question! There are a few unique features which makes `[Boost::ext].UT` worth trying
+Great question! There are a few unique features which makes `UT` worth trying
 
 * Firstly, it supports all the basic Unit Testing Framework features (automatic registration of tests, assertions, suites, etc...)
 * It's easy to integrate (it's just one [header/module](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp))
@@ -159,9 +159,7 @@ This is demonstrated in the following example.
 
 ```cmake
 find_package(ut REQUIRED)
-
 add_library(my_test my_test.cpp)
-
 target_link_libraries(my_test PRIVATE boost::ut)
 ```
 
@@ -1902,7 +1900,7 @@ All tests passed (4 asserts in 3 tests)
 | [GoogleTest](https://github.com/google/googletest) | [1.10.0](https://github.com/google/googletest/releases/tag/release-1.10.0) | C++11 | BSD-3 | library | `static library` |
 | [Catch](https://github.com/catchorg/Catch2) | [2.10.2](https://github.com/catchorg/Catch2/releases/download/v2.10.2/catch.hpp) | C++11 | Boost 1.0 | single header | `CATCH_CONFIG_FAST_COMPILE` |
 | [Doctest](https://github.com/onqtam/doctest) | [2.3.5](https://github.com/onqtam/doctest/blob/master/doctest/doctest.h) | C++11 | MIT | single header | `DOCTEST_CONFIG_SUPER_FAST_ASSERTS` |
-| [[Boost::ext].UT](https://github.com/boost-ext/ut) | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++20 | Boost 1.0 | single header/module | |
+| [UT](https://github.com/boost-ext/ut) | [1.1.0](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) | C++20 | Boost 1.0 | single header/module | |
 
 <table>
   <tr>
@@ -2003,6 +2001,6 @@ All tests passed (4 asserts in 3 tests)
 
 ---
 
-**Disclaimer** `[Boost::ext].UT` is not an official Boost library.
+**Disclaimer** `UT` is not an official Boost library.
 
 <p align="left"><img width="5%" src="https://github.com/boost-ext/ut/raw/gh-pages/images/logo.png" /></p>
