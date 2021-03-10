@@ -722,21 +722,38 @@ static_assert(42_i == 42);
 
 ----
 
-#### Immediately-invoked function expression (`IIFE`)
+#### Immediately-Invoked Function Expression (`IIFE`) - https://godbolt.org/z/aM58T1
 
 ```cpp
 template<auto N>
-constexpr auto iife = []<auto... Ns>(std::index_sequence<Ns...>) {
-  return (Ns + ...);
-}(std::make_index_sequence<N>{});
+constexpr auto unfold = [](auto expr) {
+  [expr]<auto ...Is>(std::index_sequence<Is...>) {
+    ((expr(), void(Is)), ...);
+  }(std::make_index_sequence<N>{});
+};
+```
+<!-- .element: class="fragment" -->
+
+```cpp
+int main() {
+  unfold<2>([]{ std::puts("ACCU-2021!"); });
+}
 ```
 <!-- .element: class="fragment" -->
 
 ---
 
 ```cpp
-static_assert(0 == iife<0>);
-static_assert(0 + 1 + 2 == iife<3>);
+.LC0: .string "ACCU-2021!"
+main:
+  sub     rsp, 8
+  mov     edi, OFFSET FLAT:.LC0
+  call    puts
+  mov     edi, OFFSET FLAT:.LC0
+  call    puts
+  xor     eax, eax
+  add     rsp, 8
+  ret
 ```
 <!-- .element: class="fragment" -->
 
