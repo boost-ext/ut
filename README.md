@@ -8,7 +8,7 @@
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
 
-# [Boost::ext].UT / μt
+# UT / μt
 
 | [Motivation](#motivation) | [Quick Start](#quick-start) | [Overview](#overview) | [Tutorial](#tutorial) | [Examples](#examples) | [User Guide](#user-guide) | [FAQ](#faq) | [Benchmarks](#benchmarks) |
 
