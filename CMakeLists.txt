@@ -50,6 +50,7 @@ else()
 endif()
 
 add_library(ut INTERFACE)
+add_library(boost.ut ALIAS ut)
 
 set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
 # XXX variant: set(INCLUDE_INSTALL_DIR include)
