@@ -2312,6 +2312,8 @@ using operators::operator/;
 using operators::operator>>;
 }  // namespace v1_1_8
 }  // namespace ut
+#if !defined(__cpp_modules)
 }  // namespace inline ext
 }  // namespace boost
+#endif
 #endif
