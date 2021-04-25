@@ -722,7 +722,7 @@ static_assert(42_i == 42);
 
 ```cpp
 template<auto N>
-constexpr auto unfold = [](auto expr) {
+constexpr auto unroll = [](auto expr) {
   [expr]<auto ...Is>(std::index_sequence<Is...>) {
     ((expr(), void(Is)), ...);
   }(std::make_index_sequence<N>{});
@@ -732,7 +732,7 @@ constexpr auto unfold = [](auto expr) {
 
 ```cpp
 int main() {
-  unfold<2>([]{ std::puts("C++Now 2021!"); });
+  unroll<2>([]{ std::puts("C++Now 2021!"); });
 }
 ```
 <!-- .element: class="fragment" -->
