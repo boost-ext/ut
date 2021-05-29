@@ -31,6 +31,7 @@ option(BOOST_UT_ENABLE_SANITIZERS "Run static analysis" OFF)
 option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
+option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
 # ---- Add dependencies via CPM ----
 # see https://github.com/cpm-cmake/CPM.cmake for more info
@@ -129,6 +130,10 @@ endif()
 
 if(BOOST_UT_ENABLE_SANITIZERS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak -fsanitize=undefined")
+endif()
+
+if(BOOST_UT_DISABLE_MODULE)
+  target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
 endif()
 
 # Create target Boost::ut and install target
