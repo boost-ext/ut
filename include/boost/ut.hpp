@@ -5,7 +5,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#if defined(__cpp_modules)
+#if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export module boost.ut;
 export import std;
 #else
@@ -66,7 +66,7 @@ export import std;
 #include <exception>
 #endif
 
-#if defined(__cpp_modules)
+#if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export namespace boost::inline ext::ut {
 #else
 namespace boost {
@@ -2312,7 +2312,7 @@ using operators::operator/;
 using operators::operator>>;
 }  // namespace v1_1_8
 }  // namespace ut
-#if !defined(__cpp_modules)
+#if !defined(__cpp_modules) || defined(BOOST_UT_DISABLE_MODULE)
 }  // namespace inline ext
 }  // namespace boost
 #endif
