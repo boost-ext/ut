@@ -151,7 +151,8 @@ template <class TPattern, class TStr>
 [[nodiscard]] constexpr auto match(const TPattern& pattern, const TStr& str)
     -> std::vector<TStr> {
   std::vector<TStr> groups{};
-  auto pi = 0u, si = 0u;
+  auto pi = 0u;
+  auto si = 0u;
 
   const auto matcher = [&](char b, char e, char c = 0) {
     const auto match = si;
@@ -258,31 +259,21 @@ template <class T, char... Cs>
 [[nodiscard]] constexpr auto num() -> T {
   static_assert(
       ((Cs == '.' or Cs == '\'' or (Cs >= '0' and Cs <= '9')) and ...));
-  constexpr const char cs[]{Cs...};
   T result{};
-  auto size = 0u, i = 0u, tmp = 1u;
-
-  while (i < sizeof...(Cs) and cs[i] != '.') {
-    if (cs[i++] != '\'') {
-      ++size;
+  for (const char c : {Cs...}) {
+    if (c == '.') {
+      break;
     }
-  }
-
-  i = {};
-  while (i < sizeof...(Cs) and cs[i] != '.') {
-    if (cs[i] == '\'') {
-      --tmp;
-    } else {
-      result += pow(T(10), size - i - tmp) * T(cs[i] - '0');
+    if (c >= '0' and c <= '9') {
+      result = result * T(10) + T(c - '0');
     }
-    ++i;
   }
   return result;
 }
 
 template <class T, char... Cs>
 [[nodiscard]] constexpr auto den() -> T {
-  constexpr const char cs[]{Cs...};
+  constexpr const std::array cs{Cs...};
   T result{};
   auto i = 0u;
   while (cs[i++] != '.') {
@@ -296,7 +287,7 @@ template <class T, char... Cs>
 
 template <class T, char... Cs>
 [[nodiscard]] constexpr auto den_size() -> T {
-  constexpr const char cs[]{Cs...};
+  constexpr const std::array cs{Cs...};
   T i{};
   while (cs[i++] != '.') {
   }
@@ -928,8 +919,7 @@ struct colors {
 
 class printer {
   [[nodiscard]] inline auto color(const bool cond) {
-    const std::string_view colors[] = {colors_.fail, colors_.pass};
-    return colors[cond];
+    return cond ? colors_.pass : colors_.fail;
   }
 
  public:
