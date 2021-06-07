@@ -128,7 +128,7 @@ class function<R(TArgs...)> {
   }
 
   if (std::empty(input)) {
-    return pattern[0] == '*' && is_match(input, pattern.substr(1));
+    return pattern[0] == '*' ? is_match(input, pattern.substr(1)) : false;
   }
 
   if (pattern[0] != '?' and pattern[0] != '*' and pattern[0] != input[0]) {
@@ -651,7 +651,7 @@ struct eq_ : op {
           }
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -684,7 +684,7 @@ struct neq_ : op {
           }
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -707,7 +707,7 @@ struct gt_ : op {
           }
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -730,7 +730,7 @@ struct ge_ : op {
           }
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -753,7 +753,7 @@ struct lt_ : op {
           }
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -777,7 +777,7 @@ struct le_ : op {
           }
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -793,7 +793,7 @@ struct and_ : op {
         rhs_{rhs},
         value_{static_cast<bool>(lhs) and static_cast<bool>(rhs)} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -809,7 +809,7 @@ struct or_ : op {
         rhs_{rhs},
         value_{static_cast<bool>(lhs) or static_cast<bool>(rhs)} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
   [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
 
@@ -823,7 +823,7 @@ struct not_ : op {
   explicit constexpr not_(const T& t = {})
       : t_{t}, value_{not static_cast<bool>(t)} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto value() const { return get(t_); }
 
   const T t_{};
@@ -848,7 +848,7 @@ struct throws_ : op {
           return false;
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
 
   const bool value_{};
 };
@@ -865,7 +865,7 @@ struct throws_<TExpr, void> : op {
           return false;
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
 
   const bool value_{};
 };
@@ -882,7 +882,7 @@ struct nothrow_ : op {
           return true;
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
 
   const bool value_{};
 };
@@ -902,7 +902,7 @@ struct aborts_ : op {
           return exit_status;
         }()} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
 
   const bool value_{};
 };
@@ -1512,7 +1512,7 @@ struct that_ {
       return le_{t_, rhs};
     }
 
-    [[nodiscard]] explicit constexpr operator bool() const {
+    [[nodiscard]] constexpr operator bool() const {
       return static_cast<bool>(t_);
     }
 
@@ -1531,7 +1531,7 @@ struct fatal_ : op {
 
   constexpr explicit fatal_(const TExpr& expr) : expr_{expr} {}
 
-  [[nodiscard]] explicit constexpr operator bool() const {
+  [[nodiscard]] constexpr operator bool() const {
     if (static_cast<bool>(expr_)) {
     } else {
       cfg::wip = true;
@@ -1560,7 +1560,7 @@ struct expect_ {
     return *this;
   }
 
-  [[nodiscard]] explicit constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr operator bool() const { return value_; }
 
   bool value_{};
 };
