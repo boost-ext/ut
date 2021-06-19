@@ -66,6 +66,10 @@ export import std;
 #include <exception>
 #endif
 
+#if defined __cpp_lib_source_location
+#include <source_location>
+#endif
+
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export namespace boost::inline ext::ut {
 #else
@@ -205,6 +209,9 @@ template <class T = std::string_view, class TDelim>
 }  // namespace utility
 
 namespace reflection {
+#if defined __cpp_lib_source_location
+using source_location = std::source_location;
+#else
 class source_location {
  public:
   [[nodiscard]] static constexpr auto current(
@@ -226,6 +233,7 @@ class source_location {
   const char* file_{"unknown"};
   int line_{};
 };
+#endif
 
 template <class T>
 [[nodiscard]] constexpr auto type_name() -> std::string_view {
