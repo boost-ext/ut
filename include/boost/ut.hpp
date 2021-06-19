@@ -66,7 +66,7 @@ export import std;
 #include <exception>
 #endif
 
-#if defined __cpp_lib_source_location
+#if defined(__cpp_lib_source_location)
 #include <source_location>
 #endif
 
@@ -209,8 +209,8 @@ template <class T = std::string_view, class TDelim>
 }  // namespace utility
 
 namespace reflection {
-#if defined __cpp_lib_source_location
-using source_location = std::source_location;
+#if defined(__cpp_lib_source_location)
+  using source_location = std::source_location;
 #else
 class source_location {
  public:
