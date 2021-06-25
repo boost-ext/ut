@@ -846,14 +846,14 @@ template <class TExpr, class TException = void>
 struct throws_ : op {
   constexpr explicit throws_(const TExpr& expr)
       : value_{[&expr] {
+          bool ret_val {false};
           try {
             expr();
-            return false;
           } catch (const TException&) {
-            return true;
+            ret_val = true;
           } catch (...) {
-            return false;
           }
+          return ret_val;
         }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
@@ -865,12 +865,13 @@ template <class TExpr>
 struct throws_<TExpr, void> : op {
   constexpr explicit throws_(const TExpr& expr)
       : value_{[&expr] {
+          bool ret_val{false};
           try {
             expr();
-            return false;
           } catch (...) {
-            return true;
+            ret_val = true;
           }
+          return ret_val;
         }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
@@ -882,12 +883,13 @@ template <class TExpr>
 struct nothrow_ : op {
   constexpr explicit nothrow_(const TExpr& expr)
       : value_{[&expr] {
+          bool ret_val{true};
           try {
             expr();
-            return true;
           } catch (...) {
-            return false;
+            ret_val = false;
           }
+          return ret_val;
         }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
