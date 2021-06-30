@@ -278,7 +278,7 @@ asserts: 4 | 0 passed | 4 failed
 
 > Okay, but what about the case if my assertion is fatal.
 > Meaning that the program will crash unless the processing will be terminated.
-> Nothing easier, let's just add `!` before the `expect` call to make it fatal.
+> Nothing easier, let's just add `>> fatal` after the expected expression to make it fatal.
 
 ```cpp
 expect((1 == 2_i) >> fatal); // fatal assertion
