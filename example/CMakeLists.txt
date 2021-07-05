@@ -49,6 +49,7 @@ if(NOT WIN32)
   example(abort abort)
 endif()
 
+example(attr attr)
 example(BDD BDD)
 example(benchmark benchmark)
 example(cli cli_pass "cli.pass")
