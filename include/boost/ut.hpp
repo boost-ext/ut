@@ -12,8 +12,19 @@ export import std;
 #pragma once
 #endif
 
-#if defined(_MSC_VER)
-#include <ciso646>  // and, or, not
+// Required by Clang on Windows
+#if defined(__clang__) && defined(_WIN32)
+#define and &&
+#define and_eq &=
+#define bitand &
+#define bitor |
+#define compl ~
+#define not !
+#define not_eq !=
+#define or ||
+#define or_eq |=
+#define xor ^
+#define xor_eq ^=
 #endif
 
 #if not defined(__cpp_rvalue_references)
