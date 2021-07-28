@@ -15,7 +15,7 @@ int main() {
   using namespace boost::ut::operators::terse;
 
   "macro"_test = [] {
-    #define expect 0,
+    #define expect void(),
     expect sum(1, 1) == 2_i;
     expect(6_i == sum(1, 2, 3));
     #undef expect
