@@ -547,7 +547,8 @@ template <class T>
 template <class T>
 struct type_ : op {
   template <class TOther>
-  [[nodiscard]] constexpr auto operator()(TOther) const -> const type_<TOther> {
+  [[nodiscard]] constexpr auto operator()(const TOther&) const
+      -> const type_<TOther> {
     return {};
   }
   [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
@@ -555,10 +556,18 @@ struct type_ : op {
   [[nodiscard]] constexpr auto operator==(type_<TOther>) -> bool {
     return false;
   }
+  template <class TOther>
+  [[nodiscard]] constexpr auto operator==(const TOther&) -> bool {
+    return std::is_same_v<TOther, T>;
+  }
   [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return true; }
   template <class TOther>
   [[nodiscard]] constexpr auto operator!=(type_<TOther>) -> bool {
     return true;
+  }
+  template <class TOther>
+  [[nodiscard]] constexpr auto operator!=(const TOther&) -> bool {
+    return not std::is_same_v<TOther, T>;
   }
 };
 

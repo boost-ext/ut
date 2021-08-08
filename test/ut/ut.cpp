@@ -465,6 +465,13 @@ int main() {
     }
 
     {
+      constexpr auto return_int = []() -> int { return {}; };
+      static_assert(type<int> == return_int());
+      static_assert(type<float> != return_int());
+      static_assert(type<const int&> != return_int());
+      static_assert(type<int&> != return_int());
+      static_assert(type<int*> != return_int());
+      static_assert(type<double> != return_int());
       static_assert(type<int> == type<int>);
       static_assert(type<void> == type<void>);
       static_assert(type<void*> == type<void*>);

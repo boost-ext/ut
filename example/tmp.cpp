@@ -15,10 +15,17 @@ int main() {
 
   static constexpr auto i = 42;
 
-  "tmp"_test = [] {
-    expect(constant<42_i == i> and type<void> == type<void> and
-           type<list<void, int>> == type<list<void, int>>);
+  "type"_test= [] {
+    constexpr auto return_int = [] { return i; };
 
     expect(type<>(i) == type<int>);
+    expect(type<int> == type<>(i));
+    expect(type<int> == return_int());
+    expect(type<float> != return_int());
+  };
+
+  "constant"_test = [] {
+    expect(constant<42_i == i> and type<void> == type<void> and
+           type<list<void, int>> == type<list<void, int>>);
   };
 }
