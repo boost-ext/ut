@@ -2193,16 +2193,24 @@ class steps {
           pattern_, [expr, pattern = pattern_](const auto& step) {
             [=]<class... TArgs>(type_traits::list<TArgs...>) {
               log << step;
-              auto i = 0;
+              auto i = 0u;
               const auto& ms = utility::match(pattern, step);
-              expr(TArgs{std::stoi(
-                  ms[i++])}...);  // FIXME: g++-10 [-Werror=sign-conversion]
+              expr(lexical_cast<TArgs>(ms[i++])...);
             }
             (typename type_traits::function_traits<TExpr>::args{});
           });
     }
 
    private:
+    template<class T>
+    static auto lexical_cast(const std::string& str) {
+      T t{};
+      std::istringstream iss{};
+      iss.str(str);
+      iss >> t;
+      return t;
+    }
+
     steps& steps_;
     std::string pattern_{};
   };

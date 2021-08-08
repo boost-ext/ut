@@ -110,6 +110,24 @@ struct fake_cfg {
   std::string test_filter{};
 };
 
+template<class T>
+class fake_calculator {
+ public:
+  auto enter(const T& value) -> void { values_.push_back(value); }
+  auto add() -> void {
+    result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
+  }
+  auto sub() -> void {
+    result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
+                              values_.front(), std::minus{});
+  }
+  [[nodiscard]] auto get() const -> const T& { return result_; }
+
+ private:
+  std::vector<T> values_{};
+  T result_{};
+};
+
 struct test_reporter : ut::reporter<ut::printer> {
   using reporter::asserts_;
   using reporter::tests_;
@@ -1598,28 +1616,11 @@ int main() {
     auto& test_cfg = ut::cfg<ut::override>;
     test_cfg = fake_cfg{};
 
-    class calculator {
-     public:
-      auto enter(const int& value) -> void { values_.push_back(value); }
-      auto add() -> void {
-        result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
-      }
-      auto sub() -> void {
-        result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
-                                  values_.front(), std::minus{});
-      }
-      [[nodiscard]] auto get() const -> int { return result_; }
-
-     private:
-      std::vector<int> values_{};
-      int result_{};
-    };
-
     bdd::gherkin::steps steps = [](auto& steps) {
       steps.feature("Calculator") = [&] {
         steps.scenario("*") = [&] {
           steps.given("I have calculator") = [&] {
-            calculator calc{};
+            fake_calculator<int> calc{};
             steps.when("I enter {value}") = [&](int value) {
               calc.enter(value);
             };
@@ -1634,27 +1635,81 @@ int main() {
     };
 
     // clang-format off
-  "Calculator"_test = steps |
-    R"(
-      Feature: Calculator
+    "Calculator/int"_test = steps |
+      R"(
+        Feature: Calculator
 
-        Scenario: Addition
-          Given I have calculator
-           When I enter 40
-           When I enter 2
-           When I press add
-           Then I expect 42
+          Scenario: Addition
+            Given I have calculator
+             When I enter 40
+             When I enter 2
+             When I press add
+             Then I expect 42
 
-        Scenario: Subtraction
-          Given I have calculator
-           When I enter 4
-           When I enter 2
-           When I press sub
-           Then I expect 2
-    )";
+          Scenario: Subtraction
+            Given I have calculator
+             When I enter 4
+             When I enter 2
+             When I press sub
+             Then I expect 2
+      )";
     // clang-format on
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
+
+    test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
+    test_assert(test_cfg.assertion_calls[0].result);
+
+    test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
+    test_assert(test_cfg.assertion_calls[1].result);
+  }
+
+  {
+    using namespace ut;
+    auto& test_cfg = ut::cfg<ut::override>;
+    test_cfg = fake_cfg{};
+
+    bdd::gherkin::steps steps_double = [](auto& steps) {
+      steps.feature("Calculator") = [&] {
+        steps.scenario("*") = [&] {
+          steps.given("I have calculator") = [&] {
+            fake_calculator<double> calc{};
+            steps.when("I enter {value}") = [&](double value) {
+              calc.enter(value);
+            };
+            steps.when("I press add") = [&] { calc.add(); };
+            steps.when("I press sub") = [&] { calc.sub(); };
+            steps.then("I expect {value}") = [&](double result) {
+              expect(that % calc.get() == result);
+            };
+          };
+        };
+      };
+    };
+
+    // clang-format off
+    "Calculator/double"_test = steps_double |
+      R"(
+        Feature: Calculator
+
+          Scenario: Addition
+            Given I have calculator
+             When I enter 40.0
+             When I enter 2.0
+             When I press add
+             Then I expect 42.0
+
+          Scenario: Subtraction
+            Given I have calculator
+             When I enter 4.
+             When I enter 2.
+             When I press sub
+             Then I expect 2.
+      )";
+    // clang-format on
+
+    test_assert(2 == std::size(test_cfg.assertion_calls));
+
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[0].result);
