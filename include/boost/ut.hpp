@@ -371,19 +371,19 @@ constexpr auto is_valid(...) -> bool {
 }
 
 template <class T>
-constexpr auto is_container_v =
+static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-constexpr auto has_npos_v = is_valid<T>([](auto t) -> decltype(void(t.npos)) {
+static constexpr auto has_npos_v = is_valid<T>([](auto t) -> decltype(void(t.npos)) {
 });
 
 template <class T>
-constexpr auto has_value_v = is_valid<T>([](auto t) -> decltype(void(t.value)) {
+static constexpr auto has_value_v = is_valid<T>([](auto t) -> decltype(void(t.value)) {
 });
 
 template <class T>
-constexpr auto has_epsilon_v =
+static constexpr auto has_epsilon_v =
     is_valid<T>([](auto t) -> decltype(void(t.epsilon)) {});
 
 template <class T>
@@ -397,7 +397,7 @@ inline constexpr auto is_floating_point_v<long double> = true;
 
 #if defined(__clang__) or defined(_MSC_VER)
 template <class From, class To>
-constexpr auto is_convertible_v = __is_convertible_to(From, To);
+static constexpr auto is_convertible_v = __is_convertible_to(From, To);
 #else
 template <class From, class To>
 constexpr auto is_convertible(int) -> decltype(bool(To(declval<From>()))) {
