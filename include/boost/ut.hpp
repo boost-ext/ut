@@ -575,7 +575,7 @@ template <class T, class = int>
 struct value : op {
   using value_type = T;
 
-  constexpr /*explicit(false)*/ value(const T& value) : value_{value} {}
+  constexpr /*explicit(false)*/ value(const T& _value) : value_{_value} {}
   [[nodiscard]] constexpr explicit operator T() const { return value_; }
   [[nodiscard]] constexpr decltype(auto) get() const { return value_; }
 
@@ -588,7 +588,7 @@ struct value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
   using value_type = T;
   static inline auto epsilon = T{};
 
-  constexpr value(const T& value, const T precision) : value_{value} {
+  constexpr value(const T& _value, const T precision) : value_{_value} {
     epsilon = precision;
   }
 
@@ -1197,8 +1197,8 @@ class runner {
     static constexpr auto delim = ".";
 
    public:
-    constexpr /*explicit(false)*/ filter(std::string_view filter = {})
-        : path_{utility::split(filter, delim)} {}
+    constexpr /*explicit(false)*/ filter(std::string_view _filter = {})
+        : path_{utility::split(_filter, delim)} {}
 
     template <class TPath>
     constexpr auto operator()(const std::size_t level, const TPath& path) const
@@ -1413,40 +1413,40 @@ struct test {
   std::vector<std::string_view> tag{};
 
   template <class... Ts>
-  constexpr auto operator=(test_location<void (*)()> test) {
+  constexpr auto operator=(test_location<void (*)()> _test) {
     on<Ts...>(events::test<void (*)()>{.type = type,
                                        .name = name,
                                        .tag = tag,
-                                       .location = test.location,
+                                       .location = _test.location,
                                        .arg = none{},
-                                       .run = test.test});
-    return test.test;
+                                       .run = _test.test});
+    return _test.test;
   }
 
   template <class Test,
             type_traits::requires_t<
                 not type_traits::is_convertible_v<Test, void (*)()>> = 0>
-  constexpr auto operator=(Test test) ->
-      typename type_traits::identity<Test, decltype(test())>::type {
+  constexpr auto operator=(Test _test) ->
+      typename type_traits::identity<Test, decltype(_test())>::type {
     on<Test>(events::test<Test>{.type = type,
                                 .name = name,
                                 .tag = tag,
                                 .location = {},
                                 .arg = none{},
-                                .run = static_cast<Test&&>(test)});
-    return test;
+                                .run = static_cast<Test&&>(_test)});
+    return _test;
   }
 
-  constexpr auto operator=(void (*test)(std::string_view)) const {
-    return test(name);
+  constexpr auto operator=(void (*_test)(std::string_view)) const {
+    return _test(name);
   }
 
   template <class Test,
             type_traits::requires_t<not type_traits::is_convertible_v<
                 Test, void (*)(std::string_view)>> = 0>
-  constexpr auto operator=(Test test)
-      -> decltype(test(type_traits::declval<std::string_view>())) {
-    return test(name);
+  constexpr auto operator=(Test _test)
+      -> decltype(_test(type_traits::declval<std::string_view>())) {
+    return _test(name);
   }
 };
 
@@ -2098,10 +2098,10 @@ struct _t : detail::value<T> {
 
 struct suite {
   template <class TSuite>
-  constexpr /*explicit(false)*/ suite(TSuite suite) {
-    static_assert(1 == sizeof(suite));
-    detail::on<decltype(+suite)>(
-        events::suite<decltype(+suite)>{.run = +suite});
+  constexpr /*explicit(false)*/ suite(TSuite _suite) {
+    static_assert(1 == sizeof(_suite));
+    detail::on<decltype(+_suite)>(
+        events::suite<decltype(+_suite)>{.run = +_suite});
   }
 };
 
@@ -2190,11 +2190,11 @@ class steps {
       }
 
       steps_.call_steps().emplace_back(
-          pattern_, [expr, pattern = pattern_](const auto& step) {
+          pattern_, [expr, pattern = pattern_](const auto&_step) {
             [=]<class... TArgs>(type_traits::list<TArgs...>) {
-              log << step;
+              log << _step;
               auto i = 0u;
-              const auto& ms = utility::match(pattern, step);
+              const auto& ms = utility::match(pattern, _step);
               expr(lexical_cast<TArgs>(ms[i++])...);
             }
             (typename type_traits::function_traits<TExpr>::args{});
@@ -2217,13 +2217,13 @@ class steps {
 
  public:
   template <class TSteps>
-  constexpr /*explicit(false)*/ steps(const TSteps& steps) : steps_{steps} {}
+  constexpr /*explicit(false)*/ steps(const TSteps& _steps) : steps_{_steps} {}
 
   template <class TGherkin>
   auto operator|(const TGherkin& gherkin) {
     gherkin_ = utility::split<std::string>(gherkin, '\n');
-    for (auto& step : gherkin_) {
-      step.erase(0, step.find_first_not_of(" \t"));
+    for (auto&_step : gherkin_) {
+		_step.erase(0, _step.find_first_not_of(" \t"));
     }
 
     return [this] {
@@ -2250,31 +2250,31 @@ class steps {
  private:
   template <class TPattern>
   auto next(const TPattern& pattern) -> void {
-    const auto is_scenario = [&pattern](const auto& step) {
+    const auto is_scenario = [&pattern](const auto& _step) {
       constexpr auto scenario = "Scenario";
       return pattern.find(scenario) == std::string::npos and
-             step.find(scenario) != std::string::npos;
+             _step.find(scenario) != std::string::npos;
     };
 
-    const auto call_steps = [this, is_scenario](const auto& step,
+    const auto call_steps = [this, is_scenario](const auto&_step,
                                                 const auto i) {
       for (const auto& [name, call] : call_steps_) {
-        if (is_scenario(step)) {
+        if (is_scenario(_step)) {
           break;
         }
 
-        if (utility::is_match(step, name) or
-            not std::empty(utility::match(name, step))) {
+        if (utility::is_match(_step, name) or
+            not std::empty(utility::match(name, _step))) {
           step_ = i;
-          call(step);
+          call(_step);
         }
       }
     };
 
     decltype(step_) i{};
-    for (const auto& step : gherkin_) {
+    for (const auto&_step : gherkin_) {
       if (i++ == step_) {
-        call_steps(step, i);
+        call_steps(_step, i);
       }
     }
   }
