@@ -242,6 +242,8 @@ template <class T>
 #elif defined(__clang_analyzer__)
   // clang-tidy doesn't include inline namespaces in the qualified name.
   return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
+#elif defined(__clang__) && (__clang_major__ >= 12)
+  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
 #elif defined(__clang__)
   return {&__PRETTY_FUNCTION__[70], sizeof(__PRETTY_FUNCTION__) - 72};
 #elif defined(__GNUC__)
