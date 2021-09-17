@@ -240,9 +240,8 @@ template <class T>
 #if defined(_MSC_VER) and not defined(__clang__)
   return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
 #elif defined(__clang_analyzer__)
-  // clang-tidy doesn't include inline namespaces in the qualified name.
   return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__) && (__clang_major__ >= 12)
+#elif defined(__clang__) and (__clang_major__ >= 12) and not defined(__APPLE__)
   return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
 #elif defined(__clang__)
   return {&__PRETTY_FUNCTION__[70], sizeof(__PRETTY_FUNCTION__) - 72};
