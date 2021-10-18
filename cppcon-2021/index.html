@@ -181,6 +181,8 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 ```
 <!-- .element: class="fragment" -->
 
+---
+
 ```cpp
 01 import ut;               // C++20 module
 02
@@ -189,20 +191,6 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 05      sum(1, 2) == 42_i;  // sum.cpp:5:FAILED [ 3 == 42 ]
 06   };                     // tests:   1 | 1 failed
 07 }                        // asserts: 1 | 0 passed | 1 failed
-```
-<!-- .element: class="fragment" -->
-
-```cpp
-01 import ut;
-02
-03 suite sums = [] {
-04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
-05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
-06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
-07 };
-08
-09 int main() {              // tests:   3 | 0 failed
-10 }                         // asserts: 3 | 3 passed | 0 failed
 ```
 <!-- .element: class="fragment" -->
 
@@ -938,161 +926,7 @@ test.cpp:05:FAILED: [3 == 42]</code> -> <font color="lime">✔️</font></pre>
 
 ----
 
-### Achievement Unlocked (First goal)
-
-### 👍
-
-<!-- .slide: data-background="green" -->
-
-----
-
-#### ut::suite / ut::expect
-
-```cpp
-01 import ut;// ✔️
-02
-03 suite sums = [] { // ut::suite
-04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
-05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
-06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
-07 };
-08
-09 int main() {
-10 }
-```
-<!-- .element: class="fragment" -->
-
-----
-
-#### ut::expect
-
-```cpp
-01 import ut; // ✔️
-02
-03 int main() {
-04   expect(sum(1, 2) == 21_i) << "?"; // ut::expect
-05 }
-```
-
-----
-
-#### ut::expect
-
-```cpp
-template <class TExpr> concept expression =
-  std::convertible_to<TExpr, bool> and printable<TExpr>;
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
----
-
-```cpp
-constexpr concepts::streamable auto& expect(
-  concepts::expression auto expr,
-  const std::source_location &location =
-        std::source_location::current()) {
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-  if (not expr) {
-    error(expr, location);
-  }
-  return std::cerr;
-```
-<!-- .element: class="fragment" data-fragment-index="4" -->
-
-```
-}
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
----
-
-```cpp
-template <class TLhs, class TRhs>
-  requires concepts::op<TLhs> or concepts::op<TRhs>
-constexpr concepts::op auto operator==(TLhs lhs, TRhs rhs);
-```
-<!-- .element: class="fragment" data-fragment-index="6" -->
-
-----
-
-#### ut::expect - https://godbolt.org/z/6Nk5Mi
-
-```cpp
-01 import ut;              // ✔️
-02
-03 int main() {
-04   expect(sum(1, 2) == 21_i) << '?';
-05 }
-```
-<!-- .element: class="fragment" -->
-
----
-
-<pre><code>expect.cpp:04:FAILED [3 == 21] ?</code> -> <font color="lime">✔️</font></pre>
-<!-- .element: class="fragment" -->
-
-----
-
-#### ut::suite
-
-```cpp
-template <class TSuite>
-concept suite = std::invocable<TSuite>;
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
----
-
-```cpp
-struct suite {
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-```cpp
-  [[nodiscard]] constexpr explicit(false)
-  suite(concepts::suite auto suite) {
-    suite();
-  }
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-};
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
-----
-
-#### ut::suite / ut::expect
-
-```cpp
-01 import ut;        // ✔️
-02
-03 suite sums = [] { // ✔️
-04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
-05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
-06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
-07 };
-08
-09 int main() {
-10 }
-```
-<!-- .element: class="fragment" -->
-
----
-
-<pre><code>Running... sum with no args
-Running... sum with single arg
-Running... sum with multiple args
-</code> -> <font color="lime">✔️</font></pre>
-<!-- .element: class="fragment" -->
-
-----
-
-### Achievement Unlocked (Second goal)
+### Achievement Unlocked
 
 ### 👍
 
@@ -1386,6 +1220,7 @@ for (auto i : std::vector{1, 2, 3}) {
 ```cpp
 01 constexpr auto i = 0;
 02 constant<42_i == i> and type<void> == type<int>;
+03 type<int> == sum(1, 2, 3);
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -1593,35 +1428,6 @@ test.1.2      test.2.2
 
 <pre><code></code> -> <font color="lime">All tests passed</font> (4 asserts in 4 tests)</pre>
 <!-- .element: class="fragment" data-fragment-index="5" -->
-
-----
-
-#### Benchmarking - https://godbolt.org/z/WqznMn
-
-```cpp
-auto do_not_optimize(auto expr) -> void {
-  asm volatile("" :: "m"(expr) : "memory");
-}
-```
-<!-- .element: class="fragment" data-fragment-index="2" -->
-
-```cpp
-"string creation"_benchmark = [] {
-  std::string created_string{"hello"};
-  do_not_optimize(created_string);
-}
-```
-<!-- .element: class="fragment" data-fragment-index="1" -->
-
----
-
-```cpp
-[string creation] 3749 ns
-```
-<!-- .element: class="fragment" data-fragment-index="3" -->
-
-<pre><code></code> -> <font color="lime">All tests passed</font> (0 asserts in 1 tests)</pre>
-<!-- .element: class="fragment" data-fragment-index="3" -->
 
 ----
 
