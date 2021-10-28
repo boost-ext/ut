@@ -157,7 +157,7 @@ int main() {
 
 ----
 
-### Future (C++20)?
+### Future -> Present (C++20)?
 
 * #### No macros
 <!-- .element: class="fragment" -->
@@ -187,12 +187,35 @@ constexpr auto sum(auto... args) { return (0 + ... + args); }
 01 import ut;               // C++20 module
 02
 03 int main() {
-04   "sum"_test = [] {      // Running... sum
-05      sum(1, 2) == 42_i;  // sum.cpp:5:FAILED [ 3 == 42 ]
-06   };                     // tests:   1 | 1 failed
-07 }                        // asserts: 1 | 0 passed | 1 failed
+04   using namespace boost::ut;
+05
+06   "sum"_test = [] {      // Running... sum
+07      sum(1, 2) == 42_i;  // sum.cpp:7:FAILED [ 3 == 42 ]
+08   };                     // tests:   1 | 1 failed
+09 }                        // asserts: 1 | 0 passed | 1 failed
 ```
 <!-- .element: class="fragment" -->
+
+----
+
+#### Catch2* support with UT primitives on one slide
+
+```cpp
+TEST_CASE("vectors can be sized and resized", "[vector]") {
+  std::vector<int> v(5);
+
+  SECTION("resize bigger") {
+    v.resize(10);
+    REQUIRE(10 == std::size(v));
+  };
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+> *Basic functionality
+<!-- .element: class="fragment" data-fragment-index="2" -->
 
 ==============================================================================
 
@@ -244,7 +267,7 @@ export namespace ut::inline v1 {
 01 import ut;
 02
 03 int main() {
-04   // ...
+04   using namespace boost::ut;
 05 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -286,10 +309,12 @@ $CXX $CXXFLAGS main.cpp ut.pcm -o main
 #### ut::test
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     //  ut::test / ""_test
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          //  ut::test / ""_test
 ```
 <!-- .element: class="fragment" -->
 
@@ -300,7 +325,7 @@ $CXX $CXXFLAGS main.cpp ut.pcm -o main
 ```cpp
 template <class T> concept printable =
   requires(std::ostream &os, T t) {
-    os << t;
+    { os << t } -> std::same_as<std::ostream&>;
   };
 ```
 <!-- .element: class="fragment" data-fragment-index="4" -->
@@ -407,12 +432,14 @@ struct test {
 #### ut::test
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     // ✔️
-05   };
-06 }
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          // ✔️
+07   };
+08 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -426,13 +453,15 @@ struct test {
 #### Assertion
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; // ut::operator==, ut::""_i
-06   };
-07 }
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          // ✔️
+07      sum(1, 2) == 42_i;      // ut::operator==, ut::""_i
+08   };
+09 }
 ```
 
 ----
@@ -524,7 +553,7 @@ struct eq final {
 
 ```cpp
   ~eq() noexcept {
-    if (not *this) { error(*this); }
+    if (not *this) { detail::error(*this); }
   }
 ```
 <!-- .element: class="fragment" data-fragment-index="3" -->
@@ -634,13 +663,15 @@ static_assert(0 == foo(b));
 #### Assertion
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; // ut::operator== ✔️, ut::""_i
-06   };
-07 }
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          // ✔️
+07      sum(1, 2) == 42_i;      // ut::operator== ✔️, ut::""_i
+08   };
+09 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -747,13 +778,15 @@ main:
 #### Assertion
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; // ut::operator== ✔️, ut::""_i ✔️
-06   };
-07 }
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          // ✔️
+07      sum(1, 2) == 42_i;      // ut::operator== ✔️, ut::""_i ✔️
+08   };
+09 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -767,7 +800,7 @@ FAILED: [3 == 42]</code> -> <font color="gray">It's missing FILE:LINE!</font></p
 
 #### Source Location / C++20 / [C++draft/support.srcloc#source.location.syn](http://eel.is/c++draft/support.srcloc#source.location.syn)
 
-<img src="images/source_location.png" style="width: 50%; background:none; border:none; box-shadow:none;" />
+<img src="images/source_location.png" style="width: 70%; background:none; border:none; box-shadow:none;" />
 
 ##### Macro-free replacement for `__FILE__`, `__LINE__`, `__function__`
 <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -798,7 +831,7 @@ auto error(const auto& expr, const auto& location) -> void {
             << ":FAILED: " << expr << '\n';
 }
 ```
-<!-- .element: class="fragment" data-fragment-index="1" -->
+<!-- .element: class="fragment" data-fragment-index="5" -->
 
 ---
 
@@ -814,7 +847,7 @@ struct eq final {
 ```cpp
   ~eq() noexcept {
     if (not *this) {
-      error(*this, location_);
+      detail::error(*this, location_);
     }
   }
 ```
@@ -833,13 +866,15 @@ struct eq final {
 #### Assertion
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; // ut::operator== ✔️, ut::""_i ✔️
-06   };
-07 }
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          // ✔️
+07      sum(1, 2) == 42_i;      // ut::operator== ✔️, ut::""_i ✔️
+08   };
+09 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -881,7 +916,7 @@ template <class TValue> struct value_location {
 ```cpp
 template <op T>
 constexpr auto operator==(
-  value_location<typename T::value_type> lhs, T rhs) {
+  value_location<typename T::value_type> lhs, T rhs) { // callee side
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -889,7 +924,7 @@ constexpr auto operator==(
   struct eq : detail::eq<decltype(lhs), decltype(rhs)> {
     ~eq() noexcept {
       if (not *this) {
-        error(*this, lhs.location);
+        detail::error(*this, lhs.location);
       }
     }
   };
@@ -908,13 +943,15 @@ constexpr auto operator==(
 #### Assertion
 
 ```cpp
-01 import ut;              // ✔️
+01 import ut;                   // ✔️
 02
 03 int main() {
-04   "sum"_test = [] {     // ✔️
-05      sum(1, 2) == 42_i; // ut::operator== ✔️, ut::""_i ✔️
-06   };
-07 }
+04   using namespace boost::ut; // ✔️
+05
+06   "sum"_test = [] {          // ✔️
+07      sum(1, 2) == 42_i;      // ut::operator== ✔️, ut::""_i ✔️
+08   };
+09 }
 ```
 <!-- .element: class="fragment" data-fragment-index="1" -->
 
@@ -931,6 +968,143 @@ test.cpp:05:FAILED: [3 == 42]</code> -> <font color="lime">✔️</font></pre>
 ### 👍
 
 <!-- .slide: data-background="green" -->
+
+----
+
+#### Bonus - ut::suite / ut::expect
+
+```cpp
+01 import ut;// ✔️
+02
+03 suite sums = [] { // ut::suite
+04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
+05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
+06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
+07 };
+08
+09 int main() {
+10 }
+```
+<!-- .element: class="fragment" -->
+
+----
+
+#### ut::expect
+
+```cpp
+01 import ut; // ✔️
+02
+03 int main() {
+04   expect(sum(1, 2) == 21_i); // ut::expect
+05 }
+```
+
+----
+
+#### ut::expect
+
+```cpp
+template <class TExpr> concept expression =
+  std::convertible_to<TExpr, bool> and printable<TExpr>;
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+---
+
+```cpp
+constexpr concepts::streamable auto& expect(
+  concepts::expression auto expr,
+  const std::source_location &location =
+        std::source_location::current()) {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  if (not expr) {
+    detail::error(expr, location);
+  }
+  return std::cerr;
+```
+<!-- .element: class="fragment" data-fragment-index="4" -->
+
+```
+}
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+----
+
+#### ut::expect - https://godbolt.org/z/6Nk5Mi
+
+```cpp
+01 import ut; // ✔️
+02
+03 int main() {
+04   expect(sum(1, 2) == 21_i);
+05 }
+```
+<!-- .element: class="fragment" -->
+
+---
+
+<pre><code>expect.cpp:04:FAILED [3 == 21]</code> -> <font color="lime">✔️</font></pre>
+<!-- .element: class="fragment" -->
+
+----
+
+#### ut::suite
+
+```cpp
+template <class TSuite>
+concept suite = std::invocable<TSuite>;
+```
+<!-- .element: class="fragment" data-fragment-index="3" -->
+
+---
+
+```cpp
+struct suite {
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+```cpp
+  [[nodiscard]] constexpr explicit(false)
+  suite(concepts::suite auto suite) {
+    suite();
+  }
+```
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+```cpp
+};
+```
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+----
+
+#### ut::suite / ut::expect
+
+```cpp
+01 import ut;        // ✔️
+02
+03 suite sums = [] { // ✔️
+04  "sum with no args"_test       = [] { expect(sum() == 0_i); };
+05  "sum with single arg"_test    = [] { expect(sum(42) == 42_i); };
+06  "sum with multiple args"_test = [] { expect(sum(1, 2) == 3_i); };
+07 };
+08
+09 int main() {
+10 }
+```
+<!-- .element: class="fragment" -->
+
+---
+
+<pre><code>Running... sum with no args
+Running... sum with single arg
+Running... sum with multiple args
+</code> -> <font color="lime">✔️</font></pre>
+<!-- .element: class="fragment" -->
 
 ----
 
