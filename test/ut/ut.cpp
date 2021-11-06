@@ -110,10 +110,11 @@ struct fake_cfg {
   std::string test_filter{};
 };
 
-template<class T>
+template <class T>
 class fake_calculator {
  public:
   auto enter(const T& value) -> void { values_.push_back(value); }
+  auto name(std::string value) -> void { name_ = value; }
   auto add() -> void {
     result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
   }
@@ -122,10 +123,12 @@ class fake_calculator {
                               values_.front(), std::minus{});
   }
   [[nodiscard]] auto get() const -> const T& { return result_; }
+  [[nodiscard]] auto name() const -> std::string { return name_; }
 
  private:
   std::vector<T> values_{};
   T result_{};
+  std::string name_{};
 };
 
 struct test_reporter : ut::reporter<ut::printer> {
@@ -1624,10 +1627,16 @@ int main() {
             steps.when("I enter {value}") = [&](int value) {
               calc.enter(value);
             };
+            steps.when("I name it '{value}'") = [&](std::string value) {
+              calc.name(value);
+            };
             steps.when("I press add") = [&] { calc.add(); };
             steps.when("I press sub") = [&] { calc.sub(); };
             steps.then("I expect {value}") = [&](int result) {
               expect(that % calc.get() == result);
+            };
+            steps.then("it's name is '{value}'") = [&](std::string value) {
+              expect(calc.name() == value);
             };
           };
         };
@@ -1652,16 +1661,23 @@ int main() {
              When I enter 2
              When I press sub
              Then I expect 2
+
+          Scenario: Give a calculator a name
+            Given I have calculator
+             When I name it 'My calculator'
+             Then it's name is 'My calculator'
       )";
     // clang-format on
 
-    test_assert(2 == std::size(test_cfg.assertion_calls));
+    test_assert(3 == std::size(test_cfg.assertion_calls));
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[0].result);
 
     test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
     test_assert(test_cfg.assertion_calls[1].result);
+
+    test_assert(test_cfg.assertion_calls[2].result);
   }
 
   {
@@ -1709,7 +1725,6 @@ int main() {
     // clang-format on
 
     test_assert(2 == std::size(test_cfg.assertion_calls));
-
 
     test_assert("42 == 42" == test_cfg.assertion_calls[0].expr);
     test_assert(test_cfg.assertion_calls[0].result);
