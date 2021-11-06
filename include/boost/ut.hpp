@@ -2203,7 +2203,11 @@ class steps {
       T t{};
       std::istringstream iss{};
       iss.str(str);
-      iss >> t;
+      if constexpr (std::is_same_v<T, std::string>) {
+        t = iss.str();
+      } else {
+        iss >> t;
+      }
       return t;
     }
 
