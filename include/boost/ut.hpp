@@ -12,7 +12,7 @@ export import std;
 #pragma once
 #endif
 
-#if __has_include(<ios646.h>)
+#if __has_include(<iso646.h>)
 #include <iso646.h>  // and, or, not, ...
 #endif
 
