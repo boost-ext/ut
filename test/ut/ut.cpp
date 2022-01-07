@@ -357,6 +357,14 @@ int main() {
       static_assert(42u == 42_us);
       static_assert(42u == 42_us);
       static_assert(42u == 42_ul);
+      static_assert(42 == 42_i8);
+      static_assert(42 == 42_i16);
+      static_assert(42 == 42_i32);
+      static_assert(42 == 42_i64);
+      static_assert(42u == 42_u8);
+      static_assert(42u == 42_u16);
+      static_assert(42u == 42_u32);
+      static_assert(42u == 42_u64);
       static_assert(42.42f == 42.42_f);
       static_assert(42.42 == 42.42_d);
       static_assert(240.209996948 == 240.209996948_d);

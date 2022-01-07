@@ -53,6 +53,7 @@ export import std;
 #endif
 
 #include <array>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <string_view>
@@ -73,7 +74,7 @@ export import std;
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export
 #endif
-namespace boost::inline ext::ut::inline v1_1_8 {
+    namespace boost::inline ext::ut::inline v1_1_8 {
 namespace utility {
 template <class>
 class function;
@@ -205,7 +206,7 @@ template <class T = std::string_view, class TDelim>
 
 namespace reflection {
 #if defined(__cpp_lib_source_location)
-  using source_location = std::source_location;
+using source_location = std::source_location;
 #else
 class source_location {
  public:
@@ -371,12 +372,12 @@ static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-static constexpr auto has_npos_v = is_valid<T>([](auto t) -> decltype(void(t.npos)) {
-});
+static constexpr auto has_npos_v =
+    is_valid<T>([](auto t) -> decltype(void(t.npos)) {});
 
 template <class T>
-static constexpr auto has_value_v = is_valid<T>([](auto t) -> decltype(void(t.value)) {
-});
+static constexpr auto has_value_v =
+    is_valid<T>([](auto t) -> decltype(void(t.value)) {});
 
 template <class T>
 static constexpr auto has_epsilon_v =
@@ -1641,6 +1642,46 @@ template <char... Cs>
 }
 
 template <char... Cs>
+[[nodiscard]] constexpr auto operator""_i8() {
+  return detail::integral_constant<math::num<std::int8_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_i16() {
+  return detail::integral_constant<math::num<std::int16_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_i32() {
+  return detail::integral_constant<math::num<std::int32_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_i64() {
+  return detail::integral_constant<math::num<std::int64_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_u8() {
+  return detail::integral_constant<math::num<std::uint8_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_u16() {
+  return detail::integral_constant<math::num<std::uint16_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_u32() {
+  return detail::integral_constant<math::num<std::uint32_t, Cs...>()>{};
+}
+
+template <char... Cs>
+[[nodiscard]] constexpr auto operator""_u64() {
+  return detail::integral_constant<math::num<std::uint64_t, Cs...>()>{};
+}
+
+template <char... Cs>
 [[nodiscard]] constexpr auto operator""_f() {
   return detail::floating_point_constant<
       float, math::num<unsigned long, Cs...>(),
@@ -2083,6 +2124,14 @@ using _uc = detail::value<unsigned char>;
 using _us = detail::value<unsigned short>;
 using _ul = detail::value<unsigned long>;
 using _ull = detail::value<unsigned long long>;
+using _i8 = detail::value<std::int8_t>;
+using _i16 = detail::value<std::int16_t>;
+using _i32 = detail::value<std::int32_t>;
+using _i64 = detail::value<std::int64_t>;
+using _u8 = detail::value<std::uint8_t>;
+using _u16 = detail::value<std::uint16_t>;
+using _u32 = detail::value<std::uint32_t>;
+using _u64 = detail::value<std::uint64_t>;
 using _f = detail::value<float>;
 using _d = detail::value<double>;
 using _ld = detail::value<long double>;
@@ -2186,7 +2235,7 @@ class steps {
       }
 
       steps_.call_steps().emplace_back(
-          pattern_, [expr, pattern = pattern_](const auto&_step) {
+          pattern_, [expr, pattern = pattern_](const auto& _step) {
             [=]<class... TArgs>(type_traits::list<TArgs...>) {
               log << _step;
               auto i = 0u;
@@ -2198,7 +2247,7 @@ class steps {
     }
 
    private:
-    template<class T>
+    template <class T>
     static auto lexical_cast(const std::string& str) {
       T t{};
       std::istringstream iss{};
@@ -2222,8 +2271,8 @@ class steps {
   template <class TGherkin>
   auto operator|(const TGherkin& gherkin) {
     gherkin_ = utility::split<std::string>(gherkin, '\n');
-    for (auto&_step : gherkin_) {
-		_step.erase(0, _step.find_first_not_of(" \t"));
+    for (auto& _step : gherkin_) {
+      _step.erase(0, _step.find_first_not_of(" \t"));
     }
 
     return [this] {
@@ -2256,7 +2305,7 @@ class steps {
              _step.find(scenario) != std::string::npos;
     };
 
-    const auto call_steps = [this, is_scenario](const auto&_step,
+    const auto call_steps = [this, is_scenario](const auto& _step,
                                                 const auto i) {
       for (const auto& [name, call] : call_steps_) {
         if (is_scenario(_step)) {
@@ -2272,7 +2321,7 @@ class steps {
     };
 
     decltype(step_) i{};
-    for (const auto&_step : gherkin_) {
+    for (const auto& _step : gherkin_) {
       if (i++ == step_) {
         call_steps(_step, i);
       }
@@ -2311,6 +2360,14 @@ using literals::operator""_u;
 using literals::operator""_uc;
 using literals::operator""_us;
 using literals::operator""_ul;
+using literals::operator""_i8;
+using literals::operator""_i16;
+using literals::operator""_i32;
+using literals::operator""_i64;
+using literals::operator""_u8;
+using literals::operator""_u16;
+using literals::operator""_u32;
+using literals::operator""_u64;
 using literals::operator""_f;
 using literals::operator""_d;
 using literals::operator""_ld;
@@ -2328,5 +2385,5 @@ using operators::operator not;
 using operators::operator|;
 using operators::operator/;
 using operators::operator>>;
-}  // namespace boost::ext::ut::v1_1_8
+}  // namespace boost::inline ext::ut::inline v1_1_8
 #endif
