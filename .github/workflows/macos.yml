@@ -53,7 +53,7 @@ jobs:
       - name: Run clang-tidy
         shell: bash
         run: |
-          export PATH=/usr/local/opt/llvm/bin/:${PATH}
-          /usr/local/opt/llvm/share/clang/run-clang-tidy.py \
+          export PATH=$(brew --prefix llvm)/bin:${PATH}
+          $(brew --prefix llvm)/bin/run-clang-tidy \
             -p build test 2>&1 | tee .run-clang-tidy.log
           builddriver cat .run-clang-tidy.log
