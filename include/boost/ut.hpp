@@ -237,6 +237,8 @@ template <class T>
   return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
 #elif defined(__clang_analyzer__)
   return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
+#elif defined(__clang__) and (__clang_major__ >= 13) and defined(__APPLE__)
+  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
 #elif defined(__clang__) and (__clang_major__ >= 12) and not defined(__APPLE__)
   return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
 #elif defined(__clang__)
