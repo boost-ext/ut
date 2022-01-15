@@ -3,8 +3,8 @@
 <a href="https://github.com/boost-ext/ut/actions/workflows/macos.yml" target="_blank">![MacOs](https://github.com/boost-ext/ut/actions/workflows/macos.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/windows.yml" target="_blank">![Windows](https://github.com/boost-ext/ut/actions/workflows/windows.yml/badge.svg)</a>
 <a href="https://codecov.io/gh/boost-ext/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-ext/ut/branch/master/graph/badge.svg)</a>
-<a href="https://www.codacy.com/manual/boost-ext/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-ext/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
 <a href="https://godbolt.org/z/Jqb5Ye">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+<a href="https://aur.archlinux.org/packages/ut/">![AUR Badge](https://img.shields.io/aur/version/ut)</a>
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
 
