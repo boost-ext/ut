@@ -30,4 +30,14 @@ int main() {
       };
     };
   };
+
+  scenario("Addition");
+    given("I have number 40");
+      auto number = 40;
+
+    when("I add 2 to number");
+      number += 2;
+
+    then("I expect number to be 42");
+      42_i == number;
 }
