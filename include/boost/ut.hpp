@@ -37,7 +37,7 @@ export import std;
 #elif not defined(__cpp_static_assert)
 #error "[Boost::ext].UT requires support for static assert";
 #else
-#define BOOST_UT_VERSION 1'1'8
+#define BOOST_UT_VERSION 1'1'9
 
 #if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and \
     not defined(__clang__)
@@ -74,7 +74,7 @@ export import std;
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export
 #endif
-    namespace boost::inline ext::ut::inline v1_1_8 {
+    namespace boost::inline ext::ut::inline v1_1_9 {
 namespace utility {
 template <class>
 class function;
@@ -2387,5 +2387,5 @@ using operators::operator not;
 using operators::operator|;
 using operators::operator/;
 using operators::operator>>;
-}  // namespace boost::inline ext::ut::inline v1_1_8
+}  // namespace boost::inline ext::ut::inline v1_1_9
 #endif

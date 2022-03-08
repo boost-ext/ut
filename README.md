@@ -166,7 +166,7 @@ target_link_libraries(my_test PRIVATE boost::ut)
 > [Optional] [Conan](https://conan.io) integration
 
 The [boost-ext-ut](https://conan.io/center/boost-ext-ut) package is available from [Conan Center](https://conan.io/center/).
-Just include it in your project's Conanfile with `boost-ext-ut/1.1.8`.
+Just include it in your project's Conanfile with `boost-ext-ut/1.1.9`.
 
 </p>
 </details>
@@ -1128,7 +1128,7 @@ int main() {
 ```cpp
 export module boost.ut; /// __cpp_modules
 
-namespace boost::inline ext::ut::inline v1_1_8 {
+namespace boost::inline ext::ut::inline v1_1_9 {
   /**
    * Represents test suite object
    */
@@ -1489,7 +1489,7 @@ namespace boost::inline ext::ut::inline v1_1_8 {
 
 | Option | Description | Example |
 |-|-|-|
-| `BOOST_UT_VERSION`        | Current version | `1'1'8` |
+| `BOOST_UT_VERSION`        | Current version | `1'1'9` |
 
 </p>
 </details>
