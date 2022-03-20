@@ -12,10 +12,6 @@ export import std;
 #pragma once
 #endif
 
-#if __has_include(<iso646.h>)
-#include <iso646.h>  // and, or, not, ...
-#endif
-
 #if not defined(__cpp_rvalue_references)
 #error "[Boost::ext].UT requires support for rvalue references";
 #elif not defined(__cpp_decltype)
