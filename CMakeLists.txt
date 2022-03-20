@@ -11,9 +11,10 @@ project(
   LANGUAGES CXX
 )
 
-set(MASTER_PROJECT OFF)
+set(MASTER_PROJECT ON)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
+  set(BOOST_UT_AS_SYSTEM_HEADER OFF)
 endif()
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -32,6 +33,7 @@ option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
+option(BOOST_UT_AS_SYSTEM_HEADER "Mark ut header dir as system dir" ON)
 
 # ---- Add dependencies via CPM ----
 # see https://github.com/cpm-cmake/CPM.cmake for more info
@@ -53,8 +55,13 @@ endif()
 add_library(ut INTERFACE)
 
 set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
+
+if(BOOST_UT_AS_SYSTEM_HEADER)
+  set(BOOST_UT_SYSTEM_HEADER_ATTR SYSTEM)
+endif()
+
 # XXX variant: set(INCLUDE_INSTALL_DIR include)
-target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
+target_include_directories(ut ${BOOST_UT_SYSTEM_HEADER_ATTR} INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
 if(APPLE)
   target_compile_features(ut INTERFACE cxx_std_20)
 else()
@@ -84,6 +91,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
               -Wno-sign-conversion
               -Wno-float-equal
   )
+elseif(MSVC)
+  target_compile_options(ut INTERFACE "/interface" "/translateInclude" "/ifcOnly")
 endif()
 
 add_custom_target(style)
