@@ -64,6 +64,8 @@ endif()
 target_include_directories(ut ${BOOST_UT_SYSTEM_HEADER_ATTR} INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
 if(APPLE)
   target_compile_features(ut INTERFACE cxx_std_20)
+elseif(MSVC)
+  target_compile_features(ut INTERFACE cxx_std_23)
 else()
   target_compile_features(ut INTERFACE cxx_std_17)
 endif()
@@ -92,7 +94,17 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
               -Wno-float-equal
   )
 elseif(MSVC)
-  target_compile_options(ut INTERFACE "/interface" "/translateInclude" "/ifcOnly")
+  # MSVC got poor support for module
+  message(STATUS "Disable module support for MSVC")
+  set(BOOST_UT_DISABLE_MODULE ON)
+  # if(${CMAKE_GENERATOR} MATCHES "Visual Studio 17 2022")
+  #   target_compile_options(
+  #     ut
+  #     BEFORE INTERFACE /interface /translateInclude /experimental:module /wd5244 /wd5050 /EHsc
+  #   )
+  # else()
+  #   message(FATAL_ERROR "Module support for MSVC required Visual Studio generator\n See https://devblogs.microsoft.com/cppblog/cpp20-modules-in-cmake-with-vs/?msclkid=3028488fa81711ec8a2a0b8bf512a1ab")
+  # endif()
 endif()
 
 add_custom_target(style)

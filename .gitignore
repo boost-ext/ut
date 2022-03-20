@@ -2,3 +2,6 @@ build*
 /CMakeSettings.json
 /.vs
 /.vscode
+
+# for clangd
+.cache/
