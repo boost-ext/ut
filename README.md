@@ -898,11 +898,10 @@ All tests passed (14 asserts in 10 tests)
 ```
 
 > https://godbolt.org/z/4xGGdo
-</p>
+
   
-<p>
-If you need to know the specific type for which the test failed,
-you can use `reflection::type_name<T>()`:
+> And whenever I need to know the specific type for which the test failed,
+> I can use `reflection::type_name<T>()`, like this:
   
 ```cpp
 "types with type name"_test =
