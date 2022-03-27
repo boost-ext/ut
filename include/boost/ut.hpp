@@ -374,8 +374,8 @@ static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-static constexpr auto has_npos_v =
-    is_valid<T>([](auto t) -> decltype(void(t.npos)) {});
+static constexpr auto has_user_print =
+    is_valid<T>([](auto t) -> decltype(void(declval<std::ostringstream>() << t)) {});
 
 template <class T>
 static constexpr auto has_value_v =
@@ -952,8 +952,8 @@ class printer {
   }
 
   template <class T,
-            type_traits::requires_t<type_traits::is_container_v<T> and
-                                    not type_traits::has_npos_v<T>> = 0>
+            type_traits::requires_t<not type_traits::has_user_print<T> and
+                                    type_traits::is_container_v<T>> = 0>
   auto& operator<<(T&& t) {
     *this << '{';
     auto first = true;
@@ -1064,7 +1064,7 @@ class printer {
 
  private:
   ut::colors colors_{};
-  std::stringstream out_{};
+  std::ostringstream out_{};
 };
 
 template <class TPrinter = printer>
