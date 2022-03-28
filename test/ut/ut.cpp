@@ -249,7 +249,21 @@ struct custom {
   }
 
   friend auto operator<<(std::ostream& os, const custom& c) -> std::ostream& {
-    return (os << "custom{" << c.i << '}');
+    return os << "custom{" << c.i << '}';
+  }
+};
+
+struct custom_vec: std::vector<int> {
+  using std::vector<int>::vector;
+
+  friend auto operator<<(std::ostream& os, const custom_vec& c) -> std::ostream& {
+    os << "custom_vec{";
+    if(!c.empty()){
+      os << c.front();
+      std::for_each(std::next(c.begin()), c.end(), [&os](int const v){ os << ", " << v; });
+    }
+    os << '}';
+    return os;
   }
 };
 
@@ -1099,6 +1113,22 @@ int main() {
       test_assert(not test_cfg.assertion_calls[4].result);
       test_assert("(custom{1} == custom{2} or 1 == 22)" ==
                   test_cfg.assertion_calls[4].expr);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      expect(custom_vec{42, 5} == custom_vec{42, 5});
+      expect(custom_vec{42, 5, 3} != custom_vec{42, 5, 6});
+
+      test_assert(2 == std::size(test_cfg.assertion_calls));
+
+      test_assert(test_cfg.assertion_calls[0].result);
+      test_assert("custom_vec{42, 5} == custom_vec{42, 5}" == test_cfg.assertion_calls[0].expr);
+
+      test_assert(test_cfg.assertion_calls[1].result);
+      test_assert("custom_vec{42, 5, 3} != custom_vec{42, 5, 6}" == test_cfg.assertion_calls[1].expr);
+
     }
 
     {
