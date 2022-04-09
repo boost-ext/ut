@@ -4,7 +4,7 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-cmake_minimum_required(VERSION 3.12...3.20)
+cmake_minimum_required(VERSION 3.12...3.23)
 project(
   ut
   VERSION 1.1.9
@@ -46,7 +46,7 @@ else()
   CPMAddPackage(
     NAME PackageProject.cmake
     GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-    VERSION 1.6.0
+    VERSION 1.8.0
   )
 endif()
 
