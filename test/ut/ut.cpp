@@ -995,6 +995,26 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
+      expect(near(42_i, 43_i, 2_i));
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+      test_assert("42 ~ (43 +/- 2)" == test_cfg.assertion_calls[0].expr);
+      test_assert(test_cfg.assertion_calls[0].result);
+
+      expect(near(3.141592654, std::numbers::pi_v<double>, 1e-9));
+      test_assert(2 == std::size(test_cfg.assertion_calls));
+      test_assert("3.14159 ~ (3.14159 +/- 1e-09)" ==
+                  test_cfg.assertion_calls[1].expr);
+      test_assert(test_cfg.assertion_calls[1].result);
+
+      expect(near(1_u, 2_u, 3_u));
+      test_assert(3 == std::size(test_cfg.assertion_calls));
+      test_assert("1 ~ (2 +/- 3)" == test_cfg.assertion_calls[2].expr);
+      test_assert(test_cfg.assertion_calls[2].result);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
       using namespace std::literals::string_view_literals;
       using namespace std::literals::string_literals;
 

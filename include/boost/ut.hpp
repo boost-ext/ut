@@ -255,6 +255,12 @@ template <class T>
   return t < T{} ? -t : t;
 }
 
+template <class T, class U>
+[[nodiscard]] constexpr auto abs_diff(const T t, const U u)
+    -> decltype(t < u ? u - t : t - u) {
+  return t < u ? u - t : t - u;
+}
+
 template <class T>
 [[nodiscard]] constexpr auto min_value(const T& lhs, const T& rhs) -> const T& {
   return (rhs < lhs) ? rhs : lhs;
@@ -676,6 +682,33 @@ struct eq_ : op {
   const bool value_{};
 };
 
+template <class TLhs, class TRhs, class TEpsilon>
+struct near_ : op {
+  constexpr near_(const TLhs& lhs = {}, const TRhs& rhs = {},
+                  const TEpsilon& epsilon = {})
+      : lhs_{lhs}, rhs_{rhs}, epsilon_{epsilon}, value_{[&] {
+          using std::operator<;
+
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs> and
+                        type_traits::has_value_v<TEpsilon>) {
+            return math::abs_diff(TLhs::value, TRhs::value) < TEpsilon::value;
+          } else {
+            return math::abs_diff(get(lhs), get(rhs)) < get(epsilon);
+          }
+        }()} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+  [[nodiscard]] constexpr auto epsilon() const { return get(epsilon_); }
+
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const TEpsilon epsilon_{};
+  const bool value_{};
+};
+
 template <class TLhs, class TRhs>
 struct neq_ : op {
   constexpr neq_(const TLhs& lhs = {}, const TRhs& rhs = {})
@@ -974,6 +1007,12 @@ class printer {
   auto& operator<<(const detail::eq_<TLhs, TRhs>& op) {
     return (*this << color(op) << op.lhs() << " == " << op.rhs()
                   << colors_.none);
+  }
+
+  template <class TLhs, class TRhs, class TEpsilon>
+  auto& operator<<(const detail::near_<TLhs, TRhs, TEpsilon>& op) {
+    return (*this << color(op) << op.lhs() << " ~ (" << op.rhs() << " +/- "
+                  << op.epsilon() << ')' << colors_.none);
   }
 
   template <class TLhs, class TRhs>
@@ -2168,6 +2207,11 @@ template <class T = void>
 template <class TLhs, class TRhs>
 [[nodiscard]] constexpr auto eq(const TLhs& lhs, const TRhs& rhs) {
   return detail::eq_{lhs, rhs};
+}
+template <class TLhs, class TRhs, class TEpsilon>
+[[nodiscard]] constexpr auto near(const TLhs& lhs, const TRhs& rhs,
+                                  const TEpsilon& epsilon) {
+  return detail::near_{lhs, rhs, epsilon};
 }
 template <class TLhs, class TRhs>
 [[nodiscard]] constexpr auto neq(const TLhs& lhs, const TRhs& rhs) {
