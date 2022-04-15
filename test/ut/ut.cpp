@@ -1000,7 +1000,7 @@ int main() {
       test_assert("42 ~ (43 +/- 2)" == test_cfg.assertion_calls[0].expr);
       test_assert(test_cfg.assertion_calls[0].result);
 
-      expect(near(3.141592654, std::numbers::pi_v<double>, 1e-9));
+      expect(near(3.141592654, 3.1415926536, 1e-9));
       test_assert(2 == std::size(test_cfg.assertion_calls));
       test_assert("3.14159 ~ (3.14159 +/- 1e-09)" ==
                   test_cfg.assertion_calls[1].expr);
