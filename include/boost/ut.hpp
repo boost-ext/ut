@@ -380,8 +380,8 @@ static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-static constexpr auto has_user_print =
-    is_valid<T>([](auto t) -> decltype(void(declval<std::ostringstream>() << t)) {});
+static constexpr auto has_user_print = is_valid<T>(
+    [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
 
 template <class T>
 static constexpr auto has_value_v =
@@ -683,9 +683,9 @@ struct eq_ : op {
 };
 
 template <class TLhs, class TRhs, class TEpsilon>
-struct near_ : op {
-  constexpr near_(const TLhs& lhs = {}, const TRhs& rhs = {},
-                  const TEpsilon& epsilon = {})
+struct approx_ : op {
+  constexpr approx_(const TLhs& lhs = {}, const TRhs& rhs = {},
+                    const TEpsilon& epsilon = {})
       : lhs_{lhs}, rhs_{rhs}, epsilon_{epsilon}, value_{[&] {
           using std::operator<;
 
@@ -1010,7 +1010,7 @@ class printer {
   }
 
   template <class TLhs, class TRhs, class TEpsilon>
-  auto& operator<<(const detail::near_<TLhs, TRhs, TEpsilon>& op) {
+  auto& operator<<(const detail::approx_<TLhs, TRhs, TEpsilon>& op) {
     return (*this << color(op) << op.lhs() << " ~ (" << op.rhs() << " +/- "
                   << op.epsilon() << ')' << colors_.none);
   }
@@ -2209,9 +2209,9 @@ template <class TLhs, class TRhs>
   return detail::eq_{lhs, rhs};
 }
 template <class TLhs, class TRhs, class TEpsilon>
-[[nodiscard]] constexpr auto near(const TLhs& lhs, const TRhs& rhs,
-                                  const TEpsilon& epsilon) {
-  return detail::near_{lhs, rhs, epsilon};
+[[nodiscard]] constexpr auto approx(const TLhs& lhs, const TRhs& rhs,
+                                    const TEpsilon& epsilon) {
+  return detail::approx_{lhs, rhs, epsilon};
 }
 template <class TLhs, class TRhs>
 [[nodiscard]] constexpr auto neq(const TLhs& lhs, const TRhs& rhs) {
