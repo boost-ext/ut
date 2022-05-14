@@ -253,14 +253,16 @@ struct custom {
   }
 };
 
-struct custom_vec: std::vector<int> {
+struct custom_vec : std::vector<int> {
   using std::vector<int>::vector;
 
-  friend auto operator<<(std::ostream& os, const custom_vec& c) -> std::ostream& {
+  friend auto operator<<(std::ostream& os, const custom_vec& c)
+      -> std::ostream& {
     os << "custom_vec{";
-    if(!c.empty()){
+    if (!c.empty()) {
       os << c.front();
-      std::for_each(std::next(c.begin()), c.end(), [&os](int const v){ os << ", " << v; });
+      std::for_each(std::next(c.begin()), c.end(),
+                    [&os](int const v) { os << ", " << v; });
     }
     os << '}';
     return os;
@@ -996,18 +998,18 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
-      expect(near(42_i, 43_i, 2_i));
+      expect(approx(42_i, 43_i, 2_i));
       test_assert(1 == std::size(test_cfg.assertion_calls));
       test_assert("42 ~ (43 +/- 2)" == test_cfg.assertion_calls[0].expr);
       test_assert(test_cfg.assertion_calls[0].result);
 
-      expect(near(3.141592654, std::numbers::pi_v<double>, 1e-9));
+      expect(approx(3.141592654, 3.1415926536, 1e-9));
       test_assert(2 == std::size(test_cfg.assertion_calls));
       test_assert("3.14159 ~ (3.14159 +/- 1e-09)" ==
                   test_cfg.assertion_calls[1].expr);
       test_assert(test_cfg.assertion_calls[1].result);
 
-      expect(near(1_u, 2_u, 3_u));
+      expect(approx(1_u, 2_u, 3_u));
       test_assert(3 == std::size(test_cfg.assertion_calls));
       test_assert("1 ~ (2 +/- 3)" == test_cfg.assertion_calls[2].expr);
       test_assert(test_cfg.assertion_calls[2].result);
@@ -1145,11 +1147,12 @@ int main() {
       test_assert(2 == std::size(test_cfg.assertion_calls));
 
       test_assert(test_cfg.assertion_calls[0].result);
-      test_assert("custom_vec{42, 5} == custom_vec{42, 5}" == test_cfg.assertion_calls[0].expr);
+      test_assert("custom_vec{42, 5} == custom_vec{42, 5}" ==
+                  test_cfg.assertion_calls[0].expr);
 
       test_assert(test_cfg.assertion_calls[1].result);
-      test_assert("custom_vec{42, 5, 3} != custom_vec{42, 5, 6}" == test_cfg.assertion_calls[1].expr);
-
+      test_assert("custom_vec{42, 5, 3} != custom_vec{42, 5, 6}" ==
+                  test_cfg.assertion_calls[1].expr);
     }
 
     {
