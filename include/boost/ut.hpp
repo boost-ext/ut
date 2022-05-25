@@ -565,7 +565,7 @@ struct type_ : op {
   [[nodiscard]] constexpr auto operator==(const TOther&) -> bool {
     return std::is_same_v<TOther, T>;
   }
-  [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return true; }
+  [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return false; }
   template <class TOther>
   [[nodiscard]] constexpr auto operator!=(type_<TOther>) -> bool {
     return true;

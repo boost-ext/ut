@@ -516,6 +516,7 @@ int main() {
       static_assert(type<int*> != return_int());
       static_assert(type<double> != return_int());
       static_assert(type<int> == type<int>);
+      static_assert(!(type<int> != type<int>));
       static_assert(type<void> == type<void>);
       static_assert(type<void*> == type<void*>);
       static_assert(type<int> != type<const int>);
