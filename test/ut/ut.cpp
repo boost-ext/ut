@@ -536,13 +536,9 @@ int main() {
       reporter.on(events::test_begin{});
       reporter.on(events::test_run{});
       reporter.on(events::assertion_pass<bool>{
-          .expr = true,
-          .location =
-              reflection::source_location::current("file/name.cpp", 42)});
+          .expr = true, .location = reflection::source_location::current()});
       reporter.on(events::assertion_fail<bool>{
-          .expr = false,
-          .location =
-              reflection::source_location::current("file/name.cpp", 42)});
+          .expr = false, .location = reflection::source_location::current()});
       reporter.on(events::fatal_assertion{});
       reporter.on(events::test_end{});
 
