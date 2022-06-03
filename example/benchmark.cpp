@@ -13,12 +13,12 @@
 
 namespace benchmark {
 struct benchmark : boost::ut::detail::test {
-  explicit benchmark(std::string_view name)
-      : boost::ut::detail::test{"benchmark", name} {}
+  explicit benchmark(std::string_view _name)
+      : boost::ut::detail::test{"benchmark", _name} {}
 
   template <class Test>
-  auto operator=(Test test) {
-    static_cast<boost::ut::detail::test&>(*this) = [&test, this] {
+  auto operator=(Test _test) {
+    static_cast<boost::ut::detail::test&>(*this) = [&_test, this] {
       const auto start = std::chrono::high_resolution_clock::now();
       test();
       const auto stop = std::chrono::high_resolution_clock::now();
@@ -29,9 +29,9 @@ struct benchmark : boost::ut::detail::test {
   }
 };
 
-[[nodiscard]] auto operator""_benchmark(const char* name,
+[[nodiscard]] auto operator""_benchmark(const char* _name,
                                         decltype(sizeof("")) size) {
-  return ::benchmark::benchmark{{name, size}};
+  return ::benchmark::benchmark{{_name, size}};
 }
 
 #if defined(__GNUC__) or defined(__clang__)
