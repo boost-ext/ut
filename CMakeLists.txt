@@ -31,6 +31,7 @@ option(BOOST_UT_ENABLE_SANITIZERS "Run static analysis" OFF)
 option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
+option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${MASTER_PROJECT})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
 # ---- Add dependencies via CPM ----
@@ -46,7 +47,7 @@ else()
   CPMAddPackage(
     NAME PackageProject.cmake
     GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-    VERSION 1.8.0
+    VERSION 1.9.0
   )
 endif()
 
@@ -61,60 +62,9 @@ else()
   target_compile_features(ut INTERFACE cxx_std_17)
 endif()
 
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  if(WIN32) # clang-cl
-    # FIXME: we should not export this pedantic options! CK
-    target_compile_options(
-      ut
-      INTERFACE -Wall
-                -Wextra
-                # FIXME -Werror
-                -Wno-c++98-c++11-c++14-c++17-compat-pedantic
-                -Wno-c++98-c++11-compat
-                -Wno-c++98-compat
-                -Wno-c++98-compat-pedantic
-                -Wno-c99-extensions
-                -Wno-pedantic
-    )
-  else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
-  endif()
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-  # FIXME: we should not export this pedantic options! CK
-  target_compile_options(
-    ut
-    INTERFACE -Wall
-              -Wextra
-              # TODO: why not simpply -Wpedantic
-              -Werror
-              -Wcast-align
-              #-Wcast-align=strict
-              -Wcast-qual
-              -Wdouble-promotion
-              -Wduplicated-branches
-              -Wduplicated-cond
-              -Wlogical-op
-              -Wmissing-declarations
-              -Wmissing-include-dirs
-              -Wnull-dereference
-              -Wold-style-cast
-              -Wpointer-arith
-              -Wredundant-decls
-              -Wsign-conversion
-              -Wswitch-enum
-              -Wtrampolines
-              -Wunused-but-set-variable
-              -Wunused-result
-              -Wuseless-cast
-              -Wzero-as-null-pointer-constant
-              # FIXME
-              -Wno-undef
-              -Wno-missing-declarations
-              -Wno-sign-conversion
-              -Wno-float-equal
-  )
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  add_compile_options(/W4 /WX)
+
+if(BOOST_UT_USE_WARNINGS_AS_ERORS)
+  include(cmake/WarningsAsErrors.cmake)
 endif()
 
 add_custom_target(style)
