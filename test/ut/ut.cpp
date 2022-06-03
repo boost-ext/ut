@@ -156,7 +156,7 @@ struct test_throw_runtime_error {
 };
 
 struct test_assertion_true {
-  explicit test_assertion_true(test_runner& run) : run{run} {}
+  explicit test_assertion_true(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     void(run.on(ut::events::assertion<bool>{.expr = true, .location = {}}));
@@ -167,7 +167,7 @@ struct test_assertion_true {
 };
 
 struct test_assertion_false {
-  explicit test_assertion_false(test_runner& run) : run{run} {}
+  explicit test_assertion_false(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     void(run.on(ut::events::assertion<bool>{.expr = false, .location = {}}));
@@ -178,7 +178,7 @@ struct test_assertion_false {
 };
 
 struct test_assertions {
-  explicit test_assertions(test_runner& run) : run{run} {}
+  explicit test_assertions(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     void(run.on(ut::events::assertion<bool>{.expr = false, .location = {}}));
@@ -191,7 +191,7 @@ struct test_assertions {
 };
 
 struct test_sub_section {
-  explicit test_sub_section(test_runner& run) : run{run} {}
+  explicit test_sub_section(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     run.on(ut::events::test<test_empty>{.type = "test",
@@ -206,7 +206,7 @@ struct test_sub_section {
 };
 
 struct test_sub_sections {
-  explicit test_sub_sections(test_runner& run) : run{run} {}
+  explicit test_sub_sections(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     run.on(ut::events::test<test_empty>{.type = "test",
@@ -1677,7 +1677,7 @@ int main() {
     auto& test_cfg = ut::cfg<ut::override>;
     test_cfg = fake_cfg{};
 
-    bdd::gherkin::steps steps = [](auto& steps) {
+    bdd::gherkin::steps steps_int = [](auto& steps) {
       steps.feature("Calculator") = [&] {
         steps.scenario("*") = [&] {
           steps.given("I have calculator") = [&] {
@@ -1702,7 +1702,7 @@ int main() {
     };
 
     // clang-format off
-    "Calculator/int"_test = steps |
+    "Calculator/int"_test = steps_int |
       R"(
         Feature: Calculator
 
