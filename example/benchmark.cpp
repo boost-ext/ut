@@ -20,7 +20,7 @@ struct benchmark : boost::ut::detail::test {
   auto operator=(Test _test) {
     static_cast<boost::ut::detail::test&>(*this) = [&_test, this] {
       const auto start = std::chrono::high_resolution_clock::now();
-      test();
+      _test();
       const auto stop = std::chrono::high_resolution_clock::now();
       const auto ns =
           std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
