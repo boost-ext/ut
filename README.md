@@ -899,6 +899,27 @@ All tests passed (14 asserts in 10 tests)
 
 > https://godbolt.org/z/4xGGdo
 
+  
+> And whenever I need to know the specific type for which the test failed,
+> I can use `reflection::type_name<T>()`, like this:
+  
+```cpp
+"types with type name"_test =
+    []<class T>() {
+      expect(std::is_unsigned_v<T>) << reflection::type_name<T>() << "is unsigned";
+    }
+  | std::tuple<unsigned int, float>{};
+```
+
+```
+Running "types with type name"...PASSED
+Running "types with type name"...
+  <source>:10:FAILED [false] float is unsigned
+FAILED
+```
+  
+> https://godbolt.org/z/MEnGnbTY4
+
 </p>
 </details>
 

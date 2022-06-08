@@ -251,6 +251,12 @@ template <class T>
   return t < T{} ? -t : t;
 }
 
+template <class T, class U>
+[[nodiscard]] constexpr auto abs_diff(const T t, const U u)
+    -> decltype(t < u ? u - t : t - u) {
+  return t < u ? u - t : t - u;
+}
+
 template <class T>
 [[nodiscard]] constexpr auto min_value(const T& lhs, const T& rhs) -> const T& {
   return (rhs < lhs) ? rhs : lhs;
@@ -266,7 +272,7 @@ template <class T, char... Cs>
   static_assert(
       ((Cs == '.' or Cs == '\'' or (Cs >= '0' and Cs <= '9')) and ...));
   T result{};
-  for (const char c : {Cs...}) {
+  for (const char c : std::array{Cs...}) {
     if (c == '.') {
       break;
     }
@@ -370,8 +376,8 @@ static constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-static constexpr auto has_npos_v =
-    is_valid<T>([](auto t) -> decltype(void(t.npos)) {});
+static constexpr auto has_user_print = is_valid<T>(
+    [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
 
 template <class T>
 static constexpr auto has_value_v =
@@ -555,7 +561,7 @@ struct type_ : op {
   [[nodiscard]] constexpr auto operator==(const TOther&) -> bool {
     return std::is_same_v<TOther, T>;
   }
-  [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return true; }
+  [[nodiscard]] constexpr auto operator!=(type_<T>) -> bool { return false; }
   template <class TOther>
   [[nodiscard]] constexpr auto operator!=(type_<TOther>) -> bool {
     return true;
@@ -669,6 +675,33 @@ struct eq_ : op {
 
   const TLhs lhs_{};
   const TRhs rhs_{};
+  const bool value_{};
+};
+
+template <class TLhs, class TRhs, class TEpsilon>
+struct approx_ : op {
+  constexpr approx_(const TLhs& lhs = {}, const TRhs& rhs = {},
+                    const TEpsilon& epsilon = {})
+      : lhs_{lhs}, rhs_{rhs}, epsilon_{epsilon}, value_{[&] {
+          using std::operator<;
+
+          if constexpr (type_traits::has_value_v<TLhs> and
+                        type_traits::has_value_v<TRhs> and
+                        type_traits::has_value_v<TEpsilon>) {
+            return math::abs_diff(TLhs::value, TRhs::value) < TEpsilon::value;
+          } else {
+            return math::abs_diff(get(lhs), get(rhs)) < get(epsilon);
+          }
+        }()} {}
+
+  [[nodiscard]] constexpr operator bool() const { return value_; }
+  [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
+  [[nodiscard]] constexpr auto rhs() const { return get(rhs_); }
+  [[nodiscard]] constexpr auto epsilon() const { return get(epsilon_); }
+
+  const TLhs lhs_{};
+  const TRhs rhs_{};
+  const TEpsilon epsilon_{};
   const bool value_{};
 };
 
@@ -948,8 +981,8 @@ class printer {
   }
 
   template <class T,
-            type_traits::requires_t<type_traits::is_container_v<T> and
-                                    not type_traits::has_npos_v<T>> = 0>
+            type_traits::requires_t<not type_traits::has_user_print<T> and
+                                    type_traits::is_container_v<T>> = 0>
   auto& operator<<(T&& t) {
     *this << '{';
     auto first = true;
@@ -970,6 +1003,12 @@ class printer {
   auto& operator<<(const detail::eq_<TLhs, TRhs>& op) {
     return (*this << color(op) << op.lhs() << " == " << op.rhs()
                   << colors_.none);
+  }
+
+  template <class TLhs, class TRhs, class TEpsilon>
+  auto& operator<<(const detail::approx_<TLhs, TRhs, TEpsilon>& op) {
+    return (*this << color(op) << op.lhs() << " ~ (" << op.rhs() << " +/- "
+                  << op.epsilon() << ')' << colors_.none);
   }
 
   template <class TLhs, class TRhs>
@@ -1060,7 +1099,7 @@ class printer {
 
  private:
   ut::colors colors_{};
-  std::stringstream out_{};
+  std::ostringstream out_{};
 };
 
 template <class TPrinter = printer>
@@ -1876,9 +1915,9 @@ inline auto operator>>(const T& t,
                        const detail::value_location<detail::fatal>&) {
   using fatal_t = detail::fatal_<T>;
   struct fatal_ : fatal_t, detail::log {
-    using type [[maybe_unused]] = fatal_t;
+    using type = fatal_t;
     using fatal_t::fatal_t;
-    const detail::terse_<fatal_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return fatal_{t};
 }
@@ -1888,9 +1927,9 @@ constexpr auto operator==(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using eq_t = detail::eq_<T, detail::value_location<typename T::value_type>>;
   struct eq_ : eq_t, detail::log {
-    using type [[maybe_unused]] = eq_t;
+    using type = eq_t;
     using eq_t::eq_t;
-    const detail::terse_<eq_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return eq_{lhs, rhs};
 }
@@ -1900,9 +1939,9 @@ constexpr auto operator==(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using eq_t = detail::eq_<detail::value_location<typename T::value_type>, T>;
   struct eq_ : eq_t, detail::log {
-    using type [[maybe_unused]] = eq_t;
+    using type = eq_t;
     using eq_t::eq_t;
-    const detail::terse_<eq_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return eq_{lhs, rhs};
 }
@@ -1912,9 +1951,9 @@ constexpr auto operator!=(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using neq_t = detail::neq_<T, detail::value_location<typename T::value_type>>;
   struct neq_ : neq_t, detail::log {
-    using type [[maybe_unused]] = neq_t;
+    using type = neq_t;
     using neq_t::neq_t;
-    const detail::terse_<neq_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return neq_{lhs, rhs};
 }
@@ -1924,9 +1963,9 @@ constexpr auto operator!=(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using neq_t = detail::neq_<detail::value_location<typename T::value_type>, T>;
   struct neq_ : neq_t {
-    using type [[maybe_unused]] = neq_t;
+    using type = neq_t;
     using neq_t::neq_t;
-    const detail::terse_<neq_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return neq_{lhs, rhs};
 }
@@ -1936,9 +1975,9 @@ constexpr auto operator>(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using gt_t = detail::gt_<T, detail::value_location<typename T::value_type>>;
   struct gt_ : gt_t, detail::log {
-    using type [[maybe_unused]] = gt_t;
+    using type = gt_t;
     using gt_t::gt_t;
-    const detail::terse_<gt_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return gt_{lhs, rhs};
 }
@@ -1948,9 +1987,9 @@ constexpr auto operator>(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using gt_t = detail::gt_<detail::value_location<typename T::value_type>, T>;
   struct gt_ : gt_t, detail::log {
-    using type [[maybe_unused]] = gt_t;
+    using type = gt_t;
     using gt_t::gt_t;
-    const detail::terse_<gt_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return gt_{lhs, rhs};
 }
@@ -1960,9 +1999,9 @@ constexpr auto operator>=(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using ge_t = detail::ge_<T, detail::value_location<typename T::value_type>>;
   struct ge_ : ge_t, detail::log {
-    using type [[maybe_unused]] = ge_t;
+    using type = ge_t;
     using ge_t::ge_t;
-    const detail::terse_<ge_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return ge_{lhs, rhs};
 }
@@ -1972,9 +2011,9 @@ constexpr auto operator>=(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using ge_t = detail::ge_<detail::value_location<typename T::value_type>, T>;
   struct ge_ : ge_t, detail::log {
-    using type [[maybe_unused]] = ge_t;
+    using type = ge_t;
     using ge_t::ge_t;
-    const detail::terse_<ge_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return ge_{lhs, rhs};
 }
@@ -1984,9 +2023,9 @@ constexpr auto operator<(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using lt_t = detail::lt_<T, detail::value_location<typename T::value_type>>;
   struct lt_ : lt_t, detail::log {
-    using type [[maybe_unused]] = lt_t;
+    using type = lt_t;
     using lt_t::lt_t;
-    const detail::terse_<lt_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return lt_{lhs, rhs};
 }
@@ -1996,9 +2035,9 @@ constexpr auto operator<(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using lt_t = detail::lt_<detail::value_location<typename T::value_type>, T>;
   struct lt_ : lt_t, detail::log {
-    using type [[maybe_unused]] = lt_t;
+    using type = lt_t;
     using lt_t::lt_t;
-    const detail::terse_<lt_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return lt_{lhs, rhs};
 }
@@ -2008,9 +2047,9 @@ constexpr auto operator<=(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using le_t = detail::le_<T, detail::value_location<typename T::value_type>>;
   struct le_ : le_t, detail::log {
-    using type [[maybe_unused]] = le_t;
+    using type = le_t;
     using le_t::le_t;
-    const detail::terse_<le_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return le_{lhs, rhs};
 }
@@ -2020,9 +2059,9 @@ constexpr auto operator<=(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using le_t = detail::le_<detail::value_location<typename T::value_type>, T>;
   struct le_ : le_t {
-    using type [[maybe_unused]] = le_t;
+    using type = le_t;
     using le_t::le_t;
-    const detail::terse_<le_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return le_{lhs, rhs};
 }
@@ -2033,9 +2072,9 @@ template <class TLhs, class TRhs,
 constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   using and_t = detail::and_<typename TLhs::type, typename TRhs::type>;
   struct and_ : and_t, detail::log {
-    using type [[maybe_unused]] = and_t;
+    using type = and_t;
     using and_t::and_t;
-    const detail::terse_<and_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return and_{lhs, rhs};
 }
@@ -2046,9 +2085,9 @@ template <class TLhs, class TRhs,
 constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   using or_t = detail::or_<typename TLhs::type, typename TRhs::type>;
   struct or_ : or_t, detail::log {
-    using type [[maybe_unused]] = or_t;
+    using type = or_t;
     using or_t::or_t;
-    const detail::terse_<or_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return or_{lhs, rhs};
 }
@@ -2057,9 +2096,9 @@ template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
 constexpr auto operator not(const T& t) {
   using not_t = detail::not_<typename T::type>;
   struct not_ : not_t, detail::log {
-    using type [[maybe_unused]] = not_t;
+    using type = not_t;
     using not_t::not_t;
-    const detail::terse_<not_t> _{*this};
+    const detail::terse_<type> _{*this};
   };
   return not_{t};
 }
@@ -2164,6 +2203,11 @@ template <class T = void>
 template <class TLhs, class TRhs>
 [[nodiscard]] constexpr auto eq(const TLhs& lhs, const TRhs& rhs) {
   return detail::eq_{lhs, rhs};
+}
+template <class TLhs, class TRhs, class TEpsilon>
+[[nodiscard]] constexpr auto approx(const TLhs& lhs, const TRhs& rhs,
+                                    const TEpsilon& epsilon) {
+  return detail::approx_{lhs, rhs, epsilon};
 }
 template <class TLhs, class TRhs>
 [[nodiscard]] constexpr auto neq(const TLhs& lhs, const TRhs& rhs) {

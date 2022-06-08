@@ -249,7 +249,23 @@ struct custom {
   }
 
   friend auto operator<<(std::ostream& os, const custom& c) -> std::ostream& {
-    return (os << "custom{" << c.i << '}');
+    return os << "custom{" << c.i << '}';
+  }
+};
+
+struct custom_vec : std::vector<int> {
+  using std::vector<int>::vector;
+
+  friend auto operator<<(std::ostream& os, const custom_vec& c)
+      -> std::ostream& {
+    os << "custom_vec{";
+    if (!c.empty()) {
+      os << c.front();
+      std::for_each(std::next(c.begin()), c.end(),
+                    [&os](int const v) { os << ", " << v; });
+    }
+    os << '}';
+    return os;
   }
 };
 
@@ -502,6 +518,7 @@ int main() {
       static_assert(type<int*> != return_int());
       static_assert(type<double> != return_int());
       static_assert(type<int> == type<int>);
+      static_assert(!(type<int> != type<int>));
       static_assert(type<void> == type<void>);
       static_assert(type<void*> == type<void*>);
       static_assert(type<int> != type<const int>);
@@ -519,13 +536,9 @@ int main() {
       reporter.on(events::test_begin{});
       reporter.on(events::test_run{});
       reporter.on(events::assertion_pass<bool>{
-          .expr = true,
-          .location =
-              reflection::source_location::current("file/name.cpp", 42)});
+          .expr = true, .location = reflection::source_location::current()});
       reporter.on(events::assertion_fail<bool>{
-          .expr = false,
-          .location =
-              reflection::source_location::current("file/name.cpp", 42)});
+          .expr = false, .location = reflection::source_location::current()});
       reporter.on(events::fatal_assertion{});
       reporter.on(events::test_end{});
 
@@ -981,6 +994,26 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
+      expect(approx(42_i, 43_i, 2_i));
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+      test_assert("42 ~ (43 +/- 2)" == test_cfg.assertion_calls[0].expr);
+      test_assert(test_cfg.assertion_calls[0].result);
+
+      expect(approx(3.141592654, 3.1415926536, 1e-9));
+      test_assert(2 == std::size(test_cfg.assertion_calls));
+      test_assert("3.14159 ~ (3.14159 +/- 1e-09)" ==
+                  test_cfg.assertion_calls[1].expr);
+      test_assert(test_cfg.assertion_calls[1].result);
+
+      expect(approx(1_u, 2_u, 3_u));
+      test_assert(3 == std::size(test_cfg.assertion_calls));
+      test_assert("1 ~ (2 +/- 3)" == test_cfg.assertion_calls[2].expr);
+      test_assert(test_cfg.assertion_calls[2].result);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
       using namespace std::literals::string_view_literals;
       using namespace std::literals::string_literals;
 
@@ -1099,6 +1132,23 @@ int main() {
       test_assert(not test_cfg.assertion_calls[4].result);
       test_assert("(custom{1} == custom{2} or 1 == 22)" ==
                   test_cfg.assertion_calls[4].expr);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      expect(custom_vec{42, 5} == custom_vec{42, 5});
+      expect(custom_vec{42, 5, 3} != custom_vec{42, 5, 6});
+
+      test_assert(2 == std::size(test_cfg.assertion_calls));
+
+      test_assert(test_cfg.assertion_calls[0].result);
+      test_assert("custom_vec{42, 5} == custom_vec{42, 5}" ==
+                  test_cfg.assertion_calls[0].expr);
+
+      test_assert(test_cfg.assertion_calls[1].result);
+      test_assert("custom_vec{42, 5, 3} != custom_vec{42, 5, 6}" ==
+                  test_cfg.assertion_calls[1].expr);
     }
 
     {
