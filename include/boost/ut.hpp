@@ -1174,30 +1174,27 @@ class reporter {
   auto on(events::fatal_assertion) -> void {}
 
   auto on(events::summary) -> void {
-    if (static auto once = true; once) {
-      once = false;
-      if (tests_.fail or asserts_.fail) {
-        printer_ << "\n========================================================"
-                    "=======================\n"
-                 << "tests:   " << (tests_.pass + tests_.fail) << " | "
-                 << printer_.colors().fail << tests_.fail << " failed"
-                 << printer_.colors().none << '\n'
-                 << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
-                 << asserts_.pass << " passed"
-                 << " | " << printer_.colors().fail << asserts_.fail
-                 << " failed" << printer_.colors().none << '\n';
-        std::cerr << printer_.str() << std::endl;
-      } else {
-        std::cout << printer_.colors().pass << "All tests passed"
-                  << printer_.colors().none << " (" << asserts_.pass
-                  << " asserts in " << tests_.pass << " tests)\n";
+    if (tests_.fail or asserts_.fail) {
+      printer_ << "\n========================================================"
+                  "=======================\n"
+               << "tests:   " << (tests_.pass + tests_.fail) << " | "
+               << printer_.colors().fail << tests_.fail << " failed"
+               << printer_.colors().none << '\n'
+               << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
+               << asserts_.pass << " passed"
+               << " | " << printer_.colors().fail << asserts_.fail << " failed"
+               << printer_.colors().none << '\n';
+      std::cerr << printer_.str() << std::endl;
+    } else {
+      std::cout << printer_.colors().pass << "All tests passed"
+                << printer_.colors().none << " (" << asserts_.pass
+                << " asserts in " << tests_.pass << " tests)\n";
 
-        if (tests_.skip) {
-          std::cout << tests_.skip << " tests skipped\n";
-        }
-
-        std::cout.flush();
+      if (tests_.skip) {
+        std::cout << tests_.skip << " tests skipped\n";
       }
+
+      std::cout.flush();
     }
   }
 
@@ -1266,7 +1263,7 @@ class runner {
     }
 
     if (not dry_run_) {
-      reporter_.on(events::summary{});
+      report_summary();
     }
 
     if (should_run and fails_) {
@@ -1374,14 +1371,14 @@ class runner {
 
 #if defined(__cpp_exceptions)
     if (not level_) {
-      reporter_.on(events::summary{});
+      report_summary();
     }
     throw fatal_assertion;
 #else
     if (level_) {
       reporter_.on(events::test_end{});
     }
-    reporter_.on(events::summary{});
+    report_summary();
     std::abort();
 #endif
   }
@@ -1399,10 +1396,17 @@ class runner {
     suites_.clear();
 
     if (rc.report_errors) {
-      reporter_.on(events::summary{});
+      report_summary();
     }
 
     return fails_ > 0;
+  }
+
+  auto report_summary() -> void {
+    if (static auto once = true; once) {
+      once = false;
+      reporter_.on(events::summary{});
+    }
   }
 
  protected:
@@ -2287,8 +2291,7 @@ class steps {
               auto i = 0u;
               const auto& ms = utility::match(pattern, _step);
               expr(lexical_cast<TArgs>(ms[i++])...);
-            }
-            (typename type_traits::function_traits<TExpr>::args{});
+            }(typename type_traits::function_traits<TExpr>::args{});
           });
     }
 
