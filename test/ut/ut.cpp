@@ -20,6 +20,58 @@
 
 namespace ut = boost::ut;
 
+namespace test_has_member_object {
+
+struct not_defined {};
+
+class private_member_object_value {
+  int value;
+
+ public:
+  private_member_object_value(int value) : value(value) {}
+};
+
+struct public_member_object_value {
+  int value;
+};
+
+struct public_static_member_object_value {
+  static int value;
+};
+
+struct public_member_function_value {
+  int value() const { return 0; }
+};
+
+struct public_static_member_function_value {
+  static int value() { return 0; }
+};
+
+class private_member_object_epsilon {
+  int epsilon;
+
+ public:
+  private_member_object_epsilon(int epsilon) : epsilon(epsilon) {}
+};
+
+struct public_member_object_epsilon {
+  int epsilon;
+};
+
+struct public_static_member_object_epsilon {
+  static int epsilon;
+};
+
+struct public_member_function_epsilon {
+  int epsilon() const { return 0; }
+};
+
+struct public_static_member_function_epsilon {
+  static int epsilon() { return 0; }
+};
+
+}  // namespace test_has_member_object
+
 constexpr auto to_string = [](const auto expr) {
   ut::printer printer{{.none = "", .pass = "", .fail = ""}};
   printer << std::boolalpha << expr;
@@ -225,6 +277,24 @@ struct test_sub_sections {
   test_runner& run;
 };
 
+struct test_summary_reporter : ut::reporter<ut::printer> {
+  auto count_summaries(std::size_t& counter) -> void {
+    summary_counter_ = &counter;
+  }
+
+  auto on(ut::events::summary) -> void {
+    if (summary_counter_) {
+      ++*summary_counter_;
+    }
+  }
+
+  std::size_t* summary_counter_{};
+};
+
+struct test_summary_runner : ut::runner<test_summary_reporter> {
+  using runner::reporter_;
+};
+
 namespace ns {
 template <char... Cs>
 constexpr auto operator""_i() -> int {
@@ -293,6 +363,37 @@ int main() {
       static_assert(
           std::is_same_v<int,
                          type_traits::function_traits<int()>::result_type>);
+    }
+
+    {
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::not_defined>);
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::private_member_object_value>);
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::public_member_object_value>);
+      static_assert(type_traits::has_static_member_object_value_v<
+                    test_has_member_object::public_static_member_object_value>);
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::public_member_function_value>);
+      static_assert(
+          !type_traits::has_static_member_object_value_v<
+              test_has_member_object::public_static_member_function_value>);
+
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::not_defined>);
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::private_member_object_epsilon>);
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::public_member_object_epsilon>);
+      static_assert(
+          type_traits::has_static_member_object_epsilon_v<
+              test_has_member_object::public_static_member_object_epsilon>);
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::public_member_function_epsilon>);
+      static_assert(
+          !type_traits::has_static_member_object_epsilon_v<
+              test_has_member_object::public_static_member_function_epsilon>);
     }
 
     {
@@ -715,6 +816,16 @@ int main() {
       test_assert(1 == reporter.tests_.skip);
 
       reporter = printer{};
+    }
+
+    {
+      std::size_t summary_count = 0;
+      {
+        auto run = test_summary_runner{};
+        run.reporter_.count_summaries(summary_count);
+        test_assert(false == run.run({.report_errors = true}));
+      }
+      test_assert(1 == summary_count);
     }
 
     auto& test_cfg = ut::cfg<ut::override>;

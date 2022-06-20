@@ -383,13 +383,31 @@ template <class T>
 static constexpr auto has_user_print = is_valid<T>(
     [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
 
-template <class T>
-static constexpr auto has_value_v =
-    is_valid<T>([](auto t) -> decltype(void(t.value)) {});
+template <class T, class = void>
+struct has_static_member_object_value : std::false_type {};
 
 template <class T>
-static constexpr auto has_epsilon_v =
-    is_valid<T>([](auto t) -> decltype(void(t.epsilon)) {});
+struct has_static_member_object_value<T,
+                                      std::void_t<decltype(declval<T>().value)>>
+    : std::bool_constant<!std::is_member_pointer_v<decltype(&T::value)> &&
+                         !std::is_function_v<decltype(T::value)>> {};
+
+template <class T>
+inline constexpr bool has_static_member_object_value_v =
+    has_static_member_object_value<T>::value;
+
+template <class T, class = void>
+struct has_static_member_object_epsilon : std::false_type {};
+
+template <class T>
+struct has_static_member_object_epsilon<
+    T, std::void_t<decltype(declval<T>().epsilon)>>
+    : std::bool_constant<!std::is_member_pointer_v<decltype(&T::epsilon)> &&
+                         !std::is_function_v<decltype(T::epsilon)>> {};
+
+template <class T>
+inline constexpr bool has_static_member_object_epsilon_v =
+    has_static_member_object_epsilon<T>::value;
 
 template <class T>
 inline constexpr auto is_floating_point_v = false;
@@ -657,16 +675,20 @@ struct eq_ : op {
           using std::operator==;
           using std::operator<;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs>) {
             return TLhs::value == TRhs::value;
-          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
-                               type_traits::has_epsilon_v<TRhs>) {
+          } else if constexpr (type_traits::has_static_member_object_epsilon_v<
+                                   TLhs> and
+                               type_traits::has_static_member_object_epsilon_v<
+                                   TRhs>) {
             return math::abs(get(lhs) - get(rhs)) <
                    math::min_value(TLhs::epsilon, TRhs::epsilon);
-          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+          } else if constexpr (type_traits::has_static_member_object_epsilon_v<
+                                   TLhs>) {
             return math::abs(get(lhs) - get(rhs)) < TLhs::epsilon;
-          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+          } else if constexpr (type_traits::has_static_member_object_epsilon_v<
+                                   TRhs>) {
             return math::abs(get(lhs) - get(rhs)) < TRhs::epsilon;
           } else {
             return get(lhs) == get(rhs);
@@ -689,9 +711,10 @@ struct approx_ : op {
       : lhs_{lhs}, rhs_{rhs}, epsilon_{epsilon}, value_{[&] {
           using std::operator<;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs> and
-                        type_traits::has_value_v<TEpsilon>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs> and
+                        type_traits::has_static_member_object_value_v<
+                            TEpsilon>) {
             return math::abs_diff(TLhs::value, TRhs::value) < TEpsilon::value;
           } else {
             return math::abs_diff(get(lhs), get(rhs)) < get(epsilon);
@@ -717,16 +740,20 @@ struct neq_ : op {
           using std::operator!=;
           using std::operator>;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs>) {
             return TLhs::value != TRhs::value;
-          } else if constexpr (type_traits::has_epsilon_v<TLhs> and
-                               type_traits::has_epsilon_v<TRhs>) {
+          } else if constexpr (type_traits::has_static_member_object_epsilon_v<
+                                   TLhs> and
+                               type_traits::has_static_member_object_epsilon_v<
+                                   TRhs>) {
             return math::abs(get(lhs_) - get(rhs_)) >
                    math::min_value(TLhs::epsilon, TRhs::epsilon);
-          } else if constexpr (type_traits::has_epsilon_v<TLhs>) {
+          } else if constexpr (type_traits::has_static_member_object_epsilon_v<
+                                   TLhs>) {
             return math::abs(get(lhs_) - get(rhs_)) > TLhs::epsilon;
-          } else if constexpr (type_traits::has_epsilon_v<TRhs>) {
+          } else if constexpr (type_traits::has_static_member_object_epsilon_v<
+                                   TRhs>) {
             return math::abs(get(lhs_) - get(rhs_)) > TRhs::epsilon;
           } else {
             return get(lhs_) != get(rhs_);
@@ -748,8 +775,8 @@ struct gt_ : op {
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
           using std::operator>;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs>) {
             return TLhs::value > TRhs::value;
           } else {
             return get(lhs_) > get(rhs_);
@@ -771,8 +798,8 @@ struct ge_ : op {
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
           using std::operator>=;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs>) {
             return TLhs::value >= TRhs::value;
           } else {
             return get(lhs_) >= get(rhs_);
@@ -794,8 +821,8 @@ struct lt_ : op {
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
           using std::operator<;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs>) {
             return TLhs::value < TRhs::value;
           } else {
             return get(lhs_) < get(rhs_);
@@ -818,8 +845,8 @@ struct le_ : op {
       : lhs_{lhs}, rhs_{rhs}, value_{[&] {
           using std::operator<=;
 
-          if constexpr (type_traits::has_value_v<TLhs> and
-                        type_traits::has_value_v<TRhs>) {
+          if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
+                        type_traits::has_static_member_object_value_v<TRhs>) {
             return TLhs::value <= TRhs::value;
           } else {
             return get(lhs_) <= get(rhs_);
@@ -1174,30 +1201,27 @@ class reporter {
   auto on(events::fatal_assertion) -> void {}
 
   auto on(events::summary) -> void {
-    if (static auto once = true; once) {
-      once = false;
-      if (tests_.fail or asserts_.fail) {
-        printer_ << "\n========================================================"
-                    "=======================\n"
-                 << "tests:   " << (tests_.pass + tests_.fail) << " | "
-                 << printer_.colors().fail << tests_.fail << " failed"
-                 << printer_.colors().none << '\n'
-                 << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
-                 << asserts_.pass << " passed"
-                 << " | " << printer_.colors().fail << asserts_.fail
-                 << " failed" << printer_.colors().none << '\n';
-        std::cerr << printer_.str() << std::endl;
-      } else {
-        std::cout << printer_.colors().pass << "All tests passed"
-                  << printer_.colors().none << " (" << asserts_.pass
-                  << " asserts in " << tests_.pass << " tests)\n";
+    if (tests_.fail or asserts_.fail) {
+      printer_ << "\n========================================================"
+                  "=======================\n"
+               << "tests:   " << (tests_.pass + tests_.fail) << " | "
+               << printer_.colors().fail << tests_.fail << " failed"
+               << printer_.colors().none << '\n'
+               << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
+               << asserts_.pass << " passed"
+               << " | " << printer_.colors().fail << asserts_.fail << " failed"
+               << printer_.colors().none << '\n';
+      std::cerr << printer_.str() << std::endl;
+    } else {
+      std::cout << printer_.colors().pass << "All tests passed"
+                << printer_.colors().none << " (" << asserts_.pass
+                << " asserts in " << tests_.pass << " tests)\n";
 
-        if (tests_.skip) {
-          std::cout << tests_.skip << " tests skipped\n";
-        }
-
-        std::cout.flush();
+      if (tests_.skip) {
+        std::cout << tests_.skip << " tests skipped\n";
       }
+
+      std::cout.flush();
     }
   }
 
@@ -1266,7 +1290,7 @@ class runner {
     }
 
     if (not dry_run_) {
-      reporter_.on(events::summary{});
+      report_summary();
     }
 
     if (should_run and fails_) {
@@ -1374,14 +1398,14 @@ class runner {
 
 #if defined(__cpp_exceptions)
     if (not level_) {
-      reporter_.on(events::summary{});
+      report_summary();
     }
     throw fatal_assertion;
 #else
     if (level_) {
       reporter_.on(events::test_end{});
     }
-    reporter_.on(events::summary{});
+    report_summary();
     std::abort();
 #endif
   }
@@ -1399,10 +1423,17 @@ class runner {
     suites_.clear();
 
     if (rc.report_errors) {
-      reporter_.on(events::summary{});
+      report_summary();
     }
 
     return fails_ > 0;
+  }
+
+  auto report_summary() -> void {
+    if (static auto once = true; once) {
+      once = false;
+      reporter_.on(events::summary{});
+    }
   }
 
  protected:
@@ -2287,8 +2318,7 @@ class steps {
               auto i = 0u;
               const auto& ms = utility::match(pattern, _step);
               expr(lexical_cast<TArgs>(ms[i++])...);
-            }
-            (typename type_traits::function_traits<TExpr>::args{});
+            }(typename type_traits::function_traits<TExpr>::args{});
           });
     }
 
