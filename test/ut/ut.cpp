@@ -28,7 +28,7 @@ class private_member_object_value {
   int value;
 
  public:
-  private_member_object_value(int value) : value(value) {}
+  private_member_object_value(int value_) : value(value_) {}
 };
 
 struct public_member_object_value {
@@ -51,7 +51,7 @@ class private_member_object_epsilon {
   int epsilon;
 
  public:
-  private_member_object_epsilon(int epsilon) : epsilon(epsilon) {}
+  private_member_object_epsilon(int epsilon_) : epsilon(epsilon_) {}
 };
 
 struct public_member_object_epsilon {
