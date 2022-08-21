@@ -67,7 +67,7 @@ export import std;
 #include <exception>
 #endif
 
-#if defined(__cpp_lib_source_location)
+#if __has_include(<source_location>)
 #include <source_location>
 #endif
 
