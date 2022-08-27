@@ -4,7 +4,7 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-cmake_minimum_required(VERSION 3.12...3.20)
+cmake_minimum_required(VERSION 3.12...3.23)
 project(
   ut
   VERSION 1.1.9
@@ -28,9 +28,10 @@ endif()
 option(BOOST_UT_ENABLE_MEMCHECK "Run the unit tests and examples under valgrind if it is found" OFF)
 option(BOOST_UT_ENABLE_COVERAGE "Run coverage" OFF)
 option(BOOST_UT_ENABLE_SANITIZERS "Run static analysis" OFF)
-option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" ${MASTER_PROJECT})
+option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" OFF)
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
+option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${MASTER_PROJECT})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
 # ---- Add dependencies via CPM ----
@@ -46,19 +47,21 @@ else()
   CPMAddPackage(
     NAME PackageProject.cmake
     GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-    VERSION 1.6.0
+    VERSION 1.9.0
   )
 endif()
 
 add_library(ut INTERFACE)
 
-set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
+if(NOT DEFINED INCLUDE_INSTALL_DIR)
+  set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
+endif()
 # XXX variant: set(INCLUDE_INSTALL_DIR include)
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
-if(APPLE)
-  target_compile_features(ut INTERFACE cxx_std_20)
-else()
-  target_compile_features(ut INTERFACE cxx_std_17)
+target_compile_features(ut INTERFACE cxx_std_20)
+
+if(BOOST_UT_USE_WARNINGS_AS_ERORS)
+  include(cmake/WarningsAsErrors.cmake)
 endif()
 
 add_custom_target(style)

@@ -33,7 +33,7 @@ int main() {
 
   /// Language syntax
   std::apply(
-      [](auto... args) {
+      []([[maybe_unused]] auto... args) {
         ((test("args and types / " + std::to_string(args)) =
               [&] {
                 using TArgs = decltype(args);

@@ -18,6 +18,13 @@ env:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix: 
+        toolset: [ClangCl, v143]
+        std: [17, 20]
+        exclude:
+          - toolset: v143
+            std: 17
 
     steps:
       - uses: actions/checkout@v2
@@ -29,7 +36,7 @@ jobs:
 
       - name: configure
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO -G "Visual Studio 16 2019" -T ClangCL
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO -DBOOST_UT_DISABLE_MODULE=ON -G "Visual Studio 17 2022" -T ${{matrix.toolset}} -DCMAKE_CXX_STANDARD:STRING=${{matrix.std}}
 
       - name: build
         run: cmake --build build --config Debug -j4

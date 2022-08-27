@@ -27,3 +27,6 @@ else()
 endif()
 
 ut(ut)
+if(WIN32)
+  ut(win_compat_test)
+endif()

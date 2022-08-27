@@ -20,6 +20,58 @@
 
 namespace ut = boost::ut;
 
+namespace test_has_member_object {
+
+struct not_defined {};
+
+class private_member_object_value {
+  int value;
+
+ public:
+  private_member_object_value(int value_) : value(value_) {}
+};
+
+struct public_member_object_value {
+  int value;
+};
+
+struct public_static_member_object_value {
+  static int value;
+};
+
+struct public_member_function_value {
+  int value() const { return 0; }
+};
+
+struct public_static_member_function_value {
+  static int value() { return 0; }
+};
+
+class private_member_object_epsilon {
+  int epsilon;
+
+ public:
+  private_member_object_epsilon(int epsilon_) : epsilon(epsilon_) {}
+};
+
+struct public_member_object_epsilon {
+  int epsilon;
+};
+
+struct public_static_member_object_epsilon {
+  static int epsilon;
+};
+
+struct public_member_function_epsilon {
+  int epsilon() const { return 0; }
+};
+
+struct public_static_member_function_epsilon {
+  static int epsilon() { return 0; }
+};
+
+}  // namespace test_has_member_object
+
 constexpr auto to_string = [](const auto expr) {
   ut::printer printer{{.none = "", .pass = "", .fail = ""}};
   printer << std::boolalpha << expr;
@@ -156,7 +208,7 @@ struct test_throw_runtime_error {
 };
 
 struct test_assertion_true {
-  explicit test_assertion_true(test_runner& run) : run{run} {}
+  explicit test_assertion_true(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     void(run.on(ut::events::assertion<bool>{.expr = true, .location = {}}));
@@ -167,7 +219,7 @@ struct test_assertion_true {
 };
 
 struct test_assertion_false {
-  explicit test_assertion_false(test_runner& run) : run{run} {}
+  explicit test_assertion_false(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     void(run.on(ut::events::assertion<bool>{.expr = false, .location = {}}));
@@ -178,7 +230,7 @@ struct test_assertion_false {
 };
 
 struct test_assertions {
-  explicit test_assertions(test_runner& run) : run{run} {}
+  explicit test_assertions(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     void(run.on(ut::events::assertion<bool>{.expr = false, .location = {}}));
@@ -191,7 +243,7 @@ struct test_assertions {
 };
 
 struct test_sub_section {
-  explicit test_sub_section(test_runner& run) : run{run} {}
+  explicit test_sub_section(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     run.on(ut::events::test<test_empty>{.type = "test",
@@ -206,7 +258,7 @@ struct test_sub_section {
 };
 
 struct test_sub_sections {
-  explicit test_sub_sections(test_runner& run) : run{run} {}
+  explicit test_sub_sections(test_runner& _run) : run{_run} {}
 
   auto operator()() -> void {
     run.on(ut::events::test<test_empty>{.type = "test",
@@ -223,6 +275,24 @@ struct test_sub_sections {
 
  private:
   test_runner& run;
+};
+
+struct test_summary_reporter : ut::reporter<ut::printer> {
+  auto count_summaries(std::size_t& counter) -> void {
+    summary_counter_ = &counter;
+  }
+
+  auto on(ut::events::summary) -> void {
+    if (summary_counter_) {
+      ++*summary_counter_;
+    }
+  }
+
+  std::size_t* summary_counter_{};
+};
+
+struct test_summary_runner : ut::runner<test_summary_reporter> {
+  using runner::reporter_;
 };
 
 namespace ns {
@@ -249,7 +319,23 @@ struct custom {
   }
 
   friend auto operator<<(std::ostream& os, const custom& c) -> std::ostream& {
-    return (os << "custom{" << c.i << '}');
+    return os << "custom{" << c.i << '}';
+  }
+};
+
+struct custom_vec : std::vector<int> {
+  using std::vector<int>::vector;
+
+  friend auto operator<<(std::ostream& os, const custom_vec& c)
+      -> std::ostream& {
+    os << "custom_vec{";
+    if (!c.empty()) {
+      os << c.front();
+      std::for_each(std::next(c.begin()), c.end(),
+                    [&os](int const v) { os << ", " << v; });
+    }
+    os << '}';
+    return os;
   }
 };
 
@@ -277,6 +363,37 @@ int main() {
       static_assert(
           std::is_same_v<int,
                          type_traits::function_traits<int()>::result_type>);
+    }
+
+    {
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::not_defined>);
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::private_member_object_value>);
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::public_member_object_value>);
+      static_assert(type_traits::has_static_member_object_value_v<
+                    test_has_member_object::public_static_member_object_value>);
+      static_assert(!type_traits::has_static_member_object_value_v<
+                    test_has_member_object::public_member_function_value>);
+      static_assert(
+          !type_traits::has_static_member_object_value_v<
+              test_has_member_object::public_static_member_function_value>);
+
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::not_defined>);
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::private_member_object_epsilon>);
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::public_member_object_epsilon>);
+      static_assert(
+          type_traits::has_static_member_object_epsilon_v<
+              test_has_member_object::public_static_member_object_epsilon>);
+      static_assert(!type_traits::has_static_member_object_epsilon_v<
+                    test_has_member_object::public_member_function_epsilon>);
+      static_assert(
+          !type_traits::has_static_member_object_epsilon_v<
+              test_has_member_object::public_static_member_function_epsilon>);
     }
 
     {
@@ -502,6 +619,7 @@ int main() {
       static_assert(type<int*> != return_int());
       static_assert(type<double> != return_int());
       static_assert(type<int> == type<int>);
+      static_assert(!(type<int> != type<int>));
       static_assert(type<void> == type<void>);
       static_assert(type<void*> == type<void*>);
       static_assert(type<int> != type<const int>);
@@ -519,13 +637,9 @@ int main() {
       reporter.on(events::test_begin{});
       reporter.on(events::test_run{});
       reporter.on(events::assertion_pass<bool>{
-          .expr = true,
-          .location =
-              reflection::source_location::current("file/name.cpp", 42)});
+          .expr = true, .location = reflection::source_location::current()});
       reporter.on(events::assertion_fail<bool>{
-          .expr = false,
-          .location =
-              reflection::source_location::current("file/name.cpp", 42)});
+          .expr = false, .location = reflection::source_location::current()});
       reporter.on(events::fatal_assertion{});
       reporter.on(events::test_end{});
 
@@ -702,6 +816,16 @@ int main() {
       test_assert(1 == reporter.tests_.skip);
 
       reporter = printer{};
+    }
+
+    {
+      std::size_t summary_count = 0;
+      {
+        auto run = test_summary_runner{};
+        run.reporter_.count_summaries(summary_count);
+        test_assert(false == run.run({.report_errors = true}));
+      }
+      test_assert(1 == summary_count);
     }
 
     auto& test_cfg = ut::cfg<ut::override>;
@@ -981,6 +1105,26 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
+      expect(approx(42_i, 43_i, 2_i));
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+      test_assert("42 ~ (43 +/- 2)" == test_cfg.assertion_calls[0].expr);
+      test_assert(test_cfg.assertion_calls[0].result);
+
+      expect(approx(3.141592654, 3.1415926536, 1e-9));
+      test_assert(2 == std::size(test_cfg.assertion_calls));
+      test_assert("3.14159 ~ (3.14159 +/- 1e-09)" ==
+                  test_cfg.assertion_calls[1].expr);
+      test_assert(test_cfg.assertion_calls[1].result);
+
+      expect(approx(1_u, 2_u, 3_u));
+      test_assert(3 == std::size(test_cfg.assertion_calls));
+      test_assert("1 ~ (2 +/- 3)" == test_cfg.assertion_calls[2].expr);
+      test_assert(test_cfg.assertion_calls[2].result);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
       using namespace std::literals::string_view_literals;
       using namespace std::literals::string_literals;
 
@@ -1099,6 +1243,23 @@ int main() {
       test_assert(not test_cfg.assertion_calls[4].result);
       test_assert("(custom{1} == custom{2} or 1 == 22)" ==
                   test_cfg.assertion_calls[4].expr);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      expect(custom_vec{42, 5} == custom_vec{42, 5});
+      expect(custom_vec{42, 5, 3} != custom_vec{42, 5, 6});
+
+      test_assert(2 == std::size(test_cfg.assertion_calls));
+
+      test_assert(test_cfg.assertion_calls[0].result);
+      test_assert("custom_vec{42, 5} == custom_vec{42, 5}" ==
+                  test_cfg.assertion_calls[0].expr);
+
+      test_assert(test_cfg.assertion_calls[1].result);
+      test_assert("custom_vec{42, 5, 3} != custom_vec{42, 5, 6}" ==
+                  test_cfg.assertion_calls[1].expr);
     }
 
     {
@@ -1627,7 +1788,7 @@ int main() {
     auto& test_cfg = ut::cfg<ut::override>;
     test_cfg = fake_cfg{};
 
-    bdd::gherkin::steps steps = [](auto& steps) {
+    bdd::gherkin::steps steps_int = [](auto& steps) {
       steps.feature("Calculator") = [&] {
         steps.scenario("*") = [&] {
           steps.given("I have calculator") = [&] {
@@ -1652,7 +1813,7 @@ int main() {
     };
 
     // clang-format off
-    "Calculator/int"_test = steps |
+    "Calculator/int"_test = steps_int |
       R"(
         Feature: Calculator
 

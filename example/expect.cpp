@@ -71,7 +71,7 @@ int main() {
     expect(type<int> == type<int>);
     expect(type<float> != type<double>);
 
-    const auto i = 0;
+    [[maybe_unused]] const auto i = 0;
     expect(type<const int> == type<decltype(i)>);
     expect(type<decltype(i)> != type<int>);
   };
