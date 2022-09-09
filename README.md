@@ -3,8 +3,8 @@
 <a href="https://github.com/boost-ext/ut/actions/workflows/macos.yml" target="_blank">![MacOs](https://github.com/boost-ext/ut/actions/workflows/macos.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/windows.yml" target="_blank">![Windows](https://github.com/boost-ext/ut/actions/workflows/windows.yml/badge.svg)</a>
 <a href="https://codecov.io/gh/boost-ext/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-ext/ut/branch/master/graph/badge.svg)</a>
-<a href="https://www.codacy.com/manual/boost-ext/ut?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=boost-ext/ut&amp;utm_campaign=Badge_Grade" target="_blank">![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0bd979793124a0baf17506f93079aac)</a>
-<a href="https://godbolt.org/z/Jqb5Ye">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+<a href="https://godbolt.org/z/f4jEcv9vo">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+<a href="https://aur.archlinux.org/packages/ut/">![AUR Badge](https://img.shields.io/aur/version/ut)</a>
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
 
@@ -15,9 +15,23 @@
 <details open><summary>C++ <b>single header/single module, macro-free</b> μ(micro)/Unit Testing Framework</summary>
 <p>
 
-<p align="center">
-  <a href="https://godbolt.org/z/Jqb5Ye"><img src="https://github.com/boost-ext/ut/raw/gh-pages/images/ut.png"></a>
-</p>
+```cpp
+#include <boost/ut.hpp> // import boost.ut;
+
+constexpr auto sum(auto... args) { return (args + ...); }
+
+int main() {
+  using namespace boost::ut;
+
+  "sum"_test = [] {
+    expect(sum(0) == 0_i);
+    expect(sum(1, 2) == 3_i);
+    expect(sum(1, 2) > 0_i and 41_i == sum(40, 2));
+  };
+}
+```
+
+> https://godbolt.org/z/f4jEcv9vo
 
 <a name="motivation"></a>
 <details open><summary>Motivation</summary>
@@ -153,20 +167,20 @@ cd build && make install # install
 > [Optional] CMake integration
 
 This project provides a CMake config and target.
-Just load `ut` with `find_package` to import the `boost::ut` target.
+Just load `ut` with `find_package` to import the `Boost::ut` target.
 Linking against this target will add the necessary include directory for the single header file.
 This is demonstrated in the following example.
 
 ```cmake
 find_package(ut REQUIRED)
 add_library(my_test my_test.cpp)
-target_link_libraries(my_test PRIVATE boost::ut)
+target_link_libraries(my_test PRIVATE Boost::ut)
 ```
 
 > [Optional] [Conan](https://conan.io) integration
 
 The [boost-ext-ut](https://conan.io/center/boost-ext-ut) package is available from [Conan Center](https://conan.io/center/).
-Just include it in your project's Conanfile with `boost-ext-ut/1.1.8`.
+Just include it in your project's Conanfile with `boost-ext-ut/1.1.9`.
 
 </p>
 </details>
@@ -278,7 +292,7 @@ asserts: 4 | 0 passed | 4 failed
 
 > Okay, but what about the case if my assertion is fatal.
 > Meaning that the program will crash unless the processing will be terminated.
-> Nothing easier, let's just add `!` before the `expect` call to make it fatal.
+> Nothing easier, let's just add `>> fatal` after the expected expression to make it fatal.
 
 ```cpp
 expect((1 == 2_i) >> fatal); // fatal assertion
@@ -899,6 +913,27 @@ All tests passed (14 asserts in 10 tests)
 
 > https://godbolt.org/z/4xGGdo
 
+
+> And whenever I need to know the specific type for which the test failed,
+> I can use `reflection::type_name<T>()`, like this:
+
+```cpp
+"types with type name"_test =
+    []<class T>() {
+      expect(std::is_unsigned_v<T>) << reflection::type_name<T>() << "is unsigned";
+    }
+  | std::tuple<unsigned int, float>{};
+```
+
+```
+Running "types with type name"...PASSED
+Running "types with type name"...
+  <source>:10:FAILED [false] float is unsigned
+FAILED
+```
+
+> https://godbolt.org/z/MEnGnbTY4
+
 </p>
 </details>
 
@@ -1128,7 +1163,7 @@ int main() {
 ```cpp
 export module boost.ut; /// __cpp_modules
 
-namespace boost::inline ext::ut::inline v1_1_8 {
+namespace boost::inline ext::ut::inline v1_1_9 {
   /**
    * Represents test suite object
    */
@@ -1489,7 +1524,7 @@ namespace boost::inline ext::ut::inline v1_1_8 {
 
 | Option | Description | Example |
 |-|-|-|
-| `BOOST_UT_VERSION`        | Current version | `1'1'8` |
+| `BOOST_UT_VERSION`        | Current version | `1'1'9` |
 
 </p>
 </details>
