@@ -3,7 +3,7 @@
 <a href="https://github.com/boost-ext/ut/actions/workflows/macos.yml" target="_blank">![MacOs](https://github.com/boost-ext/ut/actions/workflows/macos.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/windows.yml" target="_blank">![Windows](https://github.com/boost-ext/ut/actions/workflows/windows.yml/badge.svg)</a>
 <a href="https://codecov.io/gh/boost-ext/ut" target="_blank">![Coveralls](https://codecov.io/gh/boost-ext/ut/branch/master/graph/badge.svg)</a>
-<a href="https://godbolt.org/z/Jqb5Ye">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
+<a href="https://godbolt.org/z/f4jEcv9vo">![Try it online](https://img.shields.io/badge/try%20it-online-blue.svg)</a>
 <a href="https://aur.archlinux.org/packages/ut/">![AUR Badge](https://img.shields.io/aur/version/ut)</a>
 
 > "If you liked it then you `"should have put a"_test` on it", Beyonce rule
@@ -16,7 +16,7 @@
 <p>
 
 <p align="center">
-  <a href="https://godbolt.org/z/Jqb5Ye"><img src="https://github.com/boost-ext/ut/raw/gh-pages/images/ut.png"></a>
+  <a href="https://godbolt.org/z/f4jEcv9vo"><img src="https://github.com/boost-ext/ut/raw/gh-pages/images/ut.png"></a>
 </p>
 
 <a name="motivation"></a>
