@@ -15,9 +15,23 @@
 <details open><summary>C++ <b>single header/single module, macro-free</b> μ(micro)/Unit Testing Framework</summary>
 <p>
 
-<p align="center">
-  <a href="https://godbolt.org/z/f4jEcv9vo"><img src="https://github.com/boost-ext/ut/raw/gh-pages/images/ut.png"></a>
-</p>
+```cpp
+#include <boost/ut.hpp> // import boost.ut;
+
+constexpr auto sum(auto... args) { return (args + ...); }
+
+int main() {
+  using namespace boost::ut;
+
+  "sum"_test = [] {
+    expect(sum(0) == 0_i);
+    expect(sum(1, 2) == 3_i);
+    expect(sum(1, 2) > 0_i and 41_i == sum(40, 2));
+  };
+}
+```
+
+> https://godbolt.org/z/f4jEcv9vo
 
 <a name="motivation"></a>
 <details open><summary>Motivation</summary>
@@ -899,10 +913,10 @@ All tests passed (14 asserts in 10 tests)
 
 > https://godbolt.org/z/4xGGdo
 
-  
+
 > And whenever I need to know the specific type for which the test failed,
 > I can use `reflection::type_name<T>()`, like this:
-  
+
 ```cpp
 "types with type name"_test =
     []<class T>() {
@@ -917,7 +931,7 @@ Running "types with type name"...
   <source>:10:FAILED [false] float is unsigned
 FAILED
 ```
-  
+
 > https://godbolt.org/z/MEnGnbTY4
 
 </p>
