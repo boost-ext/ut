@@ -31,6 +31,16 @@ int main() {
 }
 ```
 
+```sh
+Running "sum"...
+  sum.cpp:11:FAILED [(3 > 0 and 41 == 42)]
+FAILED
+
+===============================================================================
+tests:   1 | 1 failed
+asserts: 3 | 2 passed | 1 failed
+```
+
 > https://godbolt.org/z/f4jEcv9vo
 
 <a name="motivation"></a>
