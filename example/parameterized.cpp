@@ -33,10 +33,9 @@ int main() {
 
   /// Language syntax
   std::apply(
-      []([[maybe_unused]] auto... args) {
+      []<class... TArgs>(TArgs... args) {
         ((test("args and types / " + std::to_string(args)) =
               [&] {
-                using TArgs = decltype(args);
                 expect((std::is_integral_v<TArgs>) >> fatal);
                 expect(42_i == static_cast<int>(args) or args);
                 expect(type<TArgs> == type<int> or type<TArgs> == type<bool>);
