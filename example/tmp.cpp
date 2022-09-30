@@ -15,7 +15,7 @@ int main() {
 
   static constexpr auto i = 42;
 
-  "type"_test= [] {
+  "type"_test = [] {
     constexpr auto return_int = [] { return i; };
 
     expect(type<>(i) == type<int>);
@@ -31,11 +31,12 @@ int main() {
 
 #if defined(__cpp_concepts)
   "compiles"_test = [] {
+    struct foo {
+      int value{};
+    };
+    struct bar {};
 
-    struct foo { int value{}; };
-    struct bar { };
-
-    expect(    [](auto t) { return requires { t.value; }; }(foo{}));
+    expect([](auto t) { return requires { t.value; }; }(foo{}));
     expect(not [](auto t) { return requires { t.value; }; }(bar{}));
   };
 #endif

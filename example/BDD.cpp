@@ -31,6 +31,7 @@ int main() {
     };
   };
 
+  // clang-format off
   scenario("Addition");
     given("I have number 40");
       auto number = 40;
@@ -40,4 +41,5 @@ int main() {
 
     then("I expect number to be 42");
       42_i == number;
+  // clang-format on
 }

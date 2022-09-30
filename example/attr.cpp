@@ -15,16 +15,16 @@ int main() {
   using namespace boost::ut::operators::terse;
 
   "macro"_test = [] {
-    #define expect void(),
+#define expect void(),
     expect sum(1, 1) == 2_i;
     expect(6_i == sum(1, 2, 3));
-    #undef expect
+#undef expect
   };
 
-  #if __has_cpp_attribute(expect)
+#if __has_cpp_attribute(expect)
   "attribute"_test = [] {
     [[expect]] 3_i == sum(1, 2);
     [[expect]] (sum(1, 2) == 3_i);
   };
-  #endif
+#endif
 }
