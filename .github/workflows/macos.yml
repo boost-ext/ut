@@ -29,7 +29,7 @@ jobs:
 
       - name: Install
         shell: bash
-        run: brew install clang-format clang-tidy ninja python
+        run: brew install clang-format ninja python
 
       - name: configure
         shell: bash
@@ -50,5 +50,4 @@ jobs:
         shell: bash
         run: |
           export PATH=$(brew --prefix llvm)/bin:${PATH}
-          $(brew --prefix llvm)/bin/run-clang-tidy \
-            -p build test 2>&1 | tee .run-clang-tidy.log
+          $(brew --prefix llvm)/share/clang/bin/run-clang-tidy.py -p build test
