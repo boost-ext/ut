@@ -33,22 +33,25 @@ option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
 option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${MASTER_PROJECT})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
+option(BOOST_UT_ALLOW_CPM_USE "Do not reach out across network for CPM" ON)
 
-# ---- Add dependencies via CPM ----
-# see https://github.com/cpm-cmake/CPM.cmake for more info
+if(BOOST_UT_ALLOW_CPM_USE)
+  # ---- Add dependencies via CPM ----
+  # see https://github.com/cpm-cmake/CPM.cmake for more info
 
-if(CMAKE_VERSION VERSION_LESS 3.20.0)
-  # see https://github.com/TheLartians/PackageProject.cmake/pull/19
-  include(cmake/PackageProject.cmake)
-else()
-  include(cmake/CPM.cmake)
+  if(CMAKE_VERSION VERSION_LESS 3.20.0)
+    # see https://github.com/TheLartians/PackageProject.cmake/pull/19
+    include(cmake/PackageProject.cmake)
+  else()
+    include(cmake/CPM.cmake)
 
-  # PackageProject.cmake will be used to make our target installable
-  CPMAddPackage(
-    NAME PackageProject.cmake
-    GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-    VERSION 1.9.0
-  )
+    # PackageProject.cmake will be used to make our target installable
+    CPMAddPackage(
+      NAME PackageProject.cmake
+      GITHUB_REPOSITORY TheLartians/PackageProject.cmake
+      VERSION 1.9.0
+    )
+  endif()
 endif()
 
 add_library(ut INTERFACE)
@@ -83,19 +86,21 @@ if(BOOST_UT_DISABLE_MODULE)
   target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
 endif()
 
-# Create target Boost::ut and install target
-packageProject(
-  NAME ${PROJECT_NAME}
-  VERSION ${PROJECT_VERSION}
-  NAMESPACE Boost
-  BINARY_DIR ${PROJECT_BINARY_DIR}
-  INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
-  INCLUDE_DESTINATION ${INCLUDE_INSTALL_DIR}
-  # XXX variant: DISABLE_VERSION_SUFFIX YES
-  # Optional VERSION_HEADER ${VERSION_HEADER_LOCATION}
-  COMPATIBILITY SameMajorVersion
-  # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
-)
+if(BOOST_UT_ALLOW_CPM_USE)
+  # Create target Boost::ut and install target
+  packageProject(
+    NAME ${PROJECT_NAME}
+    VERSION ${PROJECT_VERSION}
+    NAMESPACE Boost
+    BINARY_DIR ${PROJECT_BINARY_DIR}
+    INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
+    INCLUDE_DESTINATION ${INCLUDE_INSTALL_DIR}
+    # XXX variant: DISABLE_VERSION_SUFFIX YES
+    # Optional VERSION_HEADER ${VERSION_HEADER_LOCATION}
+    COMPATIBILITY SameMajorVersion
+    # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
+  )
+endif()
 
 # Note: now we can use the target Boost::ut
 include(cmake/AddCustomCommandOrTest.cmake)
