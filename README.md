@@ -18,7 +18,7 @@
 ```cpp
 #include <boost/ut.hpp> // import boost.ut;
 
-constexpr auto sum(auto... args) { return (args + ...); }
+constexpr auto sum(auto... values) { return (values + ...); }
 
 int main() {
   using namespace boost::ut;
