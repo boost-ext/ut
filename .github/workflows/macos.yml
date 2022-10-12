@@ -29,7 +29,7 @@ jobs:
 
       - name: Install ninja and python
         shell: bash
-        run: brew install clang-format ninja python
+        run: brew install llvm clang-format ninja python
 
       - name: Install builddriver
         shell: bash
