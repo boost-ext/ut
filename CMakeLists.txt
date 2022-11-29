@@ -4,17 +4,12 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-cmake_minimum_required(VERSION 3.12...3.23)
+cmake_minimum_required(VERSION 3.21...3.25)
 project(
   ut
   VERSION 1.1.9
   LANGUAGES CXX
 )
-
-set(MASTER_PROJECT OFF)
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set(MASTER_PROJECT ON)
-endif()
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD
@@ -29,28 +24,27 @@ option(BOOST_UT_ENABLE_MEMCHECK "Run the unit tests and examples under valgrind 
 option(BOOST_UT_ENABLE_COVERAGE "Run coverage" OFF)
 option(BOOST_UT_ENABLE_SANITIZERS "Run static analysis" OFF)
 option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" OFF)
-option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${MASTER_PROJECT})
-option(BOOST_UT_BUILD_TESTS "Build the tests" ${MASTER_PROJECT})
-option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${MASTER_PROJECT})
+option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${PROJECT_IS_TOP_LEVEL})
+option(BOOST_UT_BUILD_TESTS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
+option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 option(BOOST_UT_ALLOW_CPM_USE "Do not reach out across network for CPM" ON)
 
-if(BOOST_UT_ALLOW_CPM_USE)
-  # ---- Add dependencies via CPM ----
-  # see https://github.com/cpm-cmake/CPM.cmake for more info
+if(NOT CMAKE_SKIP_INSTALL_RULES)
+  if(BOOST_UT_ALLOW_CPM_USE)
+    # ---- Add dependencies via CPM ----
+    # see https://github.com/cpm-cmake/CPM.cmake for more info
 
-  if(CMAKE_VERSION VERSION_LESS 3.20.0)
-    # see https://github.com/TheLartians/PackageProject.cmake/pull/19
-    include(cmake/PackageProject.cmake)
-  else()
     include(cmake/CPM.cmake)
 
     # PackageProject.cmake will be used to make our target installable
     CPMAddPackage(
       NAME PackageProject.cmake
       GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-      VERSION 1.9.0
+      VERSION 1.10.0
     )
+  else()
+    include(cmake/PackageProject.cmake)
   endif()
 endif()
 
@@ -59,7 +53,6 @@ add_library(ut INTERFACE)
 if(NOT DEFINED INCLUDE_INSTALL_DIR)
   set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
 endif()
-# XXX variant: set(INCLUDE_INSTALL_DIR include)
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
 target_compile_features(ut INTERFACE cxx_std_20)
 
@@ -86,7 +79,7 @@ if(BOOST_UT_DISABLE_MODULE)
   target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
 endif()
 
-if(BOOST_UT_ALLOW_CPM_USE)
+if(NOT CMAKE_SKIP_INSTALL_RULES)
   # Create target Boost::ut and install target
   packageProject(
     NAME ${PROJECT_NAME}
@@ -96,7 +89,6 @@ if(BOOST_UT_ALLOW_CPM_USE)
     INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
     INCLUDE_DESTINATION ${INCLUDE_INSTALL_DIR}
     # XXX variant: DISABLE_VERSION_SUFFIX YES
-    # Optional VERSION_HEADER ${VERSION_HEADER_LOCATION}
     COMPATIBILITY SameMajorVersion
     # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
   )
