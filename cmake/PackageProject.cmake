@@ -21,7 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # ------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.14)
 
 set(PACKAGE_PROJECT_ROOT_PATH
     "${CMAKE_CURRENT_LIST_DIR}"
