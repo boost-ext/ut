@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: windows-latest
     strategy:
-      matrix: 
+      matrix:
         toolset: [ClangCl, v143]
         std: [17, 20]
         exclude:
@@ -27,9 +27,9 @@ jobs:
             std: 17
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: "**/cpm_modules"
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
