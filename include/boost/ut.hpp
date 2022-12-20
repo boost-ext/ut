@@ -916,12 +916,12 @@ struct throws_ : op {
       : value_{[&expr] {
           try {
             expr();
+            return false;
           } catch (const TException&) {
             return true;
           } catch (...) {
             return false;
           }
-          return false;
         }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
@@ -935,10 +935,10 @@ struct throws_<TExpr, void> : op {
       : value_{[&expr] {
           try {
             expr();
+            return false;
           } catch (...) {
             return true;
           }
-          return false;
         }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
@@ -952,10 +952,10 @@ struct nothrow_ : op {
       : value_{[&expr] {
           try {
             expr();
+            return true;
           } catch (...) {
             return false;
           }
-          return true;
         }()} {}
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
