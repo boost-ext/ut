@@ -11,6 +11,7 @@ function(ut_add_custom_command_or_test)
   include(CMakeParseArguments)
   cmake_parse_arguments("${prefix}" "${noValues}" "${singleValues}" "${multiValues}" ${ARGN})
   target_link_libraries(${PARSE_TARGET} PRIVATE Boost::ut)
+  target_compile_definitions(${PARSE_TARGET} PRIVATE NOMINMAX)
 
   if(BOOST_UT_ENABLE_RUN_AFTER_BUILD)
     add_custom_command(TARGET ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})

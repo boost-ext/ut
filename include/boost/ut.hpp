@@ -52,12 +52,21 @@ export import std;
 #define __has_builtin(...) __has_##__VA_ARGS__
 #endif
 
+#include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstdint>
+#include <functional>
 #include <iostream>
+#include <memory>
+#include <optional>
+#include <regex>
 #include <sstream>
+#include <stack>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 #if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
 #include <sys/wait.h>
@@ -445,10 +454,54 @@ template <bool Cond>
 using requires_t = typename requires_<Cond>::type;
 }  // namespace type_traits
 
+template <typename CharT, std::size_t SIZE>
+struct fixed_string {
+  constexpr static std::size_t N = SIZE;
+  CharT _data[N + 1] = {};
+
+  constexpr explicit(false) fixed_string(const CharT (&str)[N + 1]) noexcept {
+    if constexpr (N != 0)
+      for (std::size_t i = 0; i < N; ++i) _data[i] = str[i];
+  }
+
+  [[nodiscard]] constexpr std::size_t size() const noexcept { return N; }
+  [[nodiscard]] constexpr bool empty() const noexcept { return N == 0; }
+  [[nodiscard]] constexpr explicit operator std::string_view() const noexcept {
+    return {_data, N};
+  }
+  [[nodiscard]] explicit operator std::string() const noexcept {
+    return {_data, N};
+  }
+  [[nodiscard]] operator const char*() const noexcept { return _data; }
+  [[nodiscard]] constexpr bool operator==(
+      const fixed_string& other) const noexcept {
+    return std::string_view{_data, N} == std::string_view(other);
+  }
+
+  template <std::size_t N2>
+  [[nodiscard]] friend constexpr bool operator==(
+      const fixed_string&, const fixed_string<CharT, N2>&) {
+    return false;
+  }
+};
+
+template <typename CharT, std::size_t N>
+fixed_string(const CharT (&str)[N]) -> fixed_string<CharT, N - 1>;
+
 struct none {};
 
 namespace events {
 struct test_begin {
+  std::string_view type{};
+  std::string_view name{};
+  reflection::source_location location{};
+};
+struct suite_begin {
+  std::string_view type{};
+  std::string_view name{};
+  reflection::source_location location{};
+};
+struct suite_end {
   std::string_view type{};
   std::string_view name{};
   reflection::source_location location{};
@@ -486,12 +539,17 @@ test(std::string_view, std::string_view, std::string_view,
 template <class TSuite>
 struct suite {
   TSuite run{};
+  std::string_view name{};
   constexpr auto operator()() { run(); }
   constexpr auto operator()() const { run(); }
 };
 template <class TSuite>
 suite(TSuite) -> suite<TSuite>;
 struct test_run {
+  std::string_view type{};
+  std::string_view name{};
+};
+struct test_finish {
   std::string_view type{};
   std::string_view name{};
 };
@@ -550,8 +608,184 @@ namespace detail {
 struct op {};
 struct fatal {};
 struct cfg {
+  using value_ref = std::variant<std::monostate, std::reference_wrapper<bool>,
+                                 std::reference_wrapper<std::size_t>,
+                                 std::reference_wrapper<std::string>>;
+  using option = std::tuple<std::string, std::string, value_ref, std::string>;
   static inline reflection::source_location location{};
   static inline bool wip{};
+
+  static inline int largc = 0;
+  static inline const char** largv = nullptr;
+  static inline std::string executable_name = "unknown executable";
+  static inline std::string query_pattern = "";        // <- done
+  static inline bool invert_query_pattern = false;     // <- done
+  static inline std::string query_regex_pattern = "";  // <- done
+  static inline bool show_help = false;                // <- done
+  static inline bool show_tests = false;               // <- done
+  static inline bool list_tags = false;                // <- done
+  static inline bool show_successful_tests = false;    // <- done
+  static inline std::string output_filename = "";
+  static inline std::string use_reporter = "console";  // <- done
+  static inline std::string suite_name = "";
+  static inline bool abort_early = false;  // <- done
+  static inline std::size_t abort_after_n_failures =
+      std::numeric_limits<std::size_t>::max();  // <- done
+  static inline bool show_duration = false;     // <- done
+  static inline std::size_t show_min_duration = 0;
+  static inline std::string input_filename = "";
+  static inline bool show_test_names = false;  // <- done
+  static inline bool show_reporters = false;   // <- done
+  static inline std::string sort_order = "decl";
+  static inline std::size_t rnd_seed = 0;        // 0: use time
+  static inline std::string use_colour = "yes";  // <- done
+  static inline bool show_lib_identity = false;  // <- done
+  static inline std::string wait_for_keypress = "never";
+
+  static inline const std::vector<option> options = {
+      // clang-format off
+  // <short long option name>, <option arg>, <ref to cfg>, <description>
+  {"-? -h --help", "", std::ref(show_help), "display usage information"},
+  {"-l --list-tests", "", std::ref(show_tests), "list all/matching test cases"},
+  {"-t, --list-tags", "", std::ref(list_tags), "list all/matching tags"},
+  {"-s, --success", "", std::ref(show_successful_tests), "include successful tests in output"},
+  {"-o, --out", "<filename>", std::ref(output_filename), "output filename"},
+  {"-r, --reporter", "<name>", std::ref(use_reporter), "reporter to use (defaults to console)"},
+  {"-n, --name", "<name>", std::ref(suite_name), "suite name"},
+  {"-a, --abort", "", std::ref(abort_early), "abort at first failure"},
+  {"-x, --abortx", "<no. failures>", std::ref(abort_after_n_failures), "abort after x failures"},
+  {"-d, --durations", "", std::ref(show_duration), "show test durations"},
+  {"-D, --min-duration", "<seconds>", std::ref(show_min_duration), "show test durations for [...]"},
+  {"-f, --input-file", "<filename>", std::ref(input_filename), "load test names to run from a file"},
+  {"--list-test-names-only", "", std::ref(show_test_names), "list all/matching test cases names only"},
+  {"--list-reporters", "", std::ref(show_reporters), "list all reporters"},
+  {"--order <decl|lex|rand>", "", std::ref(sort_order), "test case order (defaults to decl)"},
+  {"--rng-seed", "<'time'|number>", std::ref(rnd_seed), "set a specific seed for random numbers"},
+  {"--use-colour", "<yes|no>", std::ref(use_colour), "should output be colourised"},
+  {"--libidentify", "", std::ref(show_lib_identity), "report name and version according to libidentify standard"},
+  {"--wait-for-keypress", "<never|start|exit|both>", std::ref(wait_for_keypress), "waits for a keypress before exiting"}
+      // clang-format on
+  };
+
+  static std::optional<cfg::option> find_arg(std::string_view arg) {
+    for (const auto& option : cfg::options) {
+      if (std::get<0>(option).find(arg) != std::string::npos) {
+        return option;
+      }
+    }
+    return std::nullopt;
+  }
+
+  static void print_usage() {
+    std::size_t opt_width = 30;
+    std::cout << cfg::executable_name
+              << " [<test name|pattern|tags> ... ] options\n\nwith options:\n";
+    for (const auto& [cmd, arg, val, description] : cfg::options) {
+      std::string s = cmd;
+      s.append(" ");
+      s.append(arg);
+      // pad fixed column width
+      const auto pad_by = (s.size() <= opt_width) ? opt_width - s.size() : 0;
+      s.insert(s.end(), pad_by, ' ');
+      std::cout << "  " << s << description << std::endl;
+    }
+  }
+
+  static void print_identity() {
+    // according to: https://github.com/janwilmans/LibIdentify
+    std::cout << "description:    A UT / μt test executable\n";
+    std::cout << "category:       testframework\n";
+    std::cout << "framework:      UT: C++20 μ(micro)/Unit Testing Framework\n";
+    std::cout << "version:        " << BOOST_UT_VERSION << std::endl;
+  }
+
+  static inline void parse(int argc, const char* argv[]) {
+    const size_t n_args = static_cast<std::size_t>(argc);
+    if (n_args > 0 && argv != nullptr) {
+      cfg::largc = argc;
+      cfg::largv = argv;
+      executable_name = argv[0];
+    }
+    query_pattern = "";
+    bool found_first_option = false;
+    for (auto i = 1U; i < n_args; i++) {
+      std::string cmd(argv[i]);
+      auto cmd_option = find_arg(cmd);
+      if (!cmd_option.has_value()) {
+        if (found_first_option) {
+          std::cerr << "unknown option: '" << argv[i] << "' run:" << std::endl;
+          std::cerr << "'" << argv[0] << " --help'" << std::endl;
+          std::cerr << "for additional help" << std::endl;
+          exit(-1);
+        } else {
+          if (i > 1U) {
+            query_pattern.append(" ");
+          }
+          query_pattern.append(argv[i]);
+        }
+        continue;
+      }
+      found_first_option = true;
+      auto var = std::get<value_ref>(*cmd_option);
+      const bool has_option_arg = !std::get<1>(*cmd_option).empty();
+      if (!has_option_arg &&
+          std::holds_alternative<std::reference_wrapper<bool>>(var)) {
+        std::get<std::reference_wrapper<bool>>(var).get() = true;
+        continue;
+      }
+      if ((i + 1) >= n_args) {
+        std::cerr << "missing argument for option " << argv[i] << std::endl;
+        exit(-1);
+      }
+      i += 1;  // skip to next argv for parsing
+      if (std::holds_alternative<std::reference_wrapper<std::size_t>>(var)) {
+        // parse size argument
+        std::size_t last;
+        std::string argument(argv[i]);
+        std::size_t val = std::stoll(argument, &last);
+        if (last != argument.length()) {
+          std::cerr << "cannot parse option of " << argv[i - 1] << " "
+                    << argv[i] << std::endl;
+          exit(-1);
+        }
+        std::get<std::reference_wrapper<std::size_t>>(var).get() = val;
+      }
+      if (std::holds_alternative<std::reference_wrapper<std::string>>(var)) {
+        // parse string argument
+        std::get<std::reference_wrapper<std::string>>(var).get() = argv[i];
+        continue;
+      }
+    }
+
+    if (show_help) {
+      print_usage();
+      exit(0);
+    }
+
+    if (show_lib_identity) {
+      print_identity();
+      exit(0);
+    }
+
+    if (!query_pattern.empty()) {  // simple glob-like search
+      query_regex_pattern = "";
+      for (const char c : query_pattern) {
+        if (c == '!') {
+          invert_query_pattern = true;
+        } else if (c == '*') {
+          query_regex_pattern += ".*";
+        } else if (c == '?') {
+          query_regex_pattern += '.';
+        } else if (c == '.') {
+          query_regex_pattern += "\\.";
+        } else if (c == '\\') {
+          query_regex_pattern += "\\\\";
+        } else {
+          query_regex_pattern += c;
+        }
+      }
+    }
+  }
 };
 
 template <class T>
@@ -994,6 +1228,7 @@ struct colors {
   std::string_view none = "\033[0m";
   std::string_view pass = "\033[32m";
   std::string_view fail = "\033[31m";
+  std::string_view skip = "\033[33m";
 };
 
 class printer {
@@ -1242,6 +1477,376 @@ class reporter {
   TPrinter printer_{};
 };
 
+template <class TPrinter = printer>
+class reporter_junit {
+  template <typename Key, typename T>
+  using map = std::unordered_map<Key, T>;
+  using clock_ref = std::chrono::high_resolution_clock;
+  using timePoint = std::chrono::time_point<clock_ref>;
+  using timeDiff = std::chrono::milliseconds;
+  enum class ReportType { CONSOLE, JUNIT } report_type_;
+  using ReportType::CONSOLE;
+  using ReportType::JUNIT;
+
+  struct test_result {
+    test_result* parent = nullptr;
+    std::string class_name;
+    std::string suite_name;
+    std::string test_name;
+    std::string status = "STARTED";
+    timePoint run_start = clock_ref::now();
+    timePoint run_stop = clock_ref::now();
+    std::size_t n_tests = 0LU;
+    std::size_t assertions = 0LU;
+    std::size_t passed = 0LU;
+    std::size_t skipped = 0LU;
+    std::size_t fails = 0LU;
+    std::string report_string{};
+    std::unique_ptr<map<std::string, test_result>> nested_tests =
+        std::make_unique<map<std::string, test_result>>();
+  };
+  colors color_{};
+  map<std::string, test_result> results_;
+  std::string active_suite_{"global"};
+  test_result* active_scope_ = &results_[active_suite_];
+  std::stack<std::string> active_test_{};
+
+  std::streambuf* cout_save = std::cout.rdbuf();
+  std::ostream lcout_;
+  TPrinter printer_;
+  std::stringstream ss_out_{};
+
+  void reset_printer() {
+    ss_out_.str("");
+    ss_out_.clear();
+  }
+
+  void check_for_scope(std::string_view test_name) {
+    const std::string str_name(test_name);
+    active_test_.push(str_name);
+    const auto [iter, inserted] = active_scope_->nested_tests->try_emplace(
+        str_name, test_result{active_scope_, detail::cfg::executable_name,
+                              active_suite_, str_name});
+    active_scope_ = &active_scope_->nested_tests->at(str_name);
+    if (active_test_.size() == 1) {
+      reset_printer();
+    }
+    active_scope_->run_start = clock_ref::now();
+    if (!inserted) {
+      std::cout << "WARNING test '" << str_name << "' for test suite '"
+                << active_suite_ << "' already present\n";
+    }
+  }
+
+  void pop_scope(std::string_view test_name_sv) {
+    const std::string test_name(test_name_sv);
+    active_scope_->run_stop = clock_ref::now();
+    if (active_scope_->skipped) {
+      active_scope_->status = "SKIPPED";
+    } else {
+      active_scope_->status = active_scope_->fails > 0 ? "FAILED" : "PASSED";
+    }
+    active_scope_->assertions =
+        active_scope_->assertions + active_scope_->fails;
+
+    if (active_test_.top() == test_name) {
+      active_test_.pop();
+      auto old_scope = active_scope_;
+      if (active_scope_->parent != nullptr) {
+        active_scope_ = active_scope_->parent;
+      } else {
+        active_scope_ = &results_[std::string{"global"}];
+      }
+      active_scope_->n_tests += old_scope->n_tests + 1LU;
+      active_scope_->assertions += old_scope->assertions;
+      active_scope_->passed += old_scope->passed;
+      active_scope_->skipped += old_scope->skipped;
+      active_scope_->fails += old_scope->fails;
+      return;
+    }
+    std::stringstream ss("runner returned from test w/o signaling: ");
+    ss << "not popping because '" << active_test_.top() << "' differs from '"
+       << test_name << "'" << std::endl;
+#if defined(__cpp_exceptions)
+    throw std::logic_error(ss.str());
+#else
+    std::abort();
+#endif
+  }
+
+ public:
+  constexpr auto operator=(TPrinter printer) {
+    printer_ = static_cast<TPrinter&&>(printer);
+  }
+  reporter_junit() : lcout_(std::cout.rdbuf()) {
+    ::boost::ut::detail::cfg::parse(detail::cfg::largc, detail::cfg::largv);
+
+    if (detail::cfg::show_reporters) {
+      std::cout << "available reporter:\n";
+      std::cout << "  console (default)\n";
+      std::cout << "  junit" << std::endl;
+      exit(0);
+    }
+    if (detail::cfg::use_reporter.starts_with("junit")) {
+      report_type_ = JUNIT;
+    } else {
+      report_type_ = CONSOLE;
+    }
+    if (!detail::cfg::use_colour.starts_with("yes")) {
+      color_ = {"", "", "", ""};
+    }
+    if (!detail::cfg::show_tests && !detail::cfg::show_test_names) {
+      std::cout.rdbuf(ss_out_.rdbuf());
+    }
+  }
+  ~reporter_junit() { std::cout.rdbuf(cout_save); }
+
+  auto on(events::suite_begin suite) -> void {
+    while (active_test_.size() > 0) {
+      pop_scope(active_test_.top());
+    }
+    active_suite_ = suite.name;
+    active_scope_ = &results_[active_suite_];
+  }
+
+  auto on(events::suite_end) -> void {
+    while (active_test_.size() > 0) {
+      pop_scope(active_test_.top());
+    }
+    active_suite_ = "global";
+    active_scope_ = &results_[active_suite_];
+  }
+
+  auto on(events::test_begin test_event) -> void {  // starts outermost test
+    check_for_scope(test_event.name);
+
+    if (report_type_ == CONSOLE) {
+      ss_out_ << "\n";
+      ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
+      ss_out_ << "Running test \"" << test_event.name << "\"... ";
+    }
+  }
+
+  auto on(events::test_end test_event) -> void {
+    if (active_scope_->fails > 0) {
+      reset_printer();
+    } else {
+      active_scope_->report_string = ss_out_.str();
+      active_scope_->passed += 1LU;
+      if (report_type_ == CONSOLE) {
+        if (detail::cfg::show_successful_tests) {
+          if (!active_scope_->nested_tests->empty()) {
+            ss_out_ << "\n";
+            ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
+            ss_out_ << "Running test \"" << test_event.name << "\" - ";
+          }
+          ss_out_ << color_.pass << "PASSED" << color_.none;
+          print_duration(ss_out_);
+          lcout_ << ss_out_.str();
+          reset_printer();
+        }
+      }
+    }
+
+    pop_scope(test_event.name);
+  }
+
+  auto on(events::test_run test_event) -> void {  // starts nested test
+    on(events::test_begin{.type = test_event.type, .name = test_event.name});
+  }
+
+  auto on(events::test_finish test_event) -> void {  // finishes nested test
+    on(events::test_end{.type = test_event.type, .name = test_event.name});
+  }
+
+  auto on(events::test_skip test_event) -> void {
+    ss_out_.clear();
+    if (!active_scope_->nested_tests->contains(std::string(test_event.name))) {
+      check_for_scope(test_event.name);
+      active_scope_->status = "SKIPPED";
+      active_scope_->skipped += 1;
+      if (report_type_ == CONSOLE) {
+        lcout_ << '\n' << std::string(2 * active_test_.size() - 2, ' ');
+        lcout_ << "Running \"" << test_event.name << "\"... ";
+        lcout_ << color_.skip << "SKIPPED" << color_.none;
+      }
+      reset_printer();
+      pop_scope(test_event.name);
+    }
+  }
+
+  template <class TMsg>
+  auto on(events::log<TMsg> log) -> void {
+    ss_out_ << log.msg;
+    if (report_type_ == CONSOLE) {
+      lcout_ << log.msg;
+    }
+  }
+
+  auto on(events::exception exception) -> void {
+    active_scope_->fails++;
+    if (!active_test_.empty()) {
+      active_scope_->report_string += color_.fail;
+      active_scope_->report_string += "Unexpected exception with message:\n";
+      active_scope_->report_string += exception.what();
+      active_scope_->report_string += color_.none;
+    }
+    if (report_type_ == CONSOLE) {
+      lcout_ << std::string(2 * active_test_.size() - 2, ' ');
+      lcout_ << "Running test \"" << active_test_.top() << "\"... ";
+      lcout_ << color_.fail << "FAILED" << color_.none;
+      print_duration(lcout_);
+      lcout_ << '\n';
+      lcout_ << active_scope_->report_string << '\n';
+    }
+    if (detail::cfg::abort_early ||
+        active_scope_->fails >= detail::cfg::abort_after_n_failures) {
+      std::cerr << "early abort for test : " << active_test_.top() << "after ";
+      std::cerr << active_scope_->fails << " failures total." << std::endl;
+      std::exit(-1);
+    }
+  }
+
+  template <class TExpr>
+  auto on(events::assertion_pass<TExpr>) -> void {
+    active_scope_->assertions++;
+  }
+
+  template <class TExpr>
+  auto on(events::assertion_fail<TExpr> assertion) -> void {
+    TPrinter ss{};
+    ss << ss_out_.str();
+    if (report_type_ == CONSOLE) {
+      ss << color_.fail << "FAILED\n" << color_.none;
+      print_duration(ss);
+    }
+    ss << "in: " << assertion.location.file_name() << ':'
+       << assertion.location.line();
+    ss << color_.fail << " - test condition: ";
+    ss << " [" << std::boolalpha << assertion.expr;
+    ss << color_.fail << ']' << color_.none;
+    active_scope_->report_string += ss.str();
+    active_scope_->fails++;
+    reset_printer();
+    if (report_type_ == CONSOLE) {
+      lcout_ << active_scope_->report_string << "\n\n";
+    }
+    if (detail::cfg::abort_early ||
+        active_scope_->fails >= detail::cfg::abort_after_n_failures) {
+      std::cerr << "early abort for test : " << active_test_.top() << "after ";
+      std::cerr << active_scope_->fails << " failures total." << std::endl;
+      std::exit(-1);
+    }
+  }
+
+  auto on(events::fatal_assertion) -> void { active_scope_->fails++; }
+
+  auto on(events::summary) -> void {
+    std::cout.flush();
+    std::cout.rdbuf(cout_save);
+    if (report_type_ == JUNIT) {
+      print_junit_summary();
+      return;
+    }
+    print_console_summary();
+  }
+
+ protected:
+  void print_duration(auto& printer) const noexcept {
+    if (detail::cfg::show_duration) {
+      int64_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            active_scope_->run_stop - active_scope_->run_start)
+                            .count();
+      // rounded to nearest ms
+      double time_s = static_cast<double>(time_ms) / 1000.0;
+      printer << " after " << time_s << " seconds";
+    }
+  }
+
+  void print_console_summary() {
+    for (const auto& [suite_name, suite_result] : results_) {
+      if (suite_result.fails) {
+        std::cerr
+            << "\n========================================================"
+               "=======================\n"
+            << "Suite " << suite_name  //
+            << "tests:   " << (suite_result.n_tests) << " | " << color_.fail
+            << suite_result.fails << " failed" << color_.none << '\n'
+            << "asserts: " << (suite_result.assertions) << " | "
+            << suite_result.passed << " passed"
+            << " | " << color_.fail << suite_result.fails << " failed"
+            << color_.none << '\n';
+        std::cerr << std::endl;
+      } else {
+        std::cout << color_.pass << "Suite '" << suite_name
+                  << "': all tests passed" << color_.none << " ("
+                  << suite_result.assertions << " asserts in "
+                  << suite_result.n_tests << " tests)\n";
+
+        if (suite_result.skipped) {
+          std::cout << suite_result.skipped << " tests skipped\n";
+        }
+
+        std::cout.flush();
+      }
+    }
+  }
+
+  void print_junit_summary() {
+    // mock junit output:
+    std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    for (const auto& [suite_name, suite_result] : results_) {
+      std::cout << "<testsuites";
+      std::cout << " classname=\"" << detail::cfg::executable_name << '\"';
+      std::cout << " name=\"" << suite_name << '\"';
+      std::cout << " tests=\"" << suite_result.n_tests << '\"';
+      std::cout << " errors=\"" << suite_result.fails << '\"';
+      std::cout << " failures=\"" << suite_result.fails << '\"';
+      std::cout << " skipped=\"" << suite_result.skipped << '\"';
+      int64_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            suite_result.run_stop - suite_result.run_start)
+                            .count();
+      std::cout << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
+                << '\"';
+      std::cout << " version=\"" << BOOST_UT_VERSION << "\" />\n";
+      print_result(suite_name, " ", suite_result);
+      std::cout << "</testsuites>\n";
+      std::cout.flush();
+    }
+  }
+  void print_result(const std::string& suite_name, std::string indent,
+                    const test_result& parent) {
+    for (const auto& [name, result] : *parent.nested_tests) {
+      std::cout << indent;
+      std::cout << "<testcase classname=\"" << result.suite_name << '\"';
+      std::cout << " name=\"" << name << '\"';
+      std::cout << " tests=\"" << result.assertions << '\"';
+      std::cout << " errors=\"" << result.fails << '\"';
+      std::cout << " failures=\"" << result.fails << '\"';
+      std::cout << " skipped=\"" << result.skipped << '\"';
+      int64_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            result.run_stop - result.run_start)
+                            .count();
+      std::cout << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
+                << "\"";
+      std::cout << " status=\"" << result.status << '\"';
+      if (result.report_string.empty() && result.nested_tests->empty()) {
+        std::cout << " />\n";
+      } else if (!result.nested_tests->empty()) {
+        std::cout << " />\n";
+        print_result(suite_name, indent + "  ", result);
+        std::cout << indent << "</testcase>\n";
+      } else if (!result.report_string.empty()) {
+        std::cout << ">\n";
+        std::cout << indent << indent << "<system-out>\n";
+        std::cout << result.report_string << "\n";
+        std::cout << indent << indent << "</system-out>\n";
+        std::cout << indent << "</testcase>\n";
+      }
+    }
+  };
+};
+
 struct options {
   std::string_view filter{};
   std::vector<std::string_view> tag{};
@@ -1307,16 +1912,24 @@ class runner {
 
   template <class TSuite>
   auto on(events::suite<TSuite> suite) {
-    suites_.push_back(suite.run);
+    suites_.emplace_back(suite.run, suite.name);
   }
 
   template <class... Ts>
   auto on(events::test<Ts...> test) {
     path_[level_] = test.name;
 
+    if (detail::cfg::list_tags) {
+      std::for_each(test.tag.cbegin(), test.tag.cend(), [](const auto& tag) {
+        std::cout << "tag: " << tag << std::endl;
+      });
+      return;
+    }
+
     auto execute = std::empty(test.tag);
     for (const auto& tag_element : test.tag) {
-      if (utility::is_match(tag_element, "skip")) {
+      if (utility::is_match(tag_element, "skip") && !detail::cfg::show_tests &&
+          !detail::cfg::show_test_names) {
         on(events::skip<>{.type = test.type, .name = test.name});
         return;
       }
@@ -1327,6 +1940,27 @@ class runner {
           break;
         }
       }
+    }
+
+    if (!detail::cfg::query_pattern.empty()) {  //
+      const static std::regex regex(detail::cfg::query_regex_pattern);
+      bool matches = std::regex_match(test.name.data(), regex);
+      for (const auto& tag2 : test.tag) {
+        matches |= std::regex_match(tag2.data(), regex);
+      }
+      if (matches) {
+        execute = !detail::cfg::invert_query_pattern;
+      } else {
+        execute = detail::cfg::invert_query_pattern;
+      }
+    }
+
+    if (detail::cfg::show_tests || detail::cfg::show_test_names) {
+      if (!detail::cfg::show_test_names) {
+        std::cout << "matching test: ";
+      }
+      std::cout << test.name << std::endl;
+      return;
     }
 
     if (not execute) {
@@ -1366,6 +2000,11 @@ class runner {
 
       if (not --level_) {
         reporter_.on(events::test_end{.type = test.type, .name = test.name});
+      } else {  // N.B. prev. only root-level tests were signalled on finish
+        if constexpr (requires { reporter_.on(events::test_finish{}); }) {
+          reporter_.on(
+              events::test_finish{.type = test.type, .name = test.name});
+        }
       }
     }
   }
@@ -1417,8 +2056,15 @@ class runner {
 
   [[nodiscard]] auto run(run_cfg rc = {}) -> bool {
     run_ = true;
-    for (const auto& suite : suites_) {
+    for (const auto& [suite, suite_name] : suites_) {
+      // add reporter in/out
+      if constexpr (requires { reporter_.on(events::suite_begin{}); }) {
+        reporter_.on(events::suite_begin{.type = "suite", .name = suite_name});
+      }
       suite();
+      if constexpr (requires { reporter_.on(events::suite_end{}); }) {
+        reporter_.on(events::suite_end{.type = "suite", .name = suite_name});
+      }
     }
     suites_.clear();
 
@@ -1438,7 +2084,7 @@ class runner {
 
  protected:
   TReporter reporter_{};
-  std::vector<void (*)()> suites_{};
+  std::vector<std::pair<void (*)(), std::string_view>> suites_{};
   std::size_t level_{};
   bool run_{};
   std::size_t fails_{};
@@ -1451,7 +2097,8 @@ class runner {
 struct override {};
 
 template <class = override, class...>
-[[maybe_unused]] inline auto cfg = runner<reporter<printer>>{};
+//[[maybe_unused]] inline auto cfg = runner<reporter<printer>>{};// alt reporter
+[[maybe_unused]] inline auto cfg = runner<reporter_junit<printer>>{};
 
 namespace detail {
 struct tag {
@@ -1653,8 +2300,7 @@ struct expect_ {
 }  // namespace detail
 
 namespace literals {
-[[nodiscard]] inline auto operator""_test(const char* name,
-                                          decltype(sizeof("")) size) {
+[[nodiscard]] inline auto operator""_test(const char* name, std::size_t size) {
   return detail::test{"test", std::string_view{name, size}};
 }
 
@@ -2213,12 +2859,15 @@ struct _t : detail::value<T> {
   constexpr explicit _t(const T& t) : detail::value<T>{t} {}
 };
 
+template <fixed_string suite_name = "unnamed suite">
 struct suite {
+  reflection::source_location location{};
+  std::string_view name = std::string_view(suite_name);
   template <class TSuite>
   constexpr /*explicit(false)*/ suite(TSuite _suite) {
     static_assert(1 == sizeof(_suite));
     detail::on<decltype(+_suite)>(
-        events::suite<decltype(+_suite)>{.run = +_suite});
+        events::suite<decltype(+_suite)>{.run = +_suite, .name = name});
   }
 };
 
@@ -2462,4 +3111,15 @@ using operators::operator|;
 using operators::operator/;
 using operators::operator>>;
 }  // namespace boost::inline ext::ut::inline v1_1_9
+
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
+__attribute__((constructor)) inline void cmd_line_args(int argc,
+                                                       const char* argv[]) {
+  ::boost::ut::detail::cfg::largc = argc;
+  ::boost::ut::detail::cfg::largv = argv;
+}
+#else
+// add MSV/windows related code here (optional)
+#endif
+
 #endif
