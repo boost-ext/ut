@@ -7,7 +7,7 @@
 //
 #include "test.hpp"
 
-static test::suite _ = [] {
+static test::suite<"logging suite"> _ = [] {
   using namespace test;
   test::log << "suite:" << int() << double() << '\n';
   expect(type<int> == type<int>);

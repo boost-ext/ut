@@ -28,10 +28,10 @@ class parallel_runner : public ut::runner<> {
   [[nodiscard]] auto run() -> bool {
 #if defined(__cpp_lib_parallel_algorithm)
     std::for_each(std::execution::par, std::cbegin(suites_), std::cend(suites_),
-                  [&](const auto& suite) { suite(); });
+                  [&](const auto& suite) { suite.first(); });
 #else
     std::for_each(std::cbegin(suites_), std::cend(suites_),
-                  [&](const auto& suite) { suite(); });
+                  [&](const auto& suite) { suite.first(); });
 #endif
 
     suites_.clear();
