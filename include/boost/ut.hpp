@@ -742,13 +742,18 @@ struct cfg {
         // parse size argument
         std::size_t last;
         std::string argument(argv[i]);
-        std::size_t val = std::stoll(argument, &last);
+        long long val = std::stoll(argument, &last);
+        if (val < 0) {
+          std::cerr << "parsed value is negative " << val << std::endl;
+          exit(-1);
+        }
         if (last != argument.length()) {
           std::cerr << "cannot parse option of " << argv[i - 1] << " "
                     << argv[i] << std::endl;
           exit(-1);
         }
-        std::get<std::reference_wrapper<std::size_t>>(var).get() = val;
+        std::get<std::reference_wrapper<std::size_t>>(var).get() =
+          static_cast<std::size_t>(val);
       }
       if (std::holds_alternative<std::reference_wrapper<std::string>>(var)) {
         // parse string argument
