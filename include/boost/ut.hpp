@@ -246,7 +246,11 @@ template<typename T>
 [[nodiscard]] constexpr auto get_template_function_name_use_type()
     -> std::string_view
 {
+#if defined(_MSC_VER) and not defined(__clang__)
+  return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
+#else
   return {&__PRETTY_FUNCTION__[0], sizeof(__PRETTY_FUNCTION__)};
+#endif
 }
 template<typename T>
 [[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
