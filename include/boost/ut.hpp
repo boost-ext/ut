@@ -272,7 +272,7 @@ struct prefix_suffix_lenght_struct {
       "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct"};
   const constexpr std::string::size_type prefix_pos =
       raw_type_name.find(need_name);
-  if constexpr (prefix_pos != std::string::npos) {
+  if (prefix_pos != std::string::npos) {
     prefix_lenght = prefix_pos;
     if (raw_type_name.length() > need_name.length() + prefix_lenght) {
       suffix_lenght =
@@ -289,7 +289,7 @@ template <typename T>
 [[nodiscard]] constexpr auto type_name() -> std::string_view {
   const constexpr std::string_view raw_type_name =
       detail::get_template_function_name_use_type<T>();
-  if constexpr (raw_type_name.length() >
+  if (raw_type_name.length() >
                 detail::prefix_suffix_lenght_for_current_compiler
                     .minimal_need_lenght) {
     return raw_type_name.substr(
@@ -304,7 +304,7 @@ template <typename T>
 [[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
   constexpr const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<T>();
-  if constexpr (raw_type_name.length() >
+  if (raw_type_name.length() >
                 detail::prefix_suffix_lenght_for_current_compiler
                     .minimal_need_lenght) {
     return raw_type_name.substr(
