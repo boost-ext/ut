@@ -240,21 +240,71 @@ class source_location {
 };
 #endif
 
-template <class T>
-[[nodiscard]] constexpr auto type_name() -> std::string_view {
-#if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
-#elif defined(__clang_analyzer__)
-  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__) and (__clang_major__ >= 13) and defined(__APPLE__)
-  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__) and (__clang_major__ >= 12) and not defined(__APPLE__)
-  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__)
-  return {&__PRETTY_FUNCTION__[70], sizeof(__PRETTY_FUNCTION__) - 72};
-#elif defined(__GNUC__)
-  return {&__PRETTY_FUNCTION__[85], sizeof(__PRETTY_FUNCTION__) - 136};
-#endif
+namespace detail
+{
+template<typename T>
+[[nodiscard]] constexpr auto get_template_function_name_use_type()
+    -> std::string_view
+{
+  return {&__PRETTY_FUNCTION__[0], sizeof(__PRETTY_FUNCTION__)};
+}
+template<typename T>
+[[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
+    -> std::string_view
+{
+  return get_template_function_name_use_type<std::decay_t<T>>();
+}
+struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct;
+struct prefix_suffix_lenght_struct
+{
+  std::size_t prefix_lenght;
+  std::size_t suffix_lenght;
+};
+[[nodiscard]] constexpr auto detect_prefix_suffix_lenght()
+    -> prefix_suffix_lenght_struct
+{
+  std::size_t prefix_lenght {0};
+  std::size_t suffix_lenght {0};
+  const std::string_view raw_type_name = get_template_function_name_use_decay_type<
+      unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+  const std::string_view need_name {
+      "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct"};
+  const std::string::size_type prefix_pos = raw_type_name.find(need_name);
+  if (prefix_pos != std::string::npos) {
+    prefix_lenght = prefix_pos;
+    if (raw_type_name.length() > need_name.length() + prefix_lenght) {
+      suffix_lenght =
+          raw_type_name.length() - need_name.length() - prefix_lenght;
+    }
+  }
+  return prefix_suffix_lenght_struct {prefix_lenght, suffix_lenght};
+}
+static constexpr prefix_suffix_lenght_struct
+    prefix_suffix_lenght_for_current_compiler {detect_prefix_suffix_lenght()};
+}  // namespace detail
+template<typename T>
+[[nodiscard]] constexpr auto type_name() -> std::string_view
+{
+  const std::string_view raw_type_name =
+      detail::get_template_function_name_use_type<T>();
+  return raw_type_name.substr(
+      detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
+      raw_type_name.length()
+          - (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght
+             + detail::prefix_suffix_lenght_for_current_compiler
+                   .suffix_lenght));
+}
+template<typename T>
+[[nodiscard]] constexpr auto decay_type_name() -> std::string_view
+{
+  const std::string_view raw_type_name =
+      detail::get_template_function_name_use_decay_type<T>();
+  return raw_type_name.substr(
+      detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
+      raw_type_name.length()
+          - (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght
+             + detail::prefix_suffix_lenght_for_current_compiler
+                   .suffix_lenght));
 }
 }  // namespace reflection
 
