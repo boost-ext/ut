@@ -263,17 +263,18 @@ struct prefix_suffix_lenght_struct
 {
   std::size_t prefix_lenght;
   std::size_t suffix_lenght;
+  std::size_t minimal_need_lenght;
 };
 [[nodiscard]] constexpr auto detect_prefix_suffix_lenght()
     -> prefix_suffix_lenght_struct
 {
   std::size_t prefix_lenght {0};
   std::size_t suffix_lenght {0};
-  const std::string_view raw_type_name = get_template_function_name_use_decay_type<
+  constexpr std::string_view raw_type_name = get_template_function_name_use_decay_type<
       unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
-  const std::string_view need_name {
+  constexpr std::string_view need_name {
       "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct"};
-  const std::string::size_type prefix_pos = raw_type_name.find(need_name);
+  constexpr std::string::size_type prefix_pos = raw_type_name.find(need_name);
   if (prefix_pos != std::string::npos) {
     prefix_lenght = prefix_pos;
     if (raw_type_name.length() > need_name.length() + prefix_lenght) {
@@ -281,7 +282,7 @@ struct prefix_suffix_lenght_struct
           raw_type_name.length() - need_name.length() - prefix_lenght;
     }
   }
-  return prefix_suffix_lenght_struct {prefix_lenght, suffix_lenght};
+  return prefix_suffix_lenght_struct {prefix_lenght, suffix_lenght, prefix_lenght + suffix_lenght};
 }
 static constexpr prefix_suffix_lenght_struct
     prefix_suffix_lenght_for_current_compiler {detect_prefix_suffix_lenght()};
@@ -289,26 +290,34 @@ static constexpr prefix_suffix_lenght_struct
 template<typename T>
 [[nodiscard]] constexpr auto type_name() -> std::string_view
 {
-  const std::string_view raw_type_name =
+  constexpr std::string_view raw_type_name =
       detail::get_template_function_name_use_type<T>();
-  return raw_type_name.substr(
-      detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
-      raw_type_name.length()
-          - (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght
-             + detail::prefix_suffix_lenght_for_current_compiler
-                   .suffix_lenght));
+  if constexpr(raw_type_name.length()>detail::prefix_suffix_lenght_for_current_compiler.minimal_need_lenght)
+  {
+    return raw_type_name.substr(
+          detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
+          raw_type_name.length()
+              - (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght
+                + detail::prefix_suffix_lenght_for_current_compiler
+                      .suffix_lenght));
+  }
+  return raw_type_name;
 }
 template<typename T>
 [[nodiscard]] constexpr auto decay_type_name() -> std::string_view
 {
-  const std::string_view raw_type_name =
+  constexpr std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<T>();
+  if constexpr(raw_type_name.length()>detail::prefix_suffix_lenght_for_current_compiler.minimal_need_lenght)
+  {
   return raw_type_name.substr(
       detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
       raw_type_name.length()
           - (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght
              + detail::prefix_suffix_lenght_for_current_compiler
                    .suffix_lenght));
+  }
+  return raw_type_name;
 }
 }  // namespace reflection
 

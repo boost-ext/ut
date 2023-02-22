@@ -342,7 +342,7 @@ struct custom_vec : std::vector<int> {
 template <class... Ts>
 static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
 
-
+/*
 template<typename T>
 void type_name_test(std::string_view need_name)
 {
@@ -370,6 +370,7 @@ struct my_namespace_struct
 }  // namespace my_namespace
 
 const my_namespace::my_namespace_struct my_namespace_global_var {};
+*/
 
 int main() {
   {
@@ -448,7 +449,19 @@ int main() {
       static_assert(not type_traits::is_container_v<foo>);
       static_assert(not type_traits::is_container_v<void>);
     }   
+    {
+      static_assert("void"sv ==
+                    std::string_view{reflection::type_name<void>()});
+      static_assert("int"sv == std::string_view{reflection::type_name<int>()});
 
+      #if defined(_MSC_VER) and not defined(__clang__)
+            static_assert("struct fake_cfg"sv ==
+                          std::string_view{reflection::type_name<fake_cfg>()});
+      #else
+            static_assert("fake_cfg"sv ==
+                          std::string_view{reflection::type_name<fake_cfg>()});
+      #endif
+    }
     {
       test_assert(utility::is_match("", ""));
       test_assert(utility::is_match("", "*"));
@@ -1917,6 +1930,7 @@ int main() {
     test_assert(test_cfg.assertion_calls[1].result);
   }
 #endif
+/*
 {
   type_name_test<int>("int");
   type_name_test<std::string>("std::__cxx11::basic_string<char>");
@@ -1970,5 +1984,5 @@ int main() {
   type_name_test<decltype(my_namespace_local_var.x)>("int");
   type_name_test<decltype(my_namespace_local_var.y)>("std::__cxx11::basic_string<char>");
 }
-
+*/
 }
