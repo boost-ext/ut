@@ -450,16 +450,16 @@ int main() {
       static_assert(not type_traits::is_container_v<void>);
     }
     {
-      static_assert("void"sv ==
-                    std::string_view{reflection::type_name<void>()});
-      static_assert("int"sv == std::string_view{reflection::type_name<int>()});
+      static_assert("void" ==
+                    reflection::type_name<void>());
+      static_assert("int" == reflection::type_name<int>());
 
 #if defined(_MSC_VER) and not defined(__clang__)
-      static_assert("struct fake_cfg"sv ==
+      static_assert("struct fake_cfg" ==
                     std::string_view{reflection::type_name<fake_cfg>()});
 #else
-      static_assert("fake_cfg"sv ==
-                    std::string_view{reflection::type_name<fake_cfg>()});
+      static_assert("fake_cfg" ==
+                    reflection::type_name<fake_cfg>());
 #endif
     }
     {

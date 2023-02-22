@@ -80,6 +80,11 @@ export import std;
 #include <source_location>
 #endif
 
+#include <boost/static_string_cpp.hpp>
+
+struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
+};
+
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export
 #endif
@@ -241,79 +246,109 @@ class source_location {
 #endif
 
 namespace detail {
-template <typename T>
-[[nodiscard]] constexpr auto get_template_function_name_use_type()
-    -> std::string_view {
+// получение имени шаблонной функции в которой должен быть тип параметра шаблона
+// выполняется на этапе компиляции
+template <typename TargetType>
+[[nodiscard]] constexpr auto get_template_function_name_use_type() {
+  // для некоторых компиляторов требуется использовать другой макрос
+
 #if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
+  return snw1::static_string::make(__FUNCSIG__);
 #else
-  return {&__PRETTY_FUNCTION__[0], sizeof(__PRETTY_FUNCTION__)};
+  return snw1::static_string::make(__PRETTY_FUNCTION__);
 #endif
 }
-template <typename T>
-[[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
-    -> std::string_view {
-  return get_template_function_name_use_type<std::decay_t<T>>();
+
+// получение имени шаблонной функции в которой должен быть тип параметра шаблона
+// с отбрасыванием квалификаторов и rl признаков
+// выполняется на этапе компиляции
+template <typename TargetType>
+[[nodiscard]] constexpr auto get_template_function_name_use_decay_type() {
+  return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
-struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct;
+
+// тип используемый для автоопределения местоположения имени типа по имени
+// шаблонной функции в которой должен быть этот тип как параметра шаблона
+
+// структура которая хранит сколько символов надо отбросить спереди сзади в
+// имени имени шаблонной функции, чтобы получить имя типа
 struct prefix_suffix_lenght_struct {
   std::size_t prefix_lenght;
   std::size_t suffix_lenght;
-  std::size_t minimal_need_lenght;
 };
+
+// функция определяющая сколько символов надо отбросить спереди и сзади в имени
+// имени шаблонной функции, чтобы получить имя типа по заранее известному имени
+// типа, который вряд ли входи в состав префикса и суффикса
+
 [[nodiscard]] constexpr auto detect_prefix_suffix_lenght()
     -> prefix_suffix_lenght_struct {
-  std::size_t prefix_lenght{0};
-  std::size_t suffix_lenght{0};
-  const constexpr std::string_view raw_type_name =
-      get_template_function_name_use_decay_type<
-          unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
-  const constexpr std::string_view need_name{
-      "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct"};
-  const constexpr std::string::size_type prefix_pos =
-      raw_type_name.find(need_name);
-  if (prefix_pos != std::string::npos) {
-    prefix_lenght = prefix_pos;
+  // считаем что нет ни префикса не суффикса
+  size_t prefix_lenght{0};
+  size_t suffix_lenght{0};
+  // получаем имя шаблонной функции в которой должен быть тип параметра шаблона
+  auto raw_type_name = get_template_function_name_use_decay_type<
+      unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+  // имя типа параметра шаблона функции приведен вручную
+  auto need_name = snw1::static_string::make(
+      "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct");
+  // ищем где начинается имя типа в имени шаблонной функции
+  const size_t prefix_pos = raw_type_name.find(need_name);
+  // если позиция имени типа найдена в позиции имени функции
+  if (prefix_pos != snw1::static_string::npos) {
+    prefix_lenght = prefix_pos;  // фиксируем размер префикса
+    // если под суффикс осталось место
     if (raw_type_name.length() > need_name.length() + prefix_lenght) {
+      // рассчитываем длину суффикса
       suffix_lenght =
           raw_type_name.length() - need_name.length() - prefix_lenght;
     }
   }
-  return prefix_suffix_lenght_struct{prefix_lenght, suffix_lenght,
-                                     prefix_lenght + suffix_lenght};
+  // возвращаем результат
+  return prefix_suffix_lenght_struct{prefix_lenght, suffix_lenght};
 }
-static constexpr prefix_suffix_lenght_struct
-    prefix_suffix_lenght_for_current_compiler{detect_prefix_suffix_lenght()};
+
+// static constexpr const prefix_suffix_lenght_struct
+//    prefix_suffix_lenght_for_current_compiler = detect_prefix_suffix_lenght();
 }  // namespace detail
-template <typename T>
-[[nodiscard]] constexpr auto type_name() -> std::string_view {
-  const constexpr std::string_view raw_type_name =
-      detail::get_template_function_name_use_type<T>();
-  if (raw_type_name.length() >
-                detail::prefix_suffix_lenght_for_current_compiler
-                    .minimal_need_lenght) {
-    return raw_type_name.substr(
-        detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
-        raw_type_name.length() -
-            (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght +
-             detail::prefix_suffix_lenght_for_current_compiler.suffix_lenght));
-  }
-  return raw_type_name;
+// шаблонная функция определения имени типа
+template <typename TargetType>
+[[nodiscard]] constexpr auto type_name() {
+  constexpr auto raw_type_name = snw1::static_string::make(
+      detail::get_template_function_name_use_type<TargetType>());
+  constexpr detail::prefix_suffix_lenght_struct
+      prefix_suffix_lenght_for_current_compiler =
+          detail::detect_prefix_suffix_lenght();
+  constexpr size_t begin =
+      prefix_suffix_lenght_for_current_compiler.prefix_lenght;
+  constexpr size_t end =
+      raw_type_name.length() -
+      prefix_suffix_lenght_for_current_compiler.suffix_lenght;
+  static_assert(begin < raw_type_name.length());
+  static_assert(end < raw_type_name.length());
+  static_assert(begin < end);
+  constexpr auto result = raw_type_name.template substring<begin, end>();
+  return result;
 }
-template <typename T>
-[[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
-  constexpr const std::string_view raw_type_name =
-      detail::get_template_function_name_use_decay_type<T>();
-  if (raw_type_name.length() >
-                detail::prefix_suffix_lenght_for_current_compiler
-                    .minimal_need_lenght) {
-    return raw_type_name.substr(
-        detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght,
-        raw_type_name.length() -
-            (detail::prefix_suffix_lenght_for_current_compiler.prefix_lenght +
-             detail::prefix_suffix_lenght_for_current_compiler.suffix_lenght));
-  }
-  return raw_type_name;
+// шаблонная функция определения имени типа с отбрасыванием квалификаторов и rl
+// признаков
+template <typename TargetType>
+[[nodiscard]] constexpr auto decay_type_name() {
+  constexpr auto raw_type_name = snw1::static_string::make(
+      detail::get_template_function_name_use_decay_type<TargetType>());
+  constexpr detail::prefix_suffix_lenght_struct
+      prefix_suffix_lenght_for_current_compiler =
+          detail::detect_prefix_suffix_lenght();
+  constexpr size_t begin =
+      prefix_suffix_lenght_for_current_compiler.prefix_lenght;
+  constexpr size_t end =
+      raw_type_name.length() -
+      prefix_suffix_lenght_for_current_compiler.suffix_lenght;
+  static_assert(begin < raw_type_name.length());
+  static_assert(end < raw_type_name.length());
+  static_assert(begin < end);
+  constexpr auto result = raw_type_name.template substring<begin, end>();
+  return result;
 }
 }  // namespace reflection
 
