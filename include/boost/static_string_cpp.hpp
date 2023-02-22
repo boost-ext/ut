@@ -309,7 +309,7 @@ struct basic_static_string {
   template <size_t SubSize>
   constexpr size_t find(const basic_static_string<Char, SubSize>& substr,
                         size_t from = 0, size_t nth = 0) const {
-    return Size < SubSize || from > Size - SubSize ? npos
+    return (Size < SubSize) || (from > (Size - SubSize)) ? npos
            : __static_string_detail::compare(*this, from, substr, 0, 1,
                                              SubSize - 1) != 0
                ? find(substr, from + 1, nth)
@@ -331,7 +331,7 @@ struct basic_static_string {
   template <size_t SubSize>
   constexpr size_t rfind(const basic_static_string<Char, SubSize>& substr,
                          size_t from = Size - SubSize, size_t nth = 0) const {
-    return Size < SubSize || from > Size - SubSize ? npos
+    return (Size < SubSize) || (from > (Size - SubSize)) ? npos
            : __static_string_detail::compare(*this, from, substr, 0, 1,
                                              SubSize - 1) != 0
                ? rfind(substr, from - 1, nth)
