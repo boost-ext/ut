@@ -302,7 +302,7 @@ template <typename T>
 }
 template <typename T>
 [[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
-  constexpr std::string_view raw_type_name =
+  constexpr const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<T>();
   if constexpr (raw_type_name.length() >
                 detail::prefix_suffix_lenght_for_current_compiler
