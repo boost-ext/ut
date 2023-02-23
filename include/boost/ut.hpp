@@ -80,8 +80,6 @@ export import std;
 #include <source_location>
 #endif
 
-#include <boost/static_string_cpp.hpp>
-
 struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
 };
 
@@ -249,13 +247,14 @@ namespace detail {
 // получение имени шаблонной функции в которой должен быть тип параметра шаблона
 // выполняется на этапе компиляции
 template <typename TargetType>
-[[nodiscard]] constexpr auto get_template_function_name_use_type() {
+[[nodiscard]] constexpr auto get_template_function_name_use_type()
+    -> std::string_view {
   // для некоторых компиляторов требуется использовать другой макрос
 
 #if defined(_MSC_VER) and not defined(__clang__)
-  return snw1::static_string::make(__FUNCSIG__);
+  return __FUNCSIG__;
 #else
-  return snw1::static_string::make(__PRETTY_FUNCTION__);
+  return __PRETTY_FUNCTION__;
 #endif
 }
 
@@ -263,7 +262,8 @@ template <typename TargetType>
 // с отбрасыванием квалификаторов и rl признаков
 // выполняется на этапе компиляции
 template <typename TargetType>
-[[nodiscard]] constexpr auto get_template_function_name_use_decay_type() {
+[[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
+    -> std::string_view {
   return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
 
@@ -290,12 +290,12 @@ struct prefix_suffix_lenght_struct {
   auto raw_type_name = get_template_function_name_use_decay_type<
       unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
   // имя типа параметра шаблона функции приведен вручную
-  auto need_name = snw1::static_string::make(
-      "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct");
+  std::string_view need_name =
+      "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
   // ищем где начинается имя типа в имени шаблонной функции
   const size_t prefix_pos = raw_type_name.find(need_name);
   // если позиция имени типа найдена в позиции имени функции
-  if (prefix_pos != snw1::static_string::npos) {
+  if (prefix_pos != std::string::npos && prefix_pos < raw_type_name.length()) {
     prefix_lenght = prefix_pos;  // фиксируем размер префикса
     // если под суффикс осталось место
     if (raw_type_name.length() > need_name.length() + prefix_lenght) {
@@ -313,9 +313,9 @@ struct prefix_suffix_lenght_struct {
 }  // namespace detail
 // шаблонная функция определения имени типа
 template <typename TargetType>
-[[nodiscard]] constexpr auto type_name() {
-  constexpr auto raw_type_name = snw1::static_string::make(
-      detail::get_template_function_name_use_type<TargetType>());
+[[nodiscard]] constexpr auto type_name() -> std::string_view {
+  constexpr std::string_view raw_type_name =
+      detail::get_template_function_name_use_type<TargetType>();
   constexpr detail::prefix_suffix_lenght_struct
       prefix_suffix_lenght_for_current_compiler =
           detail::detect_prefix_suffix_lenght();
@@ -324,18 +324,16 @@ template <typename TargetType>
   constexpr size_t end =
       raw_type_name.length() -
       prefix_suffix_lenght_for_current_compiler.suffix_lenght;
-  static_assert(begin < raw_type_name.length());
-  static_assert(end < raw_type_name.length());
-  static_assert(begin < end);
-  constexpr auto result = raw_type_name.template substring<begin, end>();
+  constexpr size_t len = end - begin;
+  constexpr auto result = raw_type_name.substr(begin, len);
   return result;
 }
 // шаблонная функция определения имени типа с отбрасыванием квалификаторов и rl
 // признаков
 template <typename TargetType>
-[[nodiscard]] constexpr auto decay_type_name() {
-  constexpr auto raw_type_name = snw1::static_string::make(
-      detail::get_template_function_name_use_decay_type<TargetType>());
+[[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
+  constexpr std::string_view raw_type_name =
+      detail::get_template_function_name_use_decay_type<TargetType>();
   constexpr detail::prefix_suffix_lenght_struct
       prefix_suffix_lenght_for_current_compiler =
           detail::detect_prefix_suffix_lenght();
@@ -344,10 +342,8 @@ template <typename TargetType>
   constexpr size_t end =
       raw_type_name.length() -
       prefix_suffix_lenght_for_current_compiler.suffix_lenght;
-  static_assert(begin < raw_type_name.length());
-  static_assert(end < raw_type_name.length());
-  static_assert(begin < end);
-  constexpr auto result = raw_type_name.template substring<begin, end>();
+  constexpr size_t len = end - begin;
+  constexpr auto result = raw_type_name.substr(begin, len);
   return result;
 }
 }  // namespace reflection
