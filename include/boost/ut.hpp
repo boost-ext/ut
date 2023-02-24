@@ -249,7 +249,6 @@ template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_type()
     -> std::string_view {
   // для некоторых компиляторов требуется использовать другой макрос
-
 #if defined(_MSC_VER) and not defined(__clang__)
   return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
 #else
@@ -283,6 +282,9 @@ static constexpr const std::size_t suffix_lenght = tail_lenght - need_length;
 // шаблонная функция определения имени типа
 template <typename TargetType>
 [[nodiscard]] constexpr auto type_name() -> std::string_view {
+#if defined(_MSC_VER) and not defined(__clang__)
+  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
+#else
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_type<TargetType>();
   const size_t end = raw_type_name.length() - detail::suffix_lenght;
@@ -290,11 +292,15 @@ template <typename TargetType>
   const std::string_view result =
       raw_type_name.substr(detail::prefix_lenght, len);
   return result;
+#endif
 }
 // шаблонная функция определения имени типа с отбрасыванием квалификаторов и rl
 // признаков
 template <typename TargetType>
 [[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
+#if defined(_MSC_VER) and not defined(__clang__)
+  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
+#else
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<TargetType>();
   const size_t end = raw_type_name.length() - detail::suffix_lenght;
@@ -302,6 +308,7 @@ template <typename TargetType>
   const std::string_view result =
       raw_type_name.substr(detail::prefix_lenght, len);
   return result;
+#endif
 }
 }  // namespace reflection
 
