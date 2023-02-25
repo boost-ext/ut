@@ -339,6 +339,9 @@ struct custom_vec : std::vector<int> {
   }
 };
 
+template <class... Ts>
+static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
+
 int main() {
   {
     using namespace ut;
@@ -428,7 +431,7 @@ int main() {
       static_assert("fake_cfg" == reflection::type_name<fake_cfg>());
 #endif
     }
-
+    
     {
       test_assert(utility::is_match("", ""));
       test_assert(utility::is_match("", "*"));
