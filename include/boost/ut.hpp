@@ -243,72 +243,71 @@ class source_location {
 };
 #endif
 namespace detail {
-// получение имени шаблонной функции в которой должен быть тип параметра шаблона
-// выполняется на этапе компиляции
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_type()
-    -> std::string_view {
-  // для некоторых компиляторов требуется использовать другой макрос
-#if defined(_MSC_VER) and not defined(__clang__)
+    -> const std::string_view {
+// for over compiler ned over macros
+#if defined(_MSC_VER) && !defined(__clang__)
   return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
 #else
   return {&__PRETTY_FUNCTION__[0], sizeof(__PRETTY_FUNCTION__)};
 #endif
 }
 
-// получение имени шаблонной функции в которой должен быть тип параметра шаблона
-// с отбрасыванием квалификаторов и rl признаков
-// выполняется на этапе компиляции
+// decay allows you to highlight a cleaner name
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
-    -> std::string_view {
+    -> const std::string_view {
   return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
 
 static constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
         unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+
 static constexpr const std::size_t raw_length = raw_type_name.length();
 static constexpr const std::string_view need_name =
+#if defined(_MSC_VER) and not defined(__clang__)
+    "struct "
     "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+#else
+    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+#endif
 static constexpr const std::size_t need_length = need_name.length();
-static constexpr const std::size_t prefix_lenght =
+static_assert(need_length <= raw_length,
+              "Auto find prefix and suffix lenght broken error 1");
+static constexpr const std::size_t prefix_length =
     raw_type_name.find(need_name);
-static constexpr const std::size_t tail_lenght = raw_length - prefix_lenght;
-static constexpr const std::size_t suffix_lenght = tail_lenght - need_length;
+static_assert(prefix_length != std::string_view::npos,
+              "Auto find prefix and suffix lenght broken error 2");
+static_assert(prefix_length <= raw_length,
+              "Auto find prefix and suffix lenght broken error 3");
+static constexpr const std::size_t tail_lenght = raw_length - prefix_length;
+static_assert(need_length <= tail_lenght,
+              "Auto find prefix and suffix lenght broken error 4");
+static constexpr const std::size_t suffix_length = tail_lenght - need_length;
 
 }  // namespace detail
 
-// шаблонная функция определения имени типа
 template <typename TargetType>
-[[nodiscard]] constexpr auto type_name() -> std::string_view {
-#if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
-#else
+[[nodiscard]] constexpr auto type_name() -> const std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_type<TargetType>();
-  const size_t end = raw_type_name.length() - detail::suffix_lenght;
-  const size_t len = end - detail::prefix_lenght;
-  const std::string_view result =
-      raw_type_name.substr(detail::prefix_lenght, len);
+  const size_t end = raw_type_name.length() - detail::suffix_length;
+  const size_t len = end - detail::prefix_length;
+  std::string_view result = raw_type_name.substr(detail::prefix_length, len);
   return result;
-#endif
 }
-// шаблонная функция определения имени типа с отбрасыванием квалификаторов и rl
-// признаков
+
+// decay allows you to highlight a cleaner name
 template <typename TargetType>
-[[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
-#if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
-#else
+[[nodiscard]] constexpr auto decay_type_name() -> const std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<TargetType>();
-  const size_t end = raw_type_name.length() - detail::suffix_lenght;
-  const size_t len = end - detail::prefix_lenght;
-  const std::string_view result =
-      raw_type_name.substr(detail::prefix_lenght, len);
+  const size_t end = raw_type_name.length() - detail::suffix_length;
+  const size_t len = end - detail::prefix_length;
+  std::string_view result = raw_type_name.substr(detail::prefix_length, len);
   return result;
-#endif
 }
 }  // namespace reflection
 
@@ -2055,7 +2054,10 @@ class runner {
       if (not --level_) {
         reporter_.on(events::test_end{.type = test.type, .name = test.name});
       } else {  // N.B. prev. only root-level tests were signalled on finish
-        if constexpr (requires { reporter_.on(events::test_finish{}); }) {
+        if constexpr (requires {
+                        reporter_.on(events::test_finish{.type = test.type,
+                                                         .name = test.name});
+                      }) {
           reporter_.on(
               events::test_finish{.type = test.type, .name = test.name});
         }

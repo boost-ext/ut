@@ -342,35 +342,29 @@ struct custom_vec : std::vector<int> {
 template <class... Ts>
 static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
 
-/*
-template<typename T>
-void type_name_test(std::string_view need_name)
-{
-  ut::log<< "Need name '" << need_name << "' current name '"
-        << ut::reflection::decay_type_name<T>() << "'";
+template <typename T>
+void type_name_test(std::string_view need_name) {
+  ut::log << "Need name '" << need_name << "' current name '"
+          << ut::reflection::decay_type_name<T>() << "'";
   ut::expect(ut::reflection::decay_type_name<T>().compare(need_name) == 0)
       << "Need name '" << need_name << "' current name '"
       << ut::reflection::decay_type_name<T>() << "'";
 }
 
-struct my_global_struct
-{
+struct my_global_struct {
   int x;
   std::string y;
 };
 const my_global_struct my_global_struct_global_var{};
 
-namespace my_namespace
-{
-struct my_namespace_struct
-{
+namespace my_namespace {
+struct my_namespace_struct {
   int x;
   std::string y;
 };
 }  // namespace my_namespace
 
-const my_namespace::my_namespace_struct my_namespace_global_var {};
-*/
+const my_namespace::my_namespace_struct my_namespace_global_var{};
 
 int main() {
   {
@@ -449,6 +443,7 @@ int main() {
       static_assert(not type_traits::is_container_v<foo>);
       static_assert(not type_traits::is_container_v<void>);
     }
+
     {
       static_assert("void" == reflection::type_name<void>());
       static_assert("int" == reflection::type_name<int>());
@@ -459,6 +454,74 @@ int main() {
 #else
       static_assert("fake_cfg" == reflection::type_name<fake_cfg>());
 #endif
+
+      {
+        type_name_test<int>("int");
+        type_name_test<std::string>("std::__cxx11::basic_string<char>");
+
+        struct my_local_struct {
+          int x;
+          std::string y;
+        };
+
+        type_name_test<my_local_struct>("main()::my_local_struct");
+        type_name_test<decltype(my_local_struct::x)>("int");
+        type_name_test<decltype(my_local_struct::y)>(
+            "std::__cxx11::basic_string<char>");
+
+        const my_local_struct my_local_struct_local_var{};
+
+        type_name_test<decltype(my_local_struct_local_var)>(
+            "main()::my_local_struct");
+        type_name_test<decltype(my_local_struct_local_var.x)>("int");
+        type_name_test<decltype(my_local_struct_local_var.y)>(
+            "std::__cxx11::basic_string<char>");
+
+        type_name_test<my_global_struct>("my_global_struct");
+        type_name_test<decltype(my_global_struct::x)>("int");
+        type_name_test<decltype(my_global_struct::y)>(
+            "std::__cxx11::basic_string<char>");
+
+        type_name_test<decltype(my_global_struct_global_var)>(
+            "my_global_struct");
+        type_name_test<decltype(my_global_struct_global_var.x)>("int");
+        type_name_test<decltype(my_global_struct_global_var.y)>(
+            "std::__cxx11::basic_string<char>");
+
+        const my_global_struct my_global_struct_local_var{};
+
+        type_name_test<decltype(my_global_struct_local_var)>(
+            "my_global_struct");
+        type_name_test<decltype(my_global_struct_local_var.x)>("int");
+        type_name_test<decltype(my_global_struct_local_var.y)>(
+            "std::__cxx11::basic_string<char>");
+
+        type_name_test<decltype(my_global_struct_global_var)>(
+            "my_global_struct");
+        type_name_test<decltype(my_global_struct_global_var.x)>("int");
+        type_name_test<decltype(my_global_struct_global_var.y)>(
+            "std::__cxx11::basic_string<char>");
+
+        type_name_test<my_namespace::my_namespace_struct>(
+            "my_namespace::my_namespace_struct");
+        type_name_test<decltype(my_namespace::my_namespace_struct::x)>("int");
+        type_name_test<decltype(my_namespace::my_namespace_struct::y)>(
+            "std::__cxx11::basic_string<char>");
+
+        type_name_test<decltype(my_namespace_global_var)>(
+            "my_namespace::my_namespace_struct");
+        type_name_test<decltype(my_namespace_global_var.x)>("int");
+        type_name_test<decltype(my_namespace_global_var.y)>(
+            "std::__cxx11::basic_string<char>");
+
+        const my_namespace::my_namespace_struct my_namespace_local_var{};
+
+        type_name_test<decltype(my_namespace_local_var)>(
+            "my_namespace::my_namespace_struct");
+        type_name_test<decltype(my_namespace_local_var.x)>("int");
+        type_name_test<decltype(my_namespace_local_var.y)>(
+            "std::__cxx11::basic_string<char>");
+      }
     }
     {
       test_assert(utility::is_match("", ""));
@@ -1928,59 +1991,4 @@ int main() {
     test_assert(test_cfg.assertion_calls[1].result);
   }
 #endif
-  /*
-  {
-    type_name_test<int>("int");
-    type_name_test<std::string>("std::__cxx11::basic_string<char>");
-
-    struct my_local_struct
-    {
-      int x;
-      std::string y;
-    };
-
-    type_name_test<my_local_struct>("main()::my_local_struct");
-    type_name_test<decltype(my_local_struct::x)>("int");
-    type_name_test<decltype(my_local_struct::y)>("std::__cxx11::basic_string<char>");
-
-    const my_local_struct my_local_struct_local_var {};
-
-    type_name_test<decltype(my_local_struct_local_var)>("main()::my_local_struct");
-    type_name_test<decltype(my_local_struct_local_var.x)>("int");
-    type_name_test<decltype(my_local_struct_local_var.y)>("std::__cxx11::basic_string<char>");
-
-    type_name_test<my_global_struct>("my_global_struct");
-    type_name_test<decltype(my_global_struct::x)>("int");
-    type_name_test<decltype(my_global_struct::y)>("std::__cxx11::basic_string<char>");
-
-    type_name_test<decltype(my_global_struct_global_var)>("my_global_struct");
-    type_name_test<decltype(my_global_struct_global_var.x)>("int");
-    type_name_test<decltype(my_global_struct_global_var.y)>("std::__cxx11::basic_string<char>");
-
-    const my_global_struct my_global_struct_local_var {};
-
-    type_name_test<decltype(my_global_struct_local_var)>("my_global_struct");
-    type_name_test<decltype(my_global_struct_local_var.x)>("int");
-    type_name_test<decltype(my_global_struct_local_var.y)>("std::__cxx11::basic_string<char>");
-
-    type_name_test<decltype(my_global_struct_global_var)>("my_global_struct");
-    type_name_test<decltype(my_global_struct_global_var.x)>("int");
-    type_name_test<decltype(my_global_struct_global_var.y)>("std::__cxx11::basic_string<char>");
-
-    type_name_test<my_namespace::my_namespace_struct>("my_namespace::my_namespace_struct");
-    type_name_test<decltype(my_namespace::my_namespace_struct::x)>("int");
-    type_name_test<decltype(my_namespace::my_namespace_struct::y)>(
-        "std::__cxx11::basic_string<char>");
-
-    type_name_test<decltype(my_namespace_global_var)>("my_namespace::my_namespace_struct");
-    type_name_test<decltype(my_namespace_global_var.x)>("int");
-    type_name_test<decltype(my_namespace_global_var.y)>("std::__cxx11::basic_string<char>");
-
-    const my_namespace::my_namespace_struct my_namespace_local_var {};
-
-    type_name_test<decltype(my_namespace_local_var)>("my_namespace::my_namespace_struct");
-    type_name_test<decltype(my_namespace_local_var.x)>("int");
-    type_name_test<decltype(my_namespace_local_var.y)>("std::__cxx11::basic_string<char>");
-  }
-  */
 }
