@@ -246,7 +246,7 @@ namespace detail {
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_type()
     -> const std::string_view {
-// for over compiler ned over macros
+// for over compiler need over macros
 #if defined(_MSC_VER) && !defined(__clang__)
   return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
 #else

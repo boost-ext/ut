@@ -426,7 +426,7 @@ int main() {
 
 #if defined(_MSC_VER) and not defined(__clang__)
       static_assert("struct fake_cfg" ==
-                    std::string_view{reflection::type_name<fake_cfg>()});
+                    reflection::type_name<fake_cfg>());
 #else
       static_assert("fake_cfg" == reflection::type_name<fake_cfg>());
 #endif
