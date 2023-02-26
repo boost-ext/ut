@@ -80,6 +80,9 @@ export import std;
 #include <source_location>
 #endif
 
+struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
+};
+
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export
 #endif
@@ -239,22 +242,72 @@ class source_location {
   int line_{};
 };
 #endif
-
-template <class T>
-[[nodiscard]] constexpr auto type_name() -> std::string_view {
-#if defined(_MSC_VER) and not defined(__clang__)
-  return {&__FUNCSIG__[120], sizeof(__FUNCSIG__) - 128};
-#elif defined(__clang_analyzer__)
-  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__) and (__clang_major__ >= 13) and defined(__APPLE__)
-  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__) and (__clang_major__ >= 12) and not defined(__APPLE__)
-  return {&__PRETTY_FUNCTION__[57], sizeof(__PRETTY_FUNCTION__) - 59};
-#elif defined(__clang__)
-  return {&__PRETTY_FUNCTION__[70], sizeof(__PRETTY_FUNCTION__) - 72};
-#elif defined(__GNUC__)
-  return {&__PRETTY_FUNCTION__[85], sizeof(__PRETTY_FUNCTION__) - 136};
+namespace detail {
+template <typename TargetType>
+[[nodiscard]] constexpr auto get_template_function_name_use_type()
+    -> const std::string_view {
+// for over compiler need over macros
+#if defined(_MSC_VER) && !defined(__clang__)
+  return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
+#else
+  return {&__PRETTY_FUNCTION__[0], sizeof(__PRETTY_FUNCTION__)};
 #endif
+}
+
+// decay allows you to highlight a cleaner name
+template <typename TargetType>
+[[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
+    -> const std::string_view {
+  return get_template_function_name_use_type<std::decay_t<TargetType>>();
+}
+
+static constexpr const std::string_view raw_type_name =
+    get_template_function_name_use_decay_type<
+        unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+
+static constexpr const std::size_t raw_length = raw_type_name.length();
+static constexpr const std::string_view need_name =
+#if defined(_MSC_VER) and not defined(__clang__)
+    "struct "
+    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+#else
+    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+#endif
+static constexpr const std::size_t need_length = need_name.length();
+static_assert(need_length <= raw_length,
+              "Auto find prefix and suffix lenght broken error 1");
+static constexpr const std::size_t prefix_length =
+    raw_type_name.find(need_name);
+static_assert(prefix_length != std::string_view::npos,
+              "Auto find prefix and suffix lenght broken error 2");
+static_assert(prefix_length <= raw_length,
+              "Auto find prefix and suffix lenght broken error 3");
+static constexpr const std::size_t tail_lenght = raw_length - prefix_length;
+static_assert(need_length <= tail_lenght,
+              "Auto find prefix and suffix lenght broken error 4");
+static constexpr const std::size_t suffix_length = tail_lenght - need_length;
+
+}  // namespace detail
+
+template <typename TargetType>
+[[nodiscard]] constexpr auto type_name() -> const std::string_view {
+  const std::string_view raw_type_name =
+      detail::get_template_function_name_use_type<TargetType>();
+  const size_t end = raw_type_name.length() - detail::suffix_length;
+  const size_t len = end - detail::prefix_length;
+  std::string_view result = raw_type_name.substr(detail::prefix_length, len);
+  return result;
+}
+
+// decay allows you to highlight a cleaner name
+template <typename TargetType>
+[[nodiscard]] constexpr auto decay_type_name() -> const std::string_view {
+  const std::string_view raw_type_name =
+      detail::get_template_function_name_use_decay_type<TargetType>();
+  const size_t end = raw_type_name.length() - detail::suffix_length;
+  const size_t len = end - detail::prefix_length;
+  std::string_view result = raw_type_name.substr(detail::prefix_length, len);
+  return result;
 }
 }  // namespace reflection
 
@@ -2001,7 +2054,10 @@ class runner {
       if (not --level_) {
         reporter_.on(events::test_end{.type = test.type, .name = test.name});
       } else {  // N.B. prev. only root-level tests were signalled on finish
-        if constexpr (requires { reporter_.on(events::test_finish{}); }) {
+        if constexpr (requires {
+                        reporter_.on(events::test_finish{.type = test.type,
+                                                         .name = test.name});
+                      }) {
           reporter_.on(
               events::test_finish{.type = test.type, .name = test.name});
         }
