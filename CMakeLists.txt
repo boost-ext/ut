@@ -98,6 +98,17 @@ if(NOT CMAKE_SKIP_INSTALL_RULES)
   )
 endif()
 
+if (EMSCRIPTEN)
+  set(CMAKE_EXECUTABLE_SUFFIX ".js")
+  target_link_options(ut INTERFACE
+          "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+          # "SHELL:-s EXIT_RUNTIME"
+          -fwasm-exceptions
+          -g
+          )
+
+endif()
+
 # Note: now we can use the target Boost::ut
 include(cmake/AddCustomCommandOrTest.cmake)
 
