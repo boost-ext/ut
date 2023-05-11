@@ -3168,7 +3168,7 @@ using operators::operator/;
 using operators::operator>>;
 }  // namespace boost::inline ext::ut::inline v1_1_9
 
-#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
+#if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && !defined(__EMSCRIPTEN__)
 __attribute__((constructor)) inline void cmd_line_args(int argc,
                                                        const char* argv[]) {
   ::boost::ut::detail::cfg::largc = argc;
