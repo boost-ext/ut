@@ -102,11 +102,14 @@ if (EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
   target_link_options(ut INTERFACE
           "SHELL:-s ALLOW_MEMORY_GROWTH=1"
-          # "SHELL:-s EXIT_RUNTIME"
+          "SHELL:-s EXIT_RUNTIME=1"
           -fwasm-exceptions
           -g
           )
-
+  target_compile_options(ut INTERFACE
+          -fwasm-exceptions
+          -g
+          )
 endif()
 
 # Note: now we can use the target Boost::ut
