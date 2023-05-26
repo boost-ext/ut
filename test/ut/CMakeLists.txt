@@ -16,13 +16,14 @@ if(BOOST_UT_ENABLE_MEMCHECK AND BOOST_UT_MEMORYCHECK_COMMAND)
       ${BOOST_UT_MEMORYCHECK_COMMAND}
       --leak-check=full
       --error-exitcode=1
+      ${CMAKE_CROSSCOMPILING_EMULATOR}
       ./${name}_test
     )
   endfunction()
 else()
   function(ut name)
     add_executable(${name}_test ${name}.cpp)
-    ut_add_custom_command_or_test(TARGET ${name}_test COMMAND ${name}_test)
+    ut_add_custom_command_or_test(TARGET ${name}_test COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} ${name}_test)
   endfunction()
 endif()
 

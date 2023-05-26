@@ -1,0 +1,57 @@
+---
+name: Emscripten
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: Install emscripten
+        run: |
+          cd
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          # Download and install the latest SDK tools.
+          ./emsdk install releases-03ecb526947f6a3702a0d083083799fe410d3893-64bit
+          # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+          ./emsdk activate releases-03ecb526947f6a3702a0d083083799fe410d3893-64bit
+          # Activate PATH and other environment variables in the current terminal
+          source ./emsdk_env.sh
+
+      - name: configure
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          emcmake cmake -S . -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+
+      - name: build
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          cmake --build build -j4
+
+      - name: test
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          cd build
+          ctest --build-config Debug

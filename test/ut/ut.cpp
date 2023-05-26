@@ -1368,7 +1368,7 @@ int main() {
       test_assert(6 == std::size(test_cfg.assertion_calls));
     }
 
-#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(EMSCRIPTEN)
     {
       test_cfg = fake_cfg{};
 
