@@ -1897,7 +1897,7 @@ class reporter_junit {
         std::cout << indent << "</testcase>\n";
       }
     }
-  };
+  }
 };
 
 struct options {
