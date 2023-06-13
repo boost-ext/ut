@@ -8,8 +8,10 @@
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export module boost.ut;
 export import std;
+#define BOOST_UT_EXPORT export
 #else
 #pragma once
+#define BOOST_UT_EXPORT
 #endif
 
 #if __has_include(<iso646.h>)
@@ -83,10 +85,8 @@ export import std;
 struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
 };
 
-#if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
-export
-#endif
-    namespace boost::inline ext::ut::inline v1_1_9 {
+BOOST_UT_EXPORT
+namespace boost::inline ext::ut::inline v1_1_9 {
 namespace utility {
 template <class>
 class function;
