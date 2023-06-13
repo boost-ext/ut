@@ -261,31 +261,31 @@ template <typename TargetType>
   return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
 
-static constexpr const std::string_view raw_type_name =
+inline constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
         unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
 
-static constexpr const std::size_t raw_length = raw_type_name.length();
-static constexpr const std::string_view need_name =
+inline constexpr const std::size_t raw_length = raw_type_name.length();
+inline constexpr const std::string_view need_name =
 #if defined(_MSC_VER) and not defined(__clang__)
     "struct "
     "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #else
     "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #endif
-static constexpr const std::size_t need_length = need_name.length();
+inline constexpr const std::size_t need_length = need_name.length();
 static_assert(need_length <= raw_length,
               "Auto find prefix and suffix lenght broken error 1");
-static constexpr const std::size_t prefix_length =
+inline constexpr const std::size_t prefix_length =
     raw_type_name.find(need_name);
 static_assert(prefix_length != std::string_view::npos,
               "Auto find prefix and suffix lenght broken error 2");
 static_assert(prefix_length <= raw_length,
               "Auto find prefix and suffix lenght broken error 3");
-static constexpr const std::size_t tail_lenght = raw_length - prefix_length;
+inline constexpr const std::size_t tail_lenght = raw_length - prefix_length;
 static_assert(need_length <= tail_lenght,
               "Auto find prefix and suffix lenght broken error 4");
-static constexpr const std::size_t suffix_length = tail_lenght - need_length;
+inline constexpr const std::size_t suffix_length = tail_lenght - need_length;
 
 }  // namespace detail
 
@@ -438,11 +438,11 @@ constexpr auto is_valid(...) -> bool {
 }
 
 template <class T>
-static constexpr auto is_container_v =
+inline constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-static constexpr auto has_user_print = is_valid<T>(
+inline constexpr auto has_user_print = is_valid<T>(
     [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
 
 template <class T, class = void>
@@ -482,7 +482,7 @@ inline constexpr auto is_floating_point_v<long double> = true;
 
 #if defined(__clang__) or defined(_MSC_VER)
 template <class From, class To>
-static constexpr auto is_convertible_v = __is_convertible_to(From, To);
+inline constexpr auto is_convertible_v = __is_convertible_to(From, To);
 #else
 template <class From, class To>
 constexpr auto is_convertible(int) -> decltype(bool(To(declval<From>()))) {
@@ -2856,7 +2856,7 @@ constexpr auto expect(const TExpr& expr,
       events::assertion<TExpr>{.expr = expr, .location = sl})};
 }
 
-[[maybe_unused]] constexpr auto fatal = detail::fatal{};
+[[maybe_unused]] inline constexpr auto fatal = detail::fatal{};
 
 #if defined(__cpp_nontype_template_parameter_class)
 template <auto Constant>
