@@ -1538,8 +1538,8 @@ class reporter_junit {
   using timePoint = std::chrono::time_point<clock_ref>;
   using timeDiff = std::chrono::milliseconds;
   enum class ReportType { CONSOLE, JUNIT } report_type_;
-  using ReportType::CONSOLE;
-  using ReportType::JUNIT;
+  static constexpr ReportType CONSOLE = ReportType::CONSOLE;
+  static constexpr ReportType JUNIT = ReportType::JUNIT;
 
   struct test_result {
     test_result* parent = nullptr;
