@@ -8,8 +8,10 @@
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export module boost.ut;
 export import std;
+#define BOOST_UT_EXPORT export
 #else
 #pragma once
+#define BOOST_UT_EXPORT
 #endif
 
 #if __has_include(<iso646.h>)
@@ -83,10 +85,8 @@ export import std;
 struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
 };
 
-#if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
-export
-#endif
-    namespace boost::inline ext::ut::inline v1_1_9 {
+BOOST_UT_EXPORT
+namespace boost::inline ext::ut::inline v1_1_9 {
 namespace utility {
 template <class>
 class function;
@@ -261,31 +261,31 @@ template <typename TargetType>
   return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
 
-static constexpr const std::string_view raw_type_name =
+inline constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
         unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
 
-static constexpr const std::size_t raw_length = raw_type_name.length();
-static constexpr const std::string_view need_name =
+inline constexpr const std::size_t raw_length = raw_type_name.length();
+inline constexpr const std::string_view need_name =
 #if defined(_MSC_VER) and not defined(__clang__)
     "struct "
     "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #else
     "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #endif
-static constexpr const std::size_t need_length = need_name.length();
+inline constexpr const std::size_t need_length = need_name.length();
 static_assert(need_length <= raw_length,
               "Auto find prefix and suffix lenght broken error 1");
-static constexpr const std::size_t prefix_length =
+inline constexpr const std::size_t prefix_length =
     raw_type_name.find(need_name);
 static_assert(prefix_length != std::string_view::npos,
               "Auto find prefix and suffix lenght broken error 2");
 static_assert(prefix_length <= raw_length,
               "Auto find prefix and suffix lenght broken error 3");
-static constexpr const std::size_t tail_lenght = raw_length - prefix_length;
+inline constexpr const std::size_t tail_lenght = raw_length - prefix_length;
 static_assert(need_length <= tail_lenght,
               "Auto find prefix and suffix lenght broken error 4");
-static constexpr const std::size_t suffix_length = tail_lenght - need_length;
+inline constexpr const std::size_t suffix_length = tail_lenght - need_length;
 
 }  // namespace detail
 
@@ -293,8 +293,8 @@ template <typename TargetType>
 [[nodiscard]] constexpr auto type_name() -> const std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_type<TargetType>();
-  const size_t end = raw_type_name.length() - detail::suffix_length;
-  const size_t len = end - detail::prefix_length;
+  const std::size_t end = raw_type_name.length() - detail::suffix_length;
+  const std::size_t len = end - detail::prefix_length;
   std::string_view result = raw_type_name.substr(detail::prefix_length, len);
   return result;
 }
@@ -304,8 +304,8 @@ template <typename TargetType>
 [[nodiscard]] constexpr auto decay_type_name() -> const std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<TargetType>();
-  const size_t end = raw_type_name.length() - detail::suffix_length;
-  const size_t len = end - detail::prefix_length;
+  const std::size_t end = raw_type_name.length() - detail::suffix_length;
+  const std::size_t len = end - detail::prefix_length;
   std::string_view result = raw_type_name.substr(detail::prefix_length, len);
   return result;
 }
@@ -438,11 +438,11 @@ constexpr auto is_valid(...) -> bool {
 }
 
 template <class T>
-static constexpr auto is_container_v =
+inline constexpr auto is_container_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
-static constexpr auto has_user_print = is_valid<T>(
+inline constexpr auto has_user_print = is_valid<T>(
     [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
 
 template <class T, class = void>
@@ -482,7 +482,7 @@ inline constexpr auto is_floating_point_v<long double> = true;
 
 #if defined(__clang__) or defined(_MSC_VER)
 template <class From, class To>
-static constexpr auto is_convertible_v = __is_convertible_to(From, To);
+inline constexpr auto is_convertible_v = __is_convertible_to(From, To);
 #else
 template <class From, class To>
 constexpr auto is_convertible(int) -> decltype(bool(To(declval<From>()))) {
@@ -753,7 +753,7 @@ struct cfg {
   }
 
   static inline void parse(int argc, const char* argv[]) {
-    const size_t n_args = static_cast<std::size_t>(argc);
+    const std::size_t n_args = static_cast<std::size_t>(argc);
     if (n_args > 0 && argv != nullptr) {
       cfg::largc = argc;
       cfg::largv = argv;
@@ -769,7 +769,7 @@ struct cfg {
           std::cerr << "unknown option: '" << argv[i] << "' run:" << std::endl;
           std::cerr << "'" << argv[0] << " --help'" << std::endl;
           std::cerr << "for additional help" << std::endl;
-          exit(-1);
+          std::exit(-1);
         } else {
           if (i > 1U) {
             query_pattern.append(" ");
@@ -788,7 +788,7 @@ struct cfg {
       }
       if ((i + 1) >= n_args) {
         std::cerr << "missing argument for option " << argv[i] << std::endl;
-        exit(-1);
+        std::exit(-1);
       }
       i += 1;  // skip to next argv for parsing
       if (std::holds_alternative<std::reference_wrapper<std::size_t>>(var)) {
@@ -799,7 +799,7 @@ struct cfg {
         if (last != argument.length()) {
           std::cerr << "cannot parse option of " << argv[i - 1] << " "
                     << argv[i] << std::endl;
-          exit(-1);
+          std::exit(-1);
         }
         std::get<std::reference_wrapper<std::size_t>>(var).get() = val;
       }
@@ -812,12 +812,12 @@ struct cfg {
 
     if (show_help) {
       print_usage();
-      exit(0);
+      std::exit(0);
     }
 
     if (show_lib_identity) {
       print_identity();
-      exit(0);
+      std::exit(0);
     }
 
     if (!query_pattern.empty()) {  // simple glob-like search
@@ -1258,7 +1258,7 @@ struct aborts_ : op {
       : value_{[&expr]() -> bool {
           if (const auto pid = fork(); not pid) {
             expr();
-            exit(0);
+            std::exit(0);
           }
           auto exit_status = 0;
           wait(&exit_status);
@@ -1538,8 +1538,8 @@ class reporter_junit {
   using timePoint = std::chrono::time_point<clock_ref>;
   using timeDiff = std::chrono::milliseconds;
   enum class ReportType { CONSOLE, JUNIT } report_type_;
-  using ReportType::CONSOLE;
-  using ReportType::JUNIT;
+  static constexpr ReportType CONSOLE = ReportType::CONSOLE;
+  static constexpr ReportType JUNIT = ReportType::JUNIT;
 
   struct test_result {
     test_result* parent = nullptr;
@@ -1638,7 +1638,7 @@ class reporter_junit {
       std::cout << "available reporter:\n";
       std::cout << "  console (default)\n";
       std::cout << "  junit" << std::endl;
-      exit(0);
+      std::exit(0);
     }
     if (detail::cfg::use_reporter.starts_with("junit")) {
       report_type_ = JUNIT;
@@ -1807,9 +1807,10 @@ class reporter_junit {
  protected:
   void print_duration(auto& printer) const noexcept {
     if (detail::cfg::show_duration) {
-      int64_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            active_scope_->run_stop - active_scope_->run_start)
-                            .count();
+      std::int64_t time_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              active_scope_->run_stop - active_scope_->run_start)
+              .count();
       // rounded to nearest ms
       double time_s = static_cast<double>(time_ms) / 1000.0;
       printer << " after " << time_s << " seconds";
@@ -1856,9 +1857,10 @@ class reporter_junit {
       std::cout << " errors=\"" << suite_result.fails << '\"';
       std::cout << " failures=\"" << suite_result.fails << '\"';
       std::cout << " skipped=\"" << suite_result.skipped << '\"';
-      int64_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            suite_result.run_stop - suite_result.run_start)
-                            .count();
+      std::int64_t time_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              suite_result.run_stop - suite_result.run_start)
+              .count();
       std::cout << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
                 << '\"';
       std::cout << " version=\"" << BOOST_UT_VERSION << "\" />\n";
@@ -1877,9 +1879,10 @@ class reporter_junit {
       std::cout << " errors=\"" << result.fails << '\"';
       std::cout << " failures=\"" << result.fails << '\"';
       std::cout << " skipped=\"" << result.skipped << '\"';
-      int64_t time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            result.run_stop - result.run_start)
-                            .count();
+      std::int64_t time_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              result.run_stop - result.run_start)
+              .count();
       std::cout << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
                 << "\"";
       std::cout << " status=\"" << result.status << '\"';
@@ -1897,7 +1900,7 @@ class reporter_junit {
         std::cout << indent << "</testcase>\n";
       }
     }
-  };
+  }
 };
 
 struct options {
@@ -2853,7 +2856,7 @@ constexpr auto expect(const TExpr& expr,
       events::assertion<TExpr>{.expr = expr, .location = sl})};
 }
 
-[[maybe_unused]] constexpr auto fatal = detail::fatal{};
+[[maybe_unused]] inline constexpr auto fatal = detail::fatal{};
 
 #if defined(__cpp_nontype_template_parameter_class)
 template <auto Constant>
