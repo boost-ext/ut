@@ -5,7 +5,14 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
+
+#if not defined(BOOST_UT_USE_MODULE)
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
+#define BOOST_UT_USE_MODULE
+#endif
+#endif
+
+#if defined(BOOST_UT_USE_MODULE)
 export module boost.ut;
 export import std;
 #define BOOST_UT_EXPORT export
@@ -41,6 +48,7 @@ export import std;
 #else
 #define BOOST_UT_VERSION 1'1'9
 
+#if not defined(BOOST_UT_DISABLE_STD_INCLUDES)
 #if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and \
     not defined(__clang__)
 #undef __has_builtin
@@ -70,16 +78,18 @@ export import std;
 #include <utility>
 #include <variant>
 #include <vector>
-#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
-#include <sys/wait.h>
-#include <unistd.h>
-#endif
 #if defined(__cpp_exceptions)
 #include <exception>
 #endif
 
 #if __has_include(<source_location>)
 #include <source_location>
+#endif
+#endif  // BOOST_UT_DISABLE_STD_INCLUDES
+
+#if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
+#include <sys/wait.h>
+#include <unistd.h>
 #endif
 
 struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
@@ -274,17 +284,23 @@ inline constexpr const std::string_view need_name =
     "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #endif
 inline constexpr const std::size_t need_length = need_name.length();
+#if not defined(BOOST_UT_USE_MODULE)
 static_assert(need_length <= raw_length,
               "Auto find prefix and suffix lenght broken error 1");
+#endif
 inline constexpr const std::size_t prefix_length =
     raw_type_name.find(need_name);
+#if not defined(BOOST_UT_USE_MODULE)
 static_assert(prefix_length != std::string_view::npos,
               "Auto find prefix and suffix lenght broken error 2");
 static_assert(prefix_length <= raw_length,
               "Auto find prefix and suffix lenght broken error 3");
+#endif
 inline constexpr const std::size_t tail_lenght = raw_length - prefix_length;
+#if not defined(BOOST_UT_USE_MODULE)
 static_assert(need_length <= tail_lenght,
               "Auto find prefix and suffix lenght broken error 4");
+#endif
 inline constexpr const std::size_t suffix_length = tail_lenght - need_length;
 
 }  // namespace detail
