@@ -668,12 +668,12 @@ struct cfg {
   static inline reflection::source_location location{};
   static inline bool wip{};
 
-#if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && !defined(__EMSCRIPTEN__)
-  static inline int largc = 0;
-  static inline const char** largv = nullptr;
-#else
+#if defined(_MSC_VER)
   static inline int largc = __argc;
   static inline const char** largv = const_cast<const char**>(__argv);
+#else
+  static inline int largc = 0;
+  static inline const char** largv = nullptr;
 #endif
 
   static inline std::string executable_name = "unknown executable";
@@ -3177,7 +3177,8 @@ using operators::operator/;
 using operators::operator>>;
 }  // namespace boost::inline ext::ut::inline v1_1_9
 
-#if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && !defined(__EMSCRIPTEN__)
+#if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && \
+    !defined(__EMSCRIPTEN__)
 __attribute__((constructor)) inline void cmd_line_args(int argc,
                                                        const char* argv[]) {
   ::boost::ut::detail::cfg::largc = argc;
