@@ -17,6 +17,7 @@ ut::suite _ = [] {
   };
 };
 
-int main() {
-  return ut::cfg<>.run();  // explicitly run registered test suites
+int main(int argc, const char** argv) {
+   // explicitly run registered test suites and manually pass argc/argv
+  return ut::cfg<>.run({.argc = argc, .argv = argv});
 }

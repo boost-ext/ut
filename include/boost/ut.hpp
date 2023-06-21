@@ -579,6 +579,10 @@ fixed_string(const CharT (&str)[N]) -> fixed_string<CharT, N - 1>;
 struct none {};
 
 namespace events {
+struct run_begin {
+  int argc{};
+  const char** argv{};
+};
 struct test_begin {
   std::string_view type{};
   std::string_view name{};
@@ -802,11 +806,17 @@ struct cfg {
     std::cout << "version:        " << BOOST_UT_VERSION << std::endl;
   }
 
+  static inline void parse_arg_with_fallback(int argc, const char* argv[]) {
+    if (argc > 0 && argv != nullptr) {
+      cfg::largc = argc;
+      cfg::largv = argv;
+    }
+    parse(cfg::largc, cfg::largv);
+  }
+
   static inline void parse(int argc, const char* argv[]) {
     const std::size_t n_args = argc > 0 ? static_cast<std::size_t>(argc) : 0U;
     if (n_args > 0 && argv != nullptr) {
-      cfg::largc = argc;
-      cfg::largv = argv;
       executable_name = argv[0];
     }
     query_pattern = "";
@@ -816,15 +826,15 @@ struct cfg {
       auto cmd_option = find_arg(cmd);
       if (!cmd_option.has_value()) {
         if (found_first_option) {
-          std::cerr << "unknown option: '" << argv[i] << "' run:" << std::endl;
-          std::cerr << "'" << argv[0] << " --help'" << std::endl;
+          std::cerr << "unknown option: '" << cmd << "' run:" << std::endl;
+          std::cerr << "'" << executable_name << " --help'" << std::endl;
           std::cerr << "for additional help" << std::endl;
           std::exit(-1);
         } else {
           if (i > 1U) {
             query_pattern.append(" ");
           }
-          query_pattern.append(argv[i]);
+          query_pattern.append(cmd);
         }
         continue;
       }
@@ -1489,6 +1499,8 @@ class reporter {
     printer_ = static_cast<TPrinter&&>(printer);
   }
 
+  auto on(events::run_begin) -> void {}
+
   auto on(events::test_begin test_begin) -> void {
     printer_ << "Running \"" << test_begin.name << "\"...";
     fails_ = asserts_.fail;
@@ -1692,8 +1704,11 @@ class reporter_junit {
   constexpr auto operator=(TPrinter printer) {
     printer_ = static_cast<TPrinter&&>(printer);
   }
-  reporter_junit() : lcout_(std::cout.rdbuf()) {
-    ::boost::ut::detail::cfg::parse(detail::cfg::largc, detail::cfg::largv);
+  reporter_junit() : lcout_(std::cout.rdbuf()) {}
+  ~reporter_junit() { std::cout.rdbuf(cout_save); }
+
+  auto on(events::run_begin run) {
+    ::boost::ut::detail::cfg::parse_arg_with_fallback(run.argc, run.argv);
 
     if (detail::cfg::show_reporters) {
       std::cout << "available reporter:\n";
@@ -1713,7 +1728,6 @@ class reporter_junit {
       std::cout.rdbuf(ss_out_.rdbuf());
     }
   }
-  ~reporter_junit() { std::cout.rdbuf(cout_save); }
 
   auto on(events::suite_begin suite) -> void {
     while (active_test_.size() > 0) {
@@ -1998,6 +2012,8 @@ struct options {
 
 struct run_cfg {
   bool report_errors{false};
+  int argc{0};
+  const char** argv{nullptr};
 };
 
 template <class TReporter = reporter<printer>, auto MaxPathSize = 16>
@@ -2201,6 +2217,7 @@ class runner {
 
   [[nodiscard]] auto run(run_cfg rc = {}) -> bool {
     run_ = true;
+    reporter_.on(events::run_begin{.argc = rc.argc, .argv = rc.argv});
     for (const auto& [suite, suite_name] : suites_) {
       // add reporter in/out
       if constexpr (requires { reporter_.on(events::suite_begin{}); }) {
