@@ -83,6 +83,7 @@ export import std;
 #include <utility>
 #include <variant>
 #include <vector>
+#include <fstream>
 #if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
 #include <sys/wait.h>
 #include <unistd.h>
@@ -1840,11 +1841,17 @@ class reporter_junit {
   auto on(events::summary) -> void {
     std::cout.flush();
     std::cout.rdbuf(cout_save);
+    std::ofstream maybe_of;
+    if (detail::cfg::output_filename != "") { maybe_of = std::ofstream(detail::cfg::output_filename); }
+
     if (report_type_ == JUNIT) {
-      print_junit_summary();
+      print_junit_summary(detail::cfg::output_filename != "" ? maybe_of : std::cout);
       return;
     }
-    print_console_summary();
+    print_console_summary(
+      detail::cfg::output_filename != "" ? maybe_of : std::cout,
+      detail::cfg::output_filename != "" ? maybe_of : std::cerr
+    );
   }
 
  protected:
@@ -1860,10 +1867,10 @@ class reporter_junit {
     }
   }
 
-  void print_console_summary() {
+  void print_console_summary(std::ostream &out_stream, std::ostream &err_stream) {
     for (const auto& [suite_name, suite_result] : results_) {
       if (suite_result.fails) {
-        std::cerr
+        err_stream
             << "\n========================================================"
                "=======================\n"
             << "Suite " << suite_name  //
@@ -1875,7 +1882,7 @@ class reporter_junit {
             << color_.none << '\n';
         std::cerr << std::endl;
       } else {
-        std::cout << color_.pass << "Suite '" << suite_name
+        out_stream << color_.pass << "Suite '" << suite_name
                   << "': all tests passed" << color_.none << " ("
                   << suite_result.assertions << " asserts in "
                   << suite_result.n_tests << " tests)\n";
@@ -1889,58 +1896,77 @@ class reporter_junit {
     }
   }
 
-  void print_junit_summary() {
-    // mock junit output:
-    std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    for (const auto& [suite_name, suite_result] : results_) {
-      std::cout << "<testsuites";
-      std::cout << " classname=\"" << detail::cfg::executable_name << '\"';
-      std::cout << " name=\"" << suite_name << '\"';
-      std::cout << " tests=\"" << suite_result.n_tests << '\"';
-      std::cout << " errors=\"" << suite_result.fails << '\"';
-      std::cout << " failures=\"" << suite_result.fails << '\"';
-      std::cout << " skipped=\"" << suite_result.skipped << '\"';
+  void print_junit_summary(std::ostream &stream) {
+    // aggregate results
+    size_t n_tests=0, n_fails=0;
+    double total_time = 0.0;
+    auto suite_time = [](auto const& suite_result) {
       std::int64_t time_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               suite_result.run_stop - suite_result.run_start)
               .count();
-      std::cout << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
-                << '\"';
-      std::cout << " version=\"" << BOOST_UT_VERSION << "\" />\n";
-      print_result(suite_name, " ", suite_result);
-      std::cout << "</testsuites>\n";
-      std::cout.flush();
+      return static_cast<double>(time_ms) / 1000.0;
+    };
+    for (const auto& [suite_name, suite_result] : results_) {
+      n_tests += suite_result.assertions;
+      n_fails += suite_result.fails;
+      total_time += suite_time(suite_result);
     }
+
+    // mock junit output:
+    stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    stream << "<testsuites";
+      stream << " name=\"all\"";
+      stream << " tests=\"" << n_tests << '\"';
+      stream << " failures=\"" << n_fails << '\"';
+      stream << " time=\"" << total_time << '\"';
+      stream << ">\n";
+
+    for (const auto& [suite_name, suite_result] : results_) {
+      stream << "<testsuite";
+      stream << " classname=\"" << detail::cfg::executable_name << '\"';
+      stream << " name=\"" << suite_name << '\"';
+      stream << " tests=\"" << suite_result.assertions << '\"';
+      stream << " errors=\"" << suite_result.fails << '\"';
+      stream << " failures=\"" << suite_result.fails << '\"';
+      stream << " skipped=\"" << suite_result.skipped << '\"';
+      stream << " time=\"" << suite_time(suite_result) << '\"';
+      stream << " version=\"" << BOOST_UT_VERSION << "\">\n";
+      print_result(stream, suite_name, " ", suite_result);
+      stream << "</testsuite>\n";
+      stream.flush();
+    }
+    stream << "</testsuites>";
   }
-  void print_result(const std::string& suite_name, std::string indent,
+  void print_result(std::ostream &stream, const std::string& suite_name, std::string indent,
                     const test_result& parent) {
     for (const auto& [name, result] : *parent.nested_tests) {
-      std::cout << indent;
-      std::cout << "<testcase classname=\"" << result.suite_name << '\"';
-      std::cout << " name=\"" << name << '\"';
-      std::cout << " tests=\"" << result.assertions << '\"';
-      std::cout << " errors=\"" << result.fails << '\"';
-      std::cout << " failures=\"" << result.fails << '\"';
-      std::cout << " skipped=\"" << result.skipped << '\"';
+      stream << indent;
+      stream << "<testcase classname=\"" << result.suite_name << '\"';
+      stream << " name=\"" << name << '\"';
+      stream << " tests=\"" << result.assertions << '\"';
+      stream << " errors=\"" << result.fails << '\"';
+      stream << " failures=\"" << result.fails << '\"';
+      stream << " skipped=\"" << result.skipped << '\"';
       std::int64_t time_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               result.run_stop - result.run_start)
               .count();
-      std::cout << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
+      stream << " time=\"" << (static_cast<double>(time_ms) / 1000.0)
                 << "\"";
-      std::cout << " status=\"" << result.status << '\"';
+      stream << " status=\"" << result.status << '\"';
       if (result.report_string.empty() && result.nested_tests->empty()) {
-        std::cout << " />\n";
+        stream << " />\n";
       } else if (!result.nested_tests->empty()) {
-        std::cout << " />\n";
-        print_result(suite_name, indent + "  ", result);
-        std::cout << indent << "</testcase>\n";
+        stream << " />\n";
+        print_result(stream, suite_name, indent + "  ", result);
+        stream << indent << "</testcase>\n";
       } else if (!result.report_string.empty()) {
-        std::cout << ">\n";
-        std::cout << indent << indent << "<system-out>\n";
-        std::cout << result.report_string << "\n";
-        std::cout << indent << indent << "</system-out>\n";
-        std::cout << indent << "</testcase>\n";
+        stream << ">\n";
+        stream << indent << indent << "<system-out>\n";
+        stream << result.report_string << "\n";
+        stream << indent << indent << "</system-out>\n";
+        stream << indent << "</testcase>\n";
       }
     }
   }
