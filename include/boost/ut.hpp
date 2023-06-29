@@ -672,8 +672,14 @@ struct cfg {
   static inline reflection::source_location location{};
   static inline bool wip{};
 
+#if defined(_MSC_VER)
+  static inline int largc = __argc;
+  static inline const char** largv = const_cast<const char**>(__argv);
+#else
   static inline int largc = 0;
   static inline const char** largv = nullptr;
+#endif
+
   static inline std::string executable_name = "unknown executable";
   static inline std::string query_pattern = "";        // <- done
   static inline bool invert_query_pattern = false;     // <- done
@@ -3188,14 +3194,15 @@ using operators::operator/;
 using operators::operator>>;
 }  // namespace boost::inline ext::ut::inline v1_1_9
 
-#if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && !defined(__EMSCRIPTEN__)
+#if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && \
+    !defined(__EMSCRIPTEN__)
 __attribute__((constructor)) inline void cmd_line_args(int argc,
                                                        const char* argv[]) {
   ::boost::ut::detail::cfg::largc = argc;
   ::boost::ut::detail::cfg::largv = argv;
 }
 #else
-// add MSV/windows related code here (optional)
+// For MSVC, largc/largv are initialized with __argc/__argv
 #endif
 
 #endif
