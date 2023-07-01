@@ -916,6 +916,20 @@ int main() {
     }
 
     {
+      test_cfg = fake_cfg{};
+      auto f = [] { return "msg"; };
+      expect(false) << f;
+
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+
+      test_assert("false" == test_cfg.assertion_calls[0].expr);
+      test_assert(not test_cfg.assertion_calls[0].result);
+      test_assert(2 == std::size(test_cfg.log_calls));
+      test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+      test_assert("msg"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
+    }
+
+    {
       struct convertible_to_bool {
         constexpr operator bool() const { return false; }
       };

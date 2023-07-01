@@ -368,6 +368,28 @@ tests:   0 | 2 failed
 asserts: 0 | 0 passed | 2 failed
 ```
 
+> I use `std::expected`, can I stream its `error()` upon failure?
+> Yes, since `std::expected`'s `error()` can only be called when there is no
+> value it requires lazy evaluation.
+
+```cpp
+lazy log"_test = [] {
+  std::expected<bool, std::string> e = std::unexpected("lazy evaluated");
+  expect(e.has_value()) << [&] { return e.error(); } << fatal;
+  expect(e.value() == true);
+};
+
+```
+
+```
+Running test "lazy log"... FAILED
+in: main.cpp:12 - test condition:  [false]
+
+ lazy evaluated
+===============================================================================
+tests:   1 | 2 failed
+asserts: 0 | 0 passed | 2 failed
+
 > https://godbolt.org/z/v2PDuU
 
 </p>
