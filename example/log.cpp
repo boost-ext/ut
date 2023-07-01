@@ -32,4 +32,12 @@ int main() {
     expect(e.value() == true);
   };
 #endif
+
+#if defined(BOOST_UT_HAS_FORMAT)
+  "log format"_test = [] {
+    boost::ut::log("\npre: {}\n", 42);
+    expect(42_i == 42) << "message on failure";
+    boost::ut::log("\npost\n");
+  };
+#endif
 }
