@@ -350,6 +350,24 @@ tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
 ```
 
+> That's nice, can I use custom messages and fatal assertions?
+> Yes, stream the `fatal`!
+
+```cpp
+expect(1 == 2_i) << "fatal assertion" << fatal;
+expect(1_i == 2);
+```
+
+```
+FAILED
+in: main.cpp:6 - test condition:  [1 == 2]
+
+ fatal assertion
+===============================================================================
+tests:   0 | 2 failed
+asserts: 0 | 0 passed | 2 failed
+```
+
 > https://godbolt.org/z/v2PDuU
 
 </p>

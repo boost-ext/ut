@@ -23,6 +23,15 @@ int main() {
     expect(*o == 42_i);
   };
 
+  "fatal logging"_test = [] {
+    using namespace boost::ut::operators;
+    using boost::ut::expect;
+
+    std::optional<int> o{42};
+    expect(o.has_value()) << "fatal assertion" << fatal;
+    expect(*o == 42_i);
+  };
+
   "fatal matcher"_test = [] {
     using namespace boost::ut::operators;
     using boost::ut::expect;
