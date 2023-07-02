@@ -2358,6 +2358,13 @@ struct expect_ {
     return *this;
   }
 
+  auto& operator<<(detail::fatal) {
+    if (not value_) {
+      on<T>(events::fatal_assertion{});
+    }
+    return *this;
+  }
+
   [[nodiscard]] constexpr operator bool() const { return value_; }
 
   bool value_{};

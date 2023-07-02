@@ -658,7 +658,7 @@ int main() {
     }
 
     {
-      auto run = test_runner{};
+      test_runner run;
       auto& reporter = run.reporter_;
       run.run_ = true;
 
@@ -819,7 +819,7 @@ int main() {
     {
       std::size_t summary_count = 0;
       {
-        auto run = test_summary_runner{};
+        test_summary_runner run;
         run.reporter_.count_summaries(summary_count);
         test_assert(false == run.run({.report_errors = true}));
       }
@@ -1291,6 +1291,24 @@ int main() {
       test_assert("2 != 2" == test_cfg.assertion_calls[1].expr);
       test_assert(1 == test_cfg.fatal_assertion_calls);
       test_assert(std::empty(test_cfg.log_calls));
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      "fatal assertions logging"_test = [] {
+        expect(2 != 2_i) << "fatal" << fatal;
+      };
+
+      test_assert(1 == std::size(test_cfg.run_calls));
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+      test_assert(not test_cfg.assertion_calls[0].result);
+      test_assert("2 != 2" == test_cfg.assertion_calls[0].expr);
+      test_assert(1 == test_cfg.fatal_assertion_calls);
+      test_assert(2 == std::size(test_cfg.log_calls));
+      test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+      test_assert("fatal"sv ==
+                  std::any_cast<const char*>(test_cfg.log_calls[1]));
     }
 
     {
