@@ -57,6 +57,7 @@ export import std;
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <concepts>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -66,6 +67,7 @@ export import std;
 #include <sstream>
 #include <stack>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -2353,7 +2355,15 @@ struct expect_ {
   auto& operator<<(const TMsg& msg) {
     if (not value_) {
       on<T>(events::log{' '});
-      on<T>(events::log{msg});
+      if constexpr (requires {
+                      requires std::invocable<TMsg> and
+                                   not std::is_void_v<
+                                       std::invoke_result_t<TMsg>>;
+                    }) {
+        on<T>(events::log{std::invoke(msg)});
+      } else {
+        on<T>(events::log{msg});
+      }
     }
     return *this;
   }
