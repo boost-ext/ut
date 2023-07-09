@@ -18,6 +18,10 @@
 #include <string_view>
 #include <vector>
 
+#if __has_include(<format>)
+#include <format>
+#endif
+
 namespace ut = boost::ut;
 
 namespace test_has_member_object {
@@ -895,7 +899,22 @@ int main() {
       test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[6]));
       test_assert(42 == std::any_cast<int>(test_cfg.log_calls[7]));
     }
+#if defined(BOOST_UT_HAS_FORMAT)
+    {
+      test_cfg = fake_cfg{};
 
+      "logging with format"_test = [] {
+        boost::ut::log("{:<10} {:#x}\n{:<10} {}\n", "expected:", 42,
+                       std::string("actual:"), 99);
+      };
+
+      test_assert(1 == std::size(test_cfg.run_calls));
+      test_assert("logging with format"sv == test_cfg.run_calls[0].name);
+      test_assert(1 == std::size(test_cfg.log_calls));
+      test_assert("expected:  0x2a\nactual:    99\n"sv ==
+                  std::any_cast<std::string>(test_cfg.log_calls[0]));
+    }
+#endif
     {
       test_cfg = fake_cfg{};
       expect(true) << "true msg" << true;

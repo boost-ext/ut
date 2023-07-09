@@ -1024,7 +1024,7 @@ All tests passed (2 asserts in 2 tests)
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Misc</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging</summary>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging using streams</summary>
 <p>
 
 ```cpp
@@ -1040,6 +1040,36 @@ Running "logging"...
 pre
   logging.cpp:8:FAILED [42 == 43] message on failure
 post
+FAILED
+
+===============================================================================
+
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+> https://godbolt.org/z/26fPSY
+
+</p>
+</details>
+
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging using formatting</summary>
+<p>
+This requires using C++20 with a standard library with std::format support.
+
+```cpp
+"logging"_test = [] {
+  log("\npre  {} == {}\n", 42, 43);
+  expect(42_i == 43) << "message on failure";
+  log("\npost {} == {} -> {}\n", 42, 43, 42 == 43);
+};
+```
+
+```
+Running "logging"...
+pre  42 == 43
+  logging.cpp:8:FAILED [42 == 43] message on failure
+post 42 == 43 -> false
 FAILED
 
 ===============================================================================

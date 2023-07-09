@@ -18,6 +18,17 @@ export import std;
 #include <iso646.h>  // and, or, not, ...
 #endif
 
+#include <version>
+// Before libc++ 17 had experimental support for format and it required a
+// special build flag. Currently libc++ has not implemented all C++20 chrono
+// improvements. Therefore doesn't define __cpp_lib_format, instead query the
+// library version to detect the support status.
+//
+// MSVC STL and libstdc++ provide __cpp_lib_format.
+#if defined(__cpp_lib_format) or (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION >= 170000)
+#define BOOST_UT_HAS_FORMAT
+#endif
+
 #if not defined(__cpp_rvalue_references)
 #error "[Boost::ext].UT requires support for rvalue references";
 #elif not defined(__cpp_decltype)
@@ -80,6 +91,9 @@ export import std;
 #include <exception>
 #endif
 
+#if __has_include(<format>)
+#include <format>
+#endif
 #if __has_include(<source_location>)
 #include <source_location>
 #endif
@@ -2249,6 +2263,14 @@ struct log {
     on<TMsg>(events::log{msg});
     return next{};
   }
+
+#if defined(BOOST_UT_HAS_FORMAT)
+  template <class... Args>
+  void operator()(std::format_string<Args...> fmt, Args&&... args) {
+    on<std::string>(
+        events::log{std::vformat(fmt.get(), std::make_format_args(args...))});
+  }
+#endif
 };
 
 template <class TExpr>
