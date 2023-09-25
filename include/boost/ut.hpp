@@ -2265,11 +2265,19 @@ struct log {
   }
 
 #if defined(BOOST_UT_HAS_FORMAT)
+#if __cpp_lib_format >= 202207L
   template <class... Args>
   void operator()(std::format_string<Args...> fmt, Args&&... args) {
     on<std::string>(
         events::log{std::vformat(fmt.get(), std::make_format_args(args...))});
   }
+#else
+  template <class... Args>
+  void operator()(std::string_view fmt, Args&&... args) {
+    on<std::string>(
+        events::log{std::vformat(fmt, std::make_format_args(args...))});
+  }
+#endif
 #endif
 };
 
