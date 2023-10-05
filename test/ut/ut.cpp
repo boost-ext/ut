@@ -18,6 +18,10 @@
 #include <string_view>
 #include <vector>
 
+#if __has_include(<format>)
+#include <format>
+#endif
+
 namespace ut = boost::ut;
 
 namespace test_has_member_object {
@@ -431,7 +435,21 @@ int main() {
       static_assert("fake_cfg" == reflection::type_name<fake_cfg>());
 #endif
     }
-    
+
+    {
+     static_assert(utility::regex_match("", ""));
+     static_assert(utility::regex_match("hello", "hello"));
+     static_assert(utility::regex_match("hello", "h.llo"));
+     static_assert(utility::regex_match("hello", "he..o"));
+     static_assert(not utility::regex_match("hello", "hella"));
+     static_assert(not utility::regex_match("hello", "helao"));
+     static_assert(not utility::regex_match("hello", "hlllo"));
+     static_assert(not utility::regex_match("hello", ""));
+     static_assert(not utility::regex_match("", "hello"));
+     static_assert(not utility::regex_match("hi", "hello"));
+     static_assert(not utility::regex_match("hello there", "hello"));
+    }
+
     {
       test_assert(utility::is_match("", ""));
       test_assert(utility::is_match("", "*"));
@@ -658,7 +676,7 @@ int main() {
     }
 
     {
-      auto run = test_runner{};
+      test_runner run;
       auto& reporter = run.reporter_;
       run.run_ = true;
 
@@ -819,7 +837,7 @@ int main() {
     {
       std::size_t summary_count = 0;
       {
-        auto run = test_summary_runner{};
+        test_summary_runner run;
         run.reporter_.count_summaries(summary_count);
         test_assert(false == run.run({.report_errors = true}));
       }
@@ -895,7 +913,22 @@ int main() {
       test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[6]));
       test_assert(42 == std::any_cast<int>(test_cfg.log_calls[7]));
     }
+#if defined(BOOST_UT_HAS_FORMAT)
+    {
+      test_cfg = fake_cfg{};
 
+      "logging with format"_test = [] {
+        boost::ut::log("{:<10} {:#x}\n{:<10} {}\n", "expected:", 42,
+                       std::string("actual:"), 99);
+      };
+
+      test_assert(1 == std::size(test_cfg.run_calls));
+      test_assert("logging with format"sv == test_cfg.run_calls[0].name);
+      test_assert(1 == std::size(test_cfg.log_calls));
+      test_assert("expected:  0x2a\nactual:    99\n"sv ==
+                  std::any_cast<std::string>(test_cfg.log_calls[0]));
+    }
+#endif
     {
       test_cfg = fake_cfg{};
       expect(true) << "true msg" << true;
@@ -913,6 +946,20 @@ int main() {
                   std::any_cast<const char*>(test_cfg.log_calls[1]));
       test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[2]));
       test_assert(not std::any_cast<bool>(test_cfg.log_calls[3]));
+    }
+
+    {
+      test_cfg = fake_cfg{};
+      auto f = [] { return "msg"; };
+      expect(false) << f;
+
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+
+      test_assert("false" == test_cfg.assertion_calls[0].expr);
+      test_assert(not test_cfg.assertion_calls[0].result);
+      test_assert(2 == std::size(test_cfg.log_calls));
+      test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+      test_assert("msg"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
     }
 
     {
@@ -1278,19 +1325,48 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
-      "fatal assertions"_test = [] {
+      "fatal assertions via function"_test = [] {
+        expect(fatal(1_i == 1));
+        expect(fatal(2 != 2_i)) << "fatal";
+      };
+
+      "fatal assertions via operator"_test = [] {
         expect((1_i == 1) >> fatal);
         expect((2 != 2_i) >> fatal) << "fatal";
       };
 
-      test_assert(1 == std::size(test_cfg.run_calls));
-      test_assert(2 == std::size(test_cfg.assertion_calls));
+      test_assert(2 == std::size(test_cfg.run_calls));
+      test_assert(4 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
+
       test_assert("1 == 1" == test_cfg.assertion_calls[0].expr);
       test_assert(not test_cfg.assertion_calls[1].result);
       test_assert("2 != 2" == test_cfg.assertion_calls[1].expr);
-      test_assert(1 == test_cfg.fatal_assertion_calls);
+
+      test_assert("1 == 1" == test_cfg.assertion_calls[2].expr);
+      test_assert(not test_cfg.assertion_calls[3].result);
+      test_assert("2 != 2" == test_cfg.assertion_calls[3].expr);
+
+      test_assert(2 == test_cfg.fatal_assertion_calls);
       test_assert(std::empty(test_cfg.log_calls));
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      "fatal assertions logging"_test = [] {
+        expect(2 != 2_i) << "fatal" << fatal;
+      };
+
+      test_assert(1 == std::size(test_cfg.run_calls));
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+      test_assert(not test_cfg.assertion_calls[0].result);
+      test_assert("2 != 2" == test_cfg.assertion_calls[0].expr);
+      test_assert(1 == test_cfg.fatal_assertion_calls);
+      test_assert(2 == std::size(test_cfg.log_calls));
+      test_assert(' ' == std::any_cast<char>(test_cfg.log_calls[0]));
+      test_assert("fatal"sv ==
+                  std::any_cast<const char*>(test_cfg.log_calls[1]));
     }
 
     {
