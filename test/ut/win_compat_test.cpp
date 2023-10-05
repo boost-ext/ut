@@ -16,6 +16,4 @@ namespace ut = boost::ut;
 int main() {
   using namespace ut;
   expect(true);
-
-  return 0;
 }

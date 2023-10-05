@@ -302,11 +302,11 @@ asserts: 4 | 0 passed | 4 failed
 
 > Okay, but what about the case if my assertion is fatal.
 > Meaning that the program will crash unless the processing will be terminated.
-> Nothing easier, let's just add `>> fatal` after the expected expression to make it fatal.
+> Nothing easier, let's just add `fatal` call to make the test fail immediately.
 
 ```cpp
-expect((1 == 2_i) >> fatal); // fatal assertion
-expect(1_i == 2);            // not executed
+expect(fatal(1 == 2_i)); // fatal assertion
+expect(1_i == 2);        // not executed
 ```
 
 ```
@@ -354,7 +354,7 @@ asserts: 1 | 0 passed | 1 failed
 > Yes, stream the `fatal`!
 
 ```cpp
-expect(1 == 2_i) << "fatal assertion" << fatal;
+expect(fatal(1 == 2_i) << "fatal assertion");
 expect(1_i == 2);
 ```
 
@@ -449,14 +449,14 @@ int main() {
   "[vector]"_test = [] {
     std::vector<int> v(5);
 
-    expect((5_ul == std::size(v)) >> fatal);
+    expect(fatal(5_ul == std::size(v)));
 
     should("resize bigger") = [v] { // or "resize bigger"_test
       mut(v).resize(10);
       expect(10_ul == std::size(v));
     };
 
-    expect((5_ul == std::size(v)) >> fatal);
+    expect(fatal(5_ul == std::size(v)));
 
     should("resize smaller") = [=]() mutable { // or "resize smaller"_test
       v.resize(0);
@@ -481,7 +481,7 @@ int main() {
   "vector"_test = [] {
     given("I have a vector") = [] {
       std::vector<int> v(5);
-      expect((5_ul == std::size(v)) >> fatal);
+      expect(fatal(5_ul == std::size(v)));
 
       when("I resize bigger") = [=] {
         mut(v).resize(10);
@@ -509,7 +509,7 @@ int main() {
     scenario("size") = [] {
       given("I have a vector") = [] {
         std::vector<int> v(5);
-        expect((5_ul == std::size(v)) >> fatal);
+        expect(fatal(5_ul == std::size(v)));
 
         when("I resize bigger") = [=] {
           mut(v).resize(10);
@@ -540,7 +540,7 @@ int main() {
       steps.scenario("*") = [&] {
         steps.given("I have a vector") = [&] {
           std::vector<int> v(5);
-          expect((5_ul == std::size(v)) >> fatal);
+          expect(fatal(5_ul == std::size(v)));
 
           steps.when("I resize bigger") = [&] {
             v.resize(10);
@@ -577,7 +577,7 @@ All tests passed (2 asserts in 1 tests)
 int main() {
   describe("vector") = [] {
     std::vector<int> v(5);
-    expect((5_ul == std::size(v)) >> fatal);
+    expect(fatal(5_ul == std::size(v)));
 
     it("should resize bigger") = [v] {
       mut(v).resize(10);
@@ -816,14 +816,14 @@ All tests passed (1 asserts in 1 tests)
 "[vector]"_test = [] {
   std::vector<int> v(5);
 
-  expect((5_ul == std::size(v)) >> fatal);
+  expect(fatal(5_ul == std::size(v)));
 
   should("resize bigger") = [=] { // or "resize bigger"_test
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
 
-  expect((5_ul == std::size(v)) >> fatal);
+  expect(fatal(5_ul == std::size(v)));
 
   should("resize smaller") = [=]() mutable { // or "resize smaller"_test
     v.resize(0);
@@ -950,7 +950,7 @@ for (auto i : std::vector{1, 2, 3}) {
 
 "args and types"_test =
     []<class TArg>(TArg arg) {
-      expect(std::is_integral_v<TArg> >> fatal);
+      expect(fatal(std::is_integral_v<TArg>));
       expect(42_i == arg or "is true"_b == arg);
       expect(type<TArg> == type<int> or type<TArg> == type<bool>);
     }
@@ -1935,7 +1935,7 @@ int main() {
   TEST("vector") {
     std::vector<int> v(5);
 
-   EXPECT((5u == std::size(v)) >> fatal) << "fatal";
+   EXPECT(fatal(5u == std::size(v))) << "fatal";
 
     TEST("resize bigger") {
       v.resize(10);

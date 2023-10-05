@@ -19,7 +19,7 @@ int main() {
     using boost::ut::expect;
 
     std::optional<int> o{42};
-    expect(o.has_value() >> fatal) << "fatal assertion";
+    expect(fatal(o.has_value())) << "fatal assertion";
     expect(*o == 42_i);
   };
 
@@ -28,7 +28,7 @@ int main() {
     using boost::ut::expect;
 
     std::optional<int> o{42};
-    expect(o.has_value()) << "fatal assertion" << fatal;
+    expect(fatal(o.has_value())) << "fatal assertion";
     expect(*o == 42_i);
   };
 
@@ -38,7 +38,7 @@ int main() {
     using boost::ut::that;
 
     std::optional<int> o{42};
-    expect(that % o.has_value() >> fatal and that % *o == 42)
+    expect(fatal(that % o.has_value()) and that % *o == 42)
         << "fatal assertion";
   };
 
@@ -53,6 +53,6 @@ int main() {
   using boost::ut::expect;
 
   std::vector v{1u};
-  expect((std::size(v) == 1_ul) >> fatal) << "fatal assertion";
+  expect(fatal(std::size(v) == 1_ul)) << "fatal assertion";
   expect(v[0] == 1_u);
 }

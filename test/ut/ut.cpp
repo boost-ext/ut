@@ -1311,18 +1311,29 @@ int main() {
     {
       test_cfg = fake_cfg{};
 
-      "fatal assertions"_test = [] {
+      "fatal assertions via function"_test = [] {
+        expect(fatal(1_i == 1));
+        expect(fatal(2 != 2_i)) << "fatal";
+      };
+
+      "fatal assertions via operator"_test = [] {
         expect((1_i == 1) >> fatal);
         expect((2 != 2_i) >> fatal) << "fatal";
       };
 
-      test_assert(1 == std::size(test_cfg.run_calls));
-      test_assert(2 == std::size(test_cfg.assertion_calls));
+      test_assert(2 == std::size(test_cfg.run_calls));
+      test_assert(4 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
+
       test_assert("1 == 1" == test_cfg.assertion_calls[0].expr);
       test_assert(not test_cfg.assertion_calls[1].result);
       test_assert("2 != 2" == test_cfg.assertion_calls[1].expr);
-      test_assert(1 == test_cfg.fatal_assertion_calls);
+
+      test_assert("1 == 1" == test_cfg.assertion_calls[2].expr);
+      test_assert(not test_cfg.assertion_calls[3].result);
+      test_assert("2 != 2" == test_cfg.assertion_calls[3].expr);
+
+      test_assert(2 == test_cfg.fatal_assertion_calls);
       test_assert(std::empty(test_cfg.log_calls));
     }
 
