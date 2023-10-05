@@ -51,7 +51,7 @@ export import std;
 #elif not defined(__cpp_static_assert)
 #error "[Boost::ext].UT requires support for static assert";
 #else
-#define BOOST_UT_VERSION 1'1'9
+#define BOOST_UT_VERSION 2'0'0
 
 #if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and \
     not defined(__clang__)
@@ -103,7 +103,7 @@ struct _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
 };
 
 BOOST_UT_EXPORT
-namespace boost::inline ext::ut::inline v1_1_9 {
+namespace boost::inline ext::ut::inline v2_0_0 {
 namespace utility {
 template <class>
 class function;
@@ -3269,7 +3269,7 @@ using operators::operator not;
 using operators::operator|;
 using operators::operator/;
 using operators::operator>>;
-}  // namespace boost::inline ext::ut::inline v1_1_9
+}  // namespace boost::inline ext::ut::inline v2_0_0
 
 #if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && \
     !defined(__EMSCRIPTEN__)
