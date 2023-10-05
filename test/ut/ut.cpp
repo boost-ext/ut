@@ -435,7 +435,21 @@ int main() {
       static_assert("fake_cfg" == reflection::type_name<fake_cfg>());
 #endif
     }
-    
+
+    {
+     static_assert(utility::regex_match("", ""));
+     static_assert(utility::regex_match("hello", "hello"));
+     static_assert(utility::regex_match("hello", "h.llo"));
+     static_assert(utility::regex_match("hello", "he..o"));
+     static_assert(not utility::regex_match("hello", "hella"));
+     static_assert(not utility::regex_match("hello", "helao"));
+     static_assert(not utility::regex_match("hello", "hlllo"));
+     static_assert(not utility::regex_match("hello", ""));
+     static_assert(not utility::regex_match("", "hello"));
+     static_assert(not utility::regex_match("hi", "hello"));
+     static_assert(not utility::regex_match("hello there", "hello"));
+    }
+
     {
       test_assert(utility::is_match("", ""));
       test_assert(utility::is_match("", "*"));

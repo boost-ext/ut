@@ -75,7 +75,6 @@ export import std;
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <regex>
 #include <sstream>
 #include <stack>
 #include <string_view>
@@ -230,6 +229,18 @@ template <class T = std::string_view, class TDelim>
     first = second + 1;
   }
   return output;
+}
+constexpr auto regex_match(const char *str, const char *pattern) -> bool {
+  if (*pattern == '\0' && *str == '\0') return true;
+  if (*pattern == '\0' && *str != '\0') return false;
+  if (*str == '\0' && *pattern != '\0') return false;
+  if (*pattern == '.') {
+    return regex_match(str+1, pattern+1);
+  }
+  if (*pattern == *str) {
+    return regex_match(str+1, pattern+1);
+  }
+  return false;
 }
 }  // namespace utility
 
@@ -2031,10 +2042,10 @@ class runner {
     }
 
     if (!detail::cfg::query_pattern.empty()) {
-      const static std::regex regex(detail::cfg::query_regex_pattern);
-      bool matches = std::regex_match(test.name.data(), regex);
+      const static auto regex = detail::cfg::query_regex_pattern;
+      bool matches = utility::regex_match(test.name.data(), regex.c_str());
       for (const auto& tag2 : test.tag) {
-        matches |= std::regex_match(tag2.data(), regex);
+        matches |= utility::regex_match(tag2.data(), regex.c_str());
       }
       if (matches) {
         execute = !detail::cfg::invert_query_pattern;
