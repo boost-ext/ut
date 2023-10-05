@@ -302,11 +302,11 @@ asserts: 4 | 0 passed | 4 failed
 
 > Okay, but what about the case if my assertion is fatal.
 > Meaning that the program will crash unless the processing will be terminated.
-> Nothing easier, let's just add `>> fatal` after the expected expression to make it fatal.
+> Nothing easier, let's just add `fatal` call to make the test fail immediately.
 
 ```cpp
-expect((1 == 2_i) >> fatal); // fatal assertion
-expect(1_i == 2);            // not executed
+expect(fatal(1 == 2_i)); // fatal assertion
+expect(1_i == 2);        // not executed
 ```
 
 ```
@@ -349,6 +349,46 @@ main.cpp:5:FAILED [(42 == 42 and 1 == 2)] additional info
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
 ```
+
+> That's nice, can I use custom messages and fatal assertions?
+> Yes, stream the `fatal`!
+
+```cpp
+expect(fatal(1 == 2_i) << "fatal assertion");
+expect(1_i == 2);
+```
+
+```
+FAILED
+in: main.cpp:6 - test condition:  [1 == 2]
+
+ fatal assertion
+===============================================================================
+tests:   0 | 2 failed
+asserts: 0 | 0 passed | 2 failed
+```
+
+> I use `std::expected`, can I stream its `error()` upon failure?
+> Yes, since `std::expected`'s `error()` can only be called when there is no
+> value it requires lazy evaluation.
+
+```cpp
+lazy log"_test = [] {
+  std::expected<bool, std::string> e = std::unexpected("lazy evaluated");
+  expect(e.has_value()) << [&] { return e.error(); } << fatal;
+  expect(e.value() == true);
+};
+
+```
+
+```
+Running test "lazy log"... FAILED
+in: main.cpp:12 - test condition:  [false]
+
+ lazy evaluated
+===============================================================================
+tests:   1 | 2 failed
+asserts: 0 | 0 passed | 2 failed
 
 > https://godbolt.org/z/v2PDuU
 
@@ -409,14 +449,14 @@ int main() {
   "[vector]"_test = [] {
     std::vector<int> v(5);
 
-    expect((5_ul == std::size(v)) >> fatal);
+    expect(fatal(5_ul == std::size(v)));
 
     should("resize bigger") = [v] { // or "resize bigger"_test
       mut(v).resize(10);
       expect(10_ul == std::size(v));
     };
 
-    expect((5_ul == std::size(v)) >> fatal);
+    expect(fatal(5_ul == std::size(v)));
 
     should("resize smaller") = [=]() mutable { // or "resize smaller"_test
       v.resize(0);
@@ -441,7 +481,7 @@ int main() {
   "vector"_test = [] {
     given("I have a vector") = [] {
       std::vector<int> v(5);
-      expect((5_ul == std::size(v)) >> fatal);
+      expect(fatal(5_ul == std::size(v)));
 
       when("I resize bigger") = [=] {
         mut(v).resize(10);
@@ -469,7 +509,7 @@ int main() {
     scenario("size") = [] {
       given("I have a vector") = [] {
         std::vector<int> v(5);
-        expect((5_ul == std::size(v)) >> fatal);
+        expect(fatal(5_ul == std::size(v)));
 
         when("I resize bigger") = [=] {
           mut(v).resize(10);
@@ -500,7 +540,7 @@ int main() {
       steps.scenario("*") = [&] {
         steps.given("I have a vector") = [&] {
           std::vector<int> v(5);
-          expect((5_ul == std::size(v)) >> fatal);
+          expect(fatal(5_ul == std::size(v)));
 
           steps.when("I resize bigger") = [&] {
             v.resize(10);
@@ -537,7 +577,7 @@ All tests passed (2 asserts in 1 tests)
 int main() {
   describe("vector") = [] {
     std::vector<int> v(5);
-    expect((5_ul == std::size(v)) >> fatal);
+    expect(fatal(5_ul == std::size(v)));
 
     it("should resize bigger") = [v] {
       mut(v).resize(10);
@@ -776,14 +816,14 @@ All tests passed (1 asserts in 1 tests)
 "[vector]"_test = [] {
   std::vector<int> v(5);
 
-  expect((5_ul == std::size(v)) >> fatal);
+  expect(fatal(5_ul == std::size(v)));
 
   should("resize bigger") = [=] { // or "resize bigger"_test
     mut(v).resize(10);
     expect(10_ul == std::size(v));
   };
 
-  expect((5_ul == std::size(v)) >> fatal);
+  expect(fatal(5_ul == std::size(v)));
 
   should("resize smaller") = [=]() mutable { // or "resize smaller"_test
     v.resize(0);
@@ -910,7 +950,7 @@ for (auto i : std::vector{1, 2, 3}) {
 
 "args and types"_test =
     []<class TArg>(TArg arg) {
-      expect(std::is_integral_v<TArg> >> fatal);
+      expect(fatal(std::is_integral_v<TArg>));
       expect(42_i == arg or "is true"_b == arg);
       expect(type<TArg> == type<int> or type<TArg> == type<bool>);
     }
@@ -984,7 +1024,7 @@ All tests passed (2 asserts in 2 tests)
 <details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;Misc</summary>
 <p>
 
-<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging</summary>
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging using streams</summary>
 <p>
 
 ```cpp
@@ -1000,6 +1040,36 @@ Running "logging"...
 pre
   logging.cpp:8:FAILED [42 == 43] message on failure
 post
+FAILED
+
+===============================================================================
+
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+```
+
+> https://godbolt.org/z/26fPSY
+
+</p>
+</details>
+
+<details open><summary>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logging using formatting</summary>
+<p>
+This requires using C++20 with a standard library with std::format support.
+
+```cpp
+"logging"_test = [] {
+  log("\npre  {} == {}\n", 42, 43);
+  expect(42_i == 43) << "message on failure";
+  log("\npost {} == {} -> {}\n", 42, 43, 42 == 43);
+};
+```
+
+```
+Running "logging"...
+pre  42 == 43
+  logging.cpp:8:FAILED [42 == 43] message on failure
+post 42 == 43 -> false
 FAILED
 
 ===============================================================================
@@ -1865,7 +1935,7 @@ int main() {
   TEST("vector") {
     std::vector<int> v(5);
 
-   EXPECT((5u == std::size(v)) >> fatal) << "fatal";
+   EXPECT(fatal(5u == std::size(v))) << "fatal";
 
     TEST("resize bigger") {
       v.resize(10);
