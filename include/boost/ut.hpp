@@ -98,7 +98,7 @@ export import std;
 #include <source_location>
 #endif
 
-struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
+struct _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
 };
 
 BOOST_UT_EXPORT
@@ -279,15 +279,15 @@ template <typename TargetType>
 
 inline constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
-        unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+        _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
 
 inline constexpr const std::size_t raw_length = raw_type_name.length();
 inline constexpr const std::string_view need_name =
 #if defined(_MSC_VER) and not defined(__clang__)
     "struct "
-    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+    "_unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #else
-    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+    "_unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #endif
 inline constexpr const std::size_t need_length = need_name.length();
 static_assert(need_length <= raw_length,
@@ -675,7 +675,16 @@ struct summary {};
 
 namespace detail {
 struct op {};
-struct fatal {};
+
+template <class>
+struct fatal_;
+
+struct fatal {
+  template <class T>
+  [[nodiscard]] inline auto operator()(const T& t) const {
+    return detail::fatal_{t};
+  }
+};
 struct cfg {
   using value_ref = std::variant<std::monostate, std::reference_wrapper<bool>,
                                  std::reference_wrapper<std::size_t>,
@@ -2020,7 +2029,7 @@ class runner {
       }
     }
 
-    if (!detail::cfg::query_pattern.empty()) {  //
+    if (!detail::cfg::query_pattern.empty()) {
       const static std::regex regex(detail::cfg::query_regex_pattern);
       bool matches = std::regex_match(test.name.data(), regex);
       for (const auto& tag2 : test.tag) {
