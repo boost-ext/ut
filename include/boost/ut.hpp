@@ -25,7 +25,8 @@ export import std;
 // library version to detect the support status.
 //
 // MSVC STL and libstdc++ provide __cpp_lib_format.
-#if defined(__cpp_lib_format) or (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION >= 170000)
+#if defined(__cpp_lib_format) or \
+    (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION >= 170000)
 #define BOOST_UT_HAS_FORMAT
 #endif
 
