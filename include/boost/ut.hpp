@@ -18,6 +18,18 @@ export import std;
 #include <iso646.h>  // and, or, not, ...
 #endif
 
+#include <version>
+// Before libc++ 17 had experimental support for format and it required a
+// special build flag. Currently libc++ has not implemented all C++20 chrono
+// improvements. Therefore doesn't define __cpp_lib_format, instead query the
+// library version to detect the support status.
+//
+// MSVC STL and libstdc++ provide __cpp_lib_format.
+#if defined(__cpp_lib_format) or \
+    (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION >= 170000)
+#define BOOST_UT_HAS_FORMAT
+#endif
+
 #if not defined(__cpp_rvalue_references)
 #error "[Boost::ext].UT requires support for rvalue references";
 #elif not defined(__cpp_decltype)
@@ -57,15 +69,16 @@ export import std;
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <concepts>
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <regex>
 #include <sstream>
 #include <stack>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -78,11 +91,14 @@ export import std;
 #include <exception>
 #endif
 
+#if __has_include(<format>)
+#include <format>
+#endif
 #if __has_include(<source_location>)
 #include <source_location>
 #endif
 
-struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
+struct _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
 };
 
 BOOST_UT_EXPORT
@@ -214,6 +230,18 @@ template <class T = std::string_view, class TDelim>
   }
   return output;
 }
+constexpr auto regex_match(const char *str, const char *pattern) -> bool {
+  if (*pattern == '\0' && *str == '\0') return true;
+  if (*pattern == '\0' && *str != '\0') return false;
+  if (*str == '\0' && *pattern != '\0') return false;
+  if (*pattern == '.') {
+    return regex_match(str+1, pattern+1);
+  }
+  if (*pattern == *str) {
+    return regex_match(str+1, pattern+1);
+  }
+  return false;
+}
 }  // namespace utility
 
 namespace reflection {
@@ -263,15 +291,15 @@ template <typename TargetType>
 
 inline constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
-        unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+        _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
 
 inline constexpr const std::size_t raw_length = raw_type_name.length();
 inline constexpr const std::string_view need_name =
 #if defined(_MSC_VER) and not defined(__clang__)
     "struct "
-    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+    "_unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #else
-    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+    "_unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
 #endif
 inline constexpr const std::size_t need_length = need_name.length();
 static_assert(need_length <= raw_length,
@@ -663,7 +691,16 @@ struct summary {};
 
 namespace detail {
 struct op {};
-struct fatal {};
+
+template <class>
+struct fatal_;
+
+struct fatal {
+  template <class T>
+  [[nodiscard]] inline auto operator()(const T& t) const {
+    return detail::fatal_{t};
+  }
+};
 struct cfg {
   using value_ref = std::variant<std::monostate, std::reference_wrapper<bool>,
                                  std::reference_wrapper<std::size_t>,
@@ -2020,11 +2057,11 @@ class runner {
       }
     }
 
-    if (!detail::cfg::query_pattern.empty()) {  //
-      const static std::regex regex(detail::cfg::query_regex_pattern);
-      bool matches = std::regex_match(test.name.data(), regex);
+    if (!detail::cfg::query_pattern.empty()) {
+      const static auto regex = detail::cfg::query_regex_pattern;
+      bool matches = utility::regex_match(test.name.data(), regex.c_str());
       for (const auto& tag2 : test.tag) {
-        matches |= std::regex_match(tag2.data(), regex);
+        matches |= utility::regex_match(tag2.data(), regex.c_str());
       }
       if (matches) {
         execute = !detail::cfg::invert_query_pattern;
@@ -2264,6 +2301,22 @@ struct log {
     on<TMsg>(events::log{msg});
     return next{};
   }
+
+#if defined(BOOST_UT_HAS_FORMAT)
+#if __cpp_lib_format >= 202207L
+  template <class... Args>
+  void operator()(std::format_string<Args...> fmt, Args&&... args) {
+    on<std::string>(
+        events::log{std::vformat(fmt.get(), std::make_format_args(args...))});
+  }
+#else
+  template <class... Args>
+  void operator()(std::string_view fmt, Args&&... args) {
+    on<std::string>(
+        events::log{std::vformat(fmt, std::make_format_args(args...))});
+  }
+#endif
+#endif
 };
 
 template <class TExpr>
@@ -2370,7 +2423,22 @@ struct expect_ {
   auto& operator<<(const TMsg& msg) {
     if (not value_) {
       on<T>(events::log{' '});
-      on<T>(events::log{msg});
+      if constexpr (requires {
+                      requires std::invocable<TMsg> and
+                                   not std::is_void_v<
+                                       std::invoke_result_t<TMsg>>;
+                    }) {
+        on<T>(events::log{std::invoke(msg)});
+      } else {
+        on<T>(events::log{msg});
+      }
+    }
+    return *this;
+  }
+
+  auto& operator<<(detail::fatal) {
+    if (not value_) {
+      on<T>(events::fatal_assertion{});
     }
     return *this;
   }
