@@ -467,7 +467,7 @@ constexpr auto is_valid(...) -> bool {
 }
 
 template <class T>
-inline constexpr auto is_container_v =
+inline constexpr auto is_range_v =
     is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
 
 template <class T>
@@ -1345,7 +1345,7 @@ class printer {
 
   template <class T,
             type_traits::requires_t<not type_traits::has_user_print<T> and
-                                    type_traits::is_container_v<T>> = 0>
+                                    type_traits::is_range_v<T>> = 0>
   auto& operator<<(T&& t) {
     *this << '{';
     auto first = true;
@@ -2606,12 +2606,12 @@ namespace operators {
   return detail::neq_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
+template <class T, type_traits::requires_t<type_traits::is_range_v<T>> = 0>
 [[nodiscard]] constexpr auto operator==(T&& lhs, T&& rhs) {
   return detail::eq_{static_cast<T&&>(lhs), static_cast<T&&>(rhs)};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_container_v<T>> = 0>
+template <class T, type_traits::requires_t<type_traits::is_range_v<T>> = 0>
 [[nodiscard]] constexpr auto operator!=(T&& lhs, T&& rhs) {
   return detail::neq_{static_cast<T&&>(lhs), static_cast<T&&>(rhs)};
 }
@@ -2704,23 +2704,24 @@ template <class Test>
 }
 
 template <class F, class T,
-          type_traits::requires_t<type_traits::is_container_v<T>> = 0>
+          type_traits::requires_t<type_traits::is_range_v<T>> = 0>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
   return [f, t](const auto name) {
     for (const auto& arg : t) {
-      detail::on<F>(events::test<F, typename T::value_type>{.type = "test",
-                                                            .name = name,
-                                                            .tag = {},
-                                                            .location = {},
-                                                            .arg = arg,
-                                                            .run = f});
+      detail::on<F>(events::test<F, decltype(arg)>{
+              .type = "test",
+              .name = name,
+              .tag = {},
+              .location = {},
+              .arg = arg,
+              .run = f});
     }
   };
 }
 
 template <
     class F, template <class...> class T, class... Ts,
-    type_traits::requires_t<not type_traits::is_container_v<T<Ts...>>> = 0>
+    type_traits::requires_t<not type_traits::is_range_v<T<Ts...>>> = 0>
 [[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t) {
   return [f, t](const auto name) {
     apply(

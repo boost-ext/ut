@@ -414,14 +414,14 @@ int main() {
 
     {
       struct foo {};
-      static_assert(type_traits::is_container_v<std::vector<int>>);
-      static_assert(type_traits::is_container_v<std::array<bool, 0>>);
-      static_assert(type_traits::is_container_v<std::string>);
-      static_assert(type_traits::is_container_v<std::string_view>);
-      static_assert(type_traits::is_container_v<std::map<int, int>>);
-      static_assert(not type_traits::is_container_v<int>);
-      static_assert(not type_traits::is_container_v<foo>);
-      static_assert(not type_traits::is_container_v<void>);
+      static_assert(type_traits::is_range_v<std::vector<int>>);
+      static_assert(type_traits::is_range_v<std::array<bool, 0>>);
+      static_assert(type_traits::is_range_v<std::string>);
+      static_assert(type_traits::is_range_v<std::string_view>);
+      static_assert(type_traits::is_range_v<std::map<int, int>>);
+      static_assert(not type_traits::is_range_v<int>);
+      static_assert(not type_traits::is_range_v<foo>);
+      static_assert(not type_traits::is_range_v<void>);
     }
 
     {
