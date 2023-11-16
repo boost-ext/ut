@@ -797,7 +797,7 @@ struct cfg {
   }
 
   static inline void parse(int argc, const char* argv[]) {
-    const std::size_t n_args = static_cast<std::size_t>(argc);
+    const std::size_t n_args = 0; // static_cast<std::size_t>(argc);
     if (n_args > 0 && argv != nullptr) {
       cfg::largc = argc;
       cfg::largv = argv;
