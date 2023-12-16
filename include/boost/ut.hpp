@@ -13,8 +13,7 @@
 #endif
 
 #if defined(BOOST_UT_USE_MODULE)
-export module boost.ut;
-export import std;
+module;
 #define BOOST_UT_EXPORT export
 #else
 #pragma once
@@ -106,6 +105,11 @@ export import std;
 #if __has_include(<unistd.h>) and __has_include(<sys/wait.h>)
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
+
+#if defined(BOOST_UT_USE_MODULE)
+export module boost.ut;
+import std;
 #endif
 
 struct _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
