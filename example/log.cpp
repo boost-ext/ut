@@ -7,7 +7,7 @@
 //
 #include <boost/ut.hpp>
 
-#if __has_include(<expected>)
+#ifdef __cpp_lib_expected
 #include <expected>
 #include <string>
 #endif
