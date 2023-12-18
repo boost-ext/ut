@@ -11,6 +11,7 @@
 #include <any>
 #include <array>
 #include <cstdlib>
+#include <iostream>
 #include <map>
 #include <numeric>
 #include <sstream>
@@ -82,7 +83,7 @@ constexpr auto to_string = [](const auto expr) {
   return printer.str();
 };
 
-constexpr auto test_assert =
+auto test_assert =
     [](const bool result, const ut::reflection::source_location& sl =
                               ut::reflection::source_location::current()) {
       if (not result) {
