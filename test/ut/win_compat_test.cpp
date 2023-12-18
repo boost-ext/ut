@@ -7,11 +7,17 @@
 //
 
 // ensure no conflict between `Windows.h` and `ut.hpp`
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include <Windows.h>
 
+#if not defined(min) || not defined(max)
+#error 'min' and 'max' should be defined
+#endif
+
 #include "boost/ut.hpp"
+
+#if not defined(min) || not defined(max)
+#error 'min' and 'max' should still be defined
+#endif
 
 namespace ut = boost::ut;
 
