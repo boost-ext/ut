@@ -19,6 +19,12 @@ export import std;
 #endif
 
 #include <version>
+#if defined(_MSC_VER)
+  #pragma push_macro("min")
+  #pragma push_macro("max")
+  #undef min
+  #undef max
+#endif
 // Before libc++ 17 had experimental support for format and it required a
 // special build flag. Currently libc++ has not implemented all C++20 chrono
 // improvements. Therefore doesn't define __cpp_lib_format, instead query the
@@ -3281,6 +3287,11 @@ __attribute__((constructor)) inline void cmd_line_args(int argc,
 }
 #else
 // For MSVC, largc/largv are initialized with __argc/__argv
+#endif
+
+#if defined(_MSC_VER)
+  #pragma pop_macro("min")
+  #pragma pop_macro("max")
 #endif
 
 #endif
