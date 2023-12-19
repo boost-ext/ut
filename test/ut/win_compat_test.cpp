@@ -9,14 +9,18 @@
 // ensure no conflict between `Windows.h` and `ut.hpp`
 #include <Windows.h>
 
-#if not defined(min) || not defined(max)
-#error 'min' and 'max' should be defined
+#ifndef __MINGW32__
+  #if not defined(min) || not defined(max)
+    #error 'min' and 'max' should be defined
+  #endif
 #endif
 
 #include "boost/ut.hpp"
 
-#if not defined(min) || not defined(max)
-#error 'min' and 'max' should still be defined
+#ifndef __MINGW32__
+  #if not defined(min) || not defined(max)
+    #error 'min' and 'max' should still be defined
+  #endif
 #endif
 
 namespace ut = boost::ut;
