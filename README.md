@@ -642,7 +642,7 @@ All tests passed (3 asserts in 3 tests)
 > `tests` defined inside will be automatically registered 👍
 
 ```cpp
-suite errors = [] {
+suite errors = [] { // or suite<"nameofsuite">
   "exception"_test = [] {
     expect(throws([] { throw 0; })) << "throws any exception";
   };
