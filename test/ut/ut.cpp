@@ -102,7 +102,7 @@ struct fake_cfg {
 
   struct test_call {
     std::string_view type{};
-    std::string_view name{};
+    std::string name{};
     ut::reflection::source_location location{};
     std::any arg{};
   };
@@ -137,7 +137,7 @@ struct fake_cfg {
   template <class... Ts>
   auto on(ut::events::skip<Ts...> test) -> void {
     skip_calls.push_back(
-        {.type = test.type, .name = test.name, .arg = test.arg});
+        {.type = test.type, .name = std::string{test.name}, .arg = test.arg});
   }
 
   template <class TExpr>

@@ -597,7 +597,7 @@ struct suite_end {
 template <class Test, class TArg = none>
 struct test {
   std::string_view type{};
-  std::string_view name{};
+  std::string name{}; /// might be dynamic
   std::vector<std::string_view> tag{};
   reflection::source_location location{};
   TArg arg{};
@@ -2265,7 +2265,7 @@ struct test {
   template <class... Ts>
   constexpr auto operator=(test_location<void (*)()> _test) {
     on<Ts...>(events::test<void (*)()>{.type = type,
-                                       .name = name,
+                                       .name = std::string{name},
                                        .tag = tag,
                                        .location = _test.location,
                                        .arg = none{},
@@ -2279,7 +2279,7 @@ struct test {
   constexpr auto operator=(Test _test) ->
       typename type_traits::identity<Test, decltype(_test())>::type {
     on<Test>(events::test<Test>{.type = type,
-                                .name = name,
+                                .name = std::string{name},
                                 .tag = tag,
                                 .location = {},
                                 .arg = none{},
@@ -2716,7 +2716,7 @@ template <class F, class T,
     for (const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
               .type = "test",
-              .name = name,
+              .name = std::string{name},
               .tag = {},
               .location = {},
               .arg = arg,
@@ -2733,7 +2733,7 @@ template <
     apply(
         [f, name](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
-                                             .name = name,
+                                             .name = std::string{name},
                                              .tag = {},
                                              .location = {},
                                              .arg = args,
