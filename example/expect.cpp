@@ -14,8 +14,10 @@
 
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
+struct dummy_struct{};
 int main() {
   using namespace boost::ut;
+
 
   "operators"_test = [] {
     expect(0_i == sum());
@@ -39,6 +41,23 @@ int main() {
   };
 
   "eq/neq/gt/ge/lt/le"_test = [] {
+    // type_traits::is_stream_insertable_v constraint check
+    
+    static_assert( type_traits::is_stream_insertable_v<int>);
+    static_assert( !type_traits::is_stream_insertable_v<dummy_struct>);
+
+    // it seems it produces nice error information
+    // leaving this as easy way to check failing compilation in case of doubt
+    // expect(eq(dummy_struct{}, sum(40, 2)));
+    //  gcc
+    // expect.cpp:46:14: error: no matching function for call to ‘eq(dummy_struct, int)’
+    //    46 |     expect(eq(dummy_struct{}, sum(40, 2)));
+    //       |            ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // clang
+    // expect.cpp:51:12: error: no matching function for call to 'eq'
+    //    51 |     expect(eq(dummy_struct{}, sum(40, 2)));
+    //       |            ^~
+
     expect(eq(42, sum(40, 2)));
     expect(neq(1, 2));
     expect(eq(sum(1), 1) and neq(sum(1, 2), 2));
