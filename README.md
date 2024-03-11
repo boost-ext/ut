@@ -373,7 +373,7 @@ asserts: 0 | 0 passed | 2 failed
 > value it requires lazy evaluation.
 
 ```cpp
-lazy log"_test = [] {
+"lazy log"_test = [] {
   std::expected<bool, std::string> e = std::unexpected("lazy evaluated");
   expect(e.has_value()) << [&] { return e.error(); } << fatal;
   expect(e.value() == true);
