@@ -1975,7 +1975,7 @@ class reporter_junit {
       if (result.report_string.empty() && result.nested_tests->empty()) {
         stream << " />\n";
       } else if (!result.nested_tests->empty()) {
-        stream << " />\n";
+        stream << " >\n";
         print_result(stream, suite_name, indent + "  ", result);
         stream << indent << "</testcase>\n";
       } else if (!result.report_string.empty()) {
