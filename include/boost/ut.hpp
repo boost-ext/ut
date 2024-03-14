@@ -3312,7 +3312,7 @@ using operators::operator>>;
 
 #if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && \
     !defined(__EMSCRIPTEN__)
-__attribute__((constructor)) inline void cmd_line_args(int argc,
+__attribute__((constructor(101))) inline void cmd_line_args(int argc,
                                                        const char* argv[]) {
   ::boost::ut::detail::cfg::largc = argc;
   ::boost::ut::detail::cfg::largv = argv;
