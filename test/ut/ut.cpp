@@ -287,13 +287,22 @@ struct test_summary_reporter : ut::reporter<ut::printer> {
     summary_counter_ = &counter;
   }
 
+  auto count_runs(std::size_t& counter) -> void { runs_counter_ = &counter; }
+
   auto on(ut::events::summary) -> void {
     if (summary_counter_) {
       ++*summary_counter_;
     }
   }
 
+  auto on(ut::events::run_begin) -> void {
+    if (runs_counter_) {
+      ++*runs_counter_;
+    }
+  }
+
   std::size_t* summary_counter_{};
+  std::size_t* runs_counter_{};
 };
 
 struct test_summary_runner : ut::runner<test_summary_reporter> {
@@ -843,6 +852,16 @@ int main() {
         test_assert(false == run.run({.report_errors = true}));
       }
       test_assert(1 == summary_count);
+    }
+
+    {
+      std::size_t run_count = 0;
+      {
+        auto run = test_summary_runner{};
+        run.reporter_.count_runs(run_count);
+        test_assert(false == run.run({.report_errors = true}));
+      }
+      test_assert(1 == run_count);
     }
 
     auto& test_cfg = ut::cfg<ut::override>;
