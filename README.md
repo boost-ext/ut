@@ -354,7 +354,7 @@ asserts: 1 | 0 passed | 1 failed
 > Yes, stream the `fatal`!
 
 ```cpp
-expect(fatal(1 == 2_i) << "fatal assertion");
+expect(fatal(1 == 2_i)) << "fatal assertion";
 expect(1_i == 2);
 ```
 
