@@ -1890,7 +1890,7 @@ class reporter_junit {
         err_stream
             << "\n========================================================"
                "=======================\n"
-            << "Suite " << suite_name  //
+            << "Suite " << suite_name << '\n' //
             << "tests:   " << (suite_result.n_tests) << " | " << color_.fail
             << suite_result.fails << " failed" << color_.none << '\n'
             << "asserts: " << (suite_result.assertions) << " | "
