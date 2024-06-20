@@ -30,10 +30,6 @@ option(BOOST_UT_ENABLE_INSTALL "Enable install targets" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
-if(BOOST_UT_ENABLE_INSTALL AND NOT CMAKE_SKIP_INSTALL_RULES)
-  include(cmake/PackageProject.cmake)
-endif()
-
 add_library(ut INTERFACE)
 
 if(NOT DEFINED INCLUDE_INSTALL_DIR)
@@ -66,6 +62,7 @@ if(BOOST_UT_DISABLE_MODULE)
 endif()
 
 if(BOOST_UT_ENABLE_INSTALL AND NOT CMAKE_SKIP_INSTALL_RULES)
+  include(cmake/PackageProject.cmake)
   # Create target Boost::ut and install target
   packageProject(
     NAME ${PROJECT_NAME}
