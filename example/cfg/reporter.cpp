@@ -26,6 +26,7 @@ class reporter {
   auto on(ut::events::fatal_assertion) -> void {}
   auto on(ut::events::exception) -> void {}
   auto on(ut::events::summary) -> void {}
+  auto on(ut::events::run_begin) -> void {}
 };
 }  // namespace cfg
 
