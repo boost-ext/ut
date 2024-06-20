@@ -51,10 +51,6 @@ endif()
 
 add_library(ut INTERFACE)
 
-if(BOOST_UT_ALLOW_CPM_USE)
-add_library(Boost::ut ALIAS ut)
-endif()
-
 if(NOT DEFINED INCLUDE_INSTALL_DIR)
   set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
 endif()
@@ -97,6 +93,10 @@ if(BOOST_UT_ENABLE_INSTALL AND NOT CMAKE_SKIP_INSTALL_RULES)
     COMPATIBILITY SameMajorVersion
     # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
   )
+endif()
+
+if(NOT TARGET Boost::ut)
+  add_library(Boost::ut ALIAS ut)
 endif()
 
 if (EMSCRIPTEN)
