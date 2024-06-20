@@ -29,24 +29,9 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_ENABLE_INSTALL "Enable install targets" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
-option(BOOST_UT_ALLOW_CPM_USE "Do not reach out across network for CPM" ON)
 
 if(BOOST_UT_ENABLE_INSTALL AND NOT CMAKE_SKIP_INSTALL_RULES)
-  if(BOOST_UT_ALLOW_CPM_USE)
-    # ---- Add dependencies via CPM ----
-    # see https://github.com/cpm-cmake/CPM.cmake for more info
-
-    include(cmake/CPM.cmake)
-
-    # PackageProject.cmake will be used to make our target installable
-    CPMAddPackage(
-      NAME PackageProject.cmake
-      GITHUB_REPOSITORY TheLartians/PackageProject.cmake
-      VERSION 1.10.0
-    )
-  else()
-    include(cmake/PackageProject.cmake)
-  endif()
+  include(cmake/PackageProject.cmake)
 endif()
 
 add_library(ut INTERFACE)
