@@ -252,7 +252,7 @@ constexpr auto regex_match(const char *str, const char *pattern) -> bool {
 }  // namespace utility
 
 namespace reflection {
-#if defined(__cpp_lib_source_location)
+#if defined(__cpp_lib_source_location) && !defined(_LIBCPP_APPLE_CLANG_VER)
 using source_location = std::source_location;
 #else
 class source_location {

@@ -33,7 +33,7 @@ jobs:
 
       - name: Install builddriver
         shell: bash
-        run: pip3 install builddriver cmake_format==0.6.11 pyyaml
+        run: pip3 install --break-system-package builddriver cmake_format==0.6.11 pyyaml
 
       - name: configure
         shell: bash
