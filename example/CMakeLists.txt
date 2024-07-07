@@ -76,7 +76,7 @@ example(minimal minimal)
 example(mut mut)
 example(matcher matcher)
 
-if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "AppleClang")
+if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "AppleClang" AND NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Emscripten")
   example(parameterized parameterized)
 endif()
 
