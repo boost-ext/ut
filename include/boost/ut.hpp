@@ -19,6 +19,12 @@ export import std;
 #endif
 
 #include <version>
+#if defined(_MSC_VER)
+  #pragma push_macro("min")
+  #pragma push_macro("max")
+  #undef min
+  #undef max
+#endif
 // Before libc++ 17 had experimental support for format and it required a
 // special build flag. Currently libc++ has not implemented all C++20 chrono
 // improvements. Therefore doesn't define __cpp_lib_format, instead query the
@@ -51,7 +57,7 @@ export import std;
 #elif not defined(__cpp_static_assert)
 #error "[Boost::ext].UT requires support for static assert";
 #else
-#define BOOST_UT_VERSION 2'0'0
+#define BOOST_UT_VERSION 2'0'1
 
 #if defined(__has_builtin) and defined(__GNUC__) and (__GNUC__ < 10) and \
     not defined(__clang__)
@@ -99,11 +105,11 @@ export import std;
 #include <source_location>
 #endif
 
-struct _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct {
+struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_ {
 };
 
 BOOST_UT_EXPORT
-namespace boost::inline ext::ut::inline v2_0_0 {
+namespace boost::inline ext::ut::inline v2_0_1 {
 namespace utility {
 template <class>
 class function;
@@ -292,15 +298,15 @@ template <typename TargetType>
 
 inline constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
-        _unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct>();
+        unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_>();
 
 inline constexpr const std::size_t raw_length = raw_type_name.length();
 inline constexpr const std::string_view need_name =
 #if defined(_MSC_VER) and not defined(__clang__)
     "struct "
-    "_unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_";
 #else
-    "_unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct";
+    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_";
 #endif
 inline constexpr const std::size_t need_length = need_name.length();
 static_assert(need_length <= raw_length,
@@ -595,7 +601,7 @@ struct suite_end {
 template <class Test, class TArg = none>
 struct test {
   std::string_view type{};
-  std::string_view name{};
+  std::string name{}; /// might be dynamic
   std::vector<std::string_view> tag{};
   reflection::source_location location{};
   TArg arg{};
@@ -809,7 +815,7 @@ struct cfg {
   }
 
   static inline void parse(int argc, const char* argv[]) {
-    const std::size_t n_args = static_cast<std::size_t>(argc);
+    const std::size_t n_args = argc > 0 ? static_cast<std::size_t>(argc) : 0U;
     if (n_args > 0 && argv != nullptr) {
       executable_name = argv[0];
     }
@@ -1329,6 +1335,17 @@ struct aborts_ : op {
 namespace type_traits {
 template <class T>
 inline constexpr auto is_op_v = __is_base_of(detail::op, T);
+
+template <typename T, typename = void>
+struct is_stream_insertable : std::false_type {};
+
+template <typename T>
+struct is_stream_insertable<
+    T, std::void_t<decltype(std::declval<std::ostream&>()
+                            << detail::get(std::declval<T>()))>>
+    : std::true_type {};
+template <typename T>
+inline constexpr bool is_stream_insertable_v = is_stream_insertable<T>::value;
 }  // namespace type_traits
 
 struct colors {
@@ -1887,7 +1904,7 @@ class reporter_junit {
         err_stream
             << "\n========================================================"
                "=======================\n"
-            << "Suite " << suite_name  //
+            << "Suite " << suite_name << '\n' //
             << "tests:   " << (suite_result.n_tests) << " | " << color_.fail
             << suite_result.fails << " failed" << color_.none << '\n'
             << "asserts: " << (suite_result.assertions) << " | "
@@ -2276,7 +2293,7 @@ struct test {
   template <class... Ts>
   constexpr auto operator=(test_location<void (*)()> _test) {
     on<Ts...>(events::test<void (*)()>{.type = type,
-                                       .name = name,
+                                       .name = std::string{name},
                                        .tag = tag,
                                        .location = _test.location,
                                        .arg = none{},
@@ -2290,7 +2307,7 @@ struct test {
   constexpr auto operator=(Test _test) ->
       typename type_traits::identity<Test, decltype(_test())>::type {
     on<Test>(events::test<Test>{.type = type,
-                                .name = name,
+                                .name = std::string{name},
                                 .tag = tag,
                                 .location = {},
                                 .arg = none{},
@@ -2727,7 +2744,7 @@ template <class F, class T,
     for (const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
               .type = "test",
-              .name = name,
+              .name = std::string{name},
               .tag = {},
               .location = {},
               .arg = arg,
@@ -2744,7 +2761,7 @@ template <
     apply(
         [f, name](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
-                                             .name = name,
+                                             .name = std::string{name},
                                              .tag = {},
                                              .location = {},
                                              .arg = args,
@@ -3061,32 +3078,53 @@ struct suite {
 template <class T = void>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
 
-template <class TLhs, class TRhs>
+template <class TLhs, class TRhs,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto eq(const TLhs& lhs, const TRhs& rhs) {
   return detail::eq_{lhs, rhs};
 }
-template <class TLhs, class TRhs, class TEpsilon>
+template <class TLhs, class TRhs, class TEpsilon,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto approx(const TLhs& lhs, const TRhs& rhs,
                                     const TEpsilon& epsilon) {
   return detail::approx_{lhs, rhs, epsilon};
 }
-template <class TLhs, class TRhs>
+template <class TLhs, class TRhs,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto neq(const TLhs& lhs, const TRhs& rhs) {
   return detail::neq_{lhs, rhs};
 }
-template <class TLhs, class TRhs>
+template <class TLhs, class TRhs,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto gt(const TLhs& lhs, const TRhs& rhs) {
   return detail::gt_{lhs, rhs};
 }
-template <class TLhs, class TRhs>
+template <class TLhs, class TRhs,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto ge(const TLhs& lhs, const TRhs& rhs) {
   return detail::ge_{lhs, rhs};
 }
-template <class TLhs, class TRhs>
+template <class TLhs, class TRhs,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto lt(const TLhs& lhs, const TRhs& rhs) {
   return detail::lt_{lhs, rhs};
 }
-template <class TLhs, class TRhs>
+template <class TLhs, class TRhs,
+          typename = type_traits::requires_t<
+              type_traits::is_stream_insertable_v<TLhs> and
+              type_traits::is_stream_insertable_v<TRhs>>>
 [[nodiscard]] constexpr auto le(const TLhs& lhs, const TRhs& rhs) {
   return detail::le_{lhs, rhs};
 }
@@ -3287,17 +3325,22 @@ using operators::operator not;
 using operators::operator|;
 using operators::operator/;
 using operators::operator>>;
-}  // namespace boost::inline ext::ut::inline v2_0_0
+}  // namespace boost::inline ext::ut::inline v2_0_1
 
 #if (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)) && \
     !defined(__EMSCRIPTEN__)
-__attribute__((constructor)) inline void cmd_line_args(int argc,
+__attribute__((constructor(101))) inline void cmd_line_args(int argc,
                                                        const char* argv[]) {
   ::boost::ut::detail::cfg::largc = argc;
   ::boost::ut::detail::cfg::largv = argv;
 }
 #else
 // For MSVC, largc/largv are initialized with __argc/__argv
+#endif
+
+#if defined(_MSC_VER)
+  #pragma pop_macro("min")
+  #pragma pop_macro("max")
 #endif
 
 #endif
