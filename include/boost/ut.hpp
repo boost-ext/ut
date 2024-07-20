@@ -6,6 +6,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
+#define BOOST_UT_MODULE_MODE
 export module boost.ut;
 export import std;
 #define BOOST_UT_EXPORT export
@@ -14,6 +15,7 @@ export import std;
 #define BOOST_UT_EXPORT
 #endif
 
+#if !defined(BOOST_UT_MODULE_MODE) && !defined(_MSC_VER)
 #if __has_include(<iso646.h>)
 #include <iso646.h>  // and, or, not, ...
 #endif
@@ -24,6 +26,7 @@ export import std;
   #pragma push_macro("max")
   #undef min
   #undef max
+#endif
 #endif
 // Before libc++ 17 had experimental support for format and it required a
 // special build flag. Currently libc++ has not implemented all C++20 chrono
@@ -72,6 +75,7 @@ export import std;
 #define __has_builtin(...) __has_##__VA_ARGS__
 #endif
 
+#if !defined(BOOST_UT_MODULE_MODE) && !defined(_MSC_VER)
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -97,12 +101,19 @@ export import std;
 #if defined(__cpp_exceptions)
 #include <exception>
 #endif
-
 #if __has_include(<format>)
 #include <format>
 #endif
 #if __has_include(<source_location>)
 #include <source_location>
+#endif
+#endif
+
+#if defined(BOOST_UT_MODULE_MODE) && defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 5244) // '#include <stdlib.h>' in the purview of module 'boost.ut' appears erroneous.
+#include <stdlib.h>
+#pragma warning(pop)
 #endif
 
 struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_ {
@@ -2777,6 +2788,9 @@ namespace terse {
 #pragma clang diagnostic ignored "-Wunused-comparison"
 #endif
 
+// error C2294: cannot export symbol 'boost::ext::ut::vx_y_z::operators::terse::_t' because it has internal linkage
+// error C2294: cannot export symbol 'boost::ext::ut::vx_y_z::operators::terse::operator %' because it has internal linkage
+#if !(defined(BOOST_UT_MODULE_MODE) && defined(_MSC_VER))
 [[maybe_unused]] constexpr struct {
 } _t;
 
@@ -2784,6 +2798,7 @@ template <class T>
 constexpr auto operator%(const T& t, const decltype(_t)&) {
   return detail::value<T>{t};
 }
+#endif
 
 template <class T>
 inline auto operator>>(const T& t,
@@ -3338,7 +3353,7 @@ __attribute__((constructor(101))) inline void cmd_line_args(int argc,
 // For MSVC, largc/largv are initialized with __argc/__argv
 #endif
 
-#if defined(_MSC_VER)
+#if !defined(BOOST_UT_MODULE_MODE) && defined(_MSC_VER)
   #pragma pop_macro("min")
   #pragma pop_macro("max")
 #endif
