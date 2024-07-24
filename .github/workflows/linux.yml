@@ -37,4 +37,4 @@ jobs:
       - name: test
         run: |
           cd build
-          ctest --build-config Debug -j4
+          ctest --build-config Debug -j4 --verbose
