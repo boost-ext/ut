@@ -10,8 +10,14 @@ project(boost.ut.test LANGUAGES CXX)
 if(TEST_INSTALLED_VERSION)
   if(NOT DEFINED CMAKE_CXX_STANDARD)
     option(CXX_STANDARD_REQUIRED "Require c++ standard" YES)
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_EXTENSIONS NO)
+    if(NOT DEFINED CMAKE_CXX_STANDARD)
+      set(CMAKE_CXX_STANDARD
+          20
+          CACHE STRING "Default value for CXX_STANDARD property of targets."
+      )
+      option(CMAKE_CXX_STANDARD_REQUIRED "Default value for CXX_STANDARD_REQUIRED property of targets." YES)
+      option(CMAKE_CXX_EXTENSIONS "Default value for CXX_EXTENSIONS property of targets." NO)
+    endif()
   endif()
 
   find_package(ut REQUIRED)

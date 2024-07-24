@@ -34,7 +34,7 @@ jobs:
       - name: Install builddriver
         shell: bash
         run:
-          pipx install builddriver cmake_format==0.6.11 pyyaml
+          pipx install builddriver cmake_format==0.6.11 PyYAML
 
       - name: configure
         shell: bash
