@@ -29,12 +29,11 @@ jobs:
 
       - name: Install ninja and python
         shell: bash
-        run: brew install llvm clang-format ninja python
+        run: brew install llvm clang-format ninja python pipx
 
       - name: Install builddriver
         shell: bash
         run:
-          brew install pipx
           pipx install builddriver cmake_format==0.6.11 pyyaml
 
       - name: configure
