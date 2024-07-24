@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run:
           brew install pipx
-          pip3 install builddriver cmake_format==0.6.11 pyyaml
+          pipx install builddriver cmake_format==0.6.11 pyyaml
 
       - name: configure
         shell: bash
