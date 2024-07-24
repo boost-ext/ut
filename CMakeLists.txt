@@ -55,7 +55,8 @@ endif()
 
 if(BOOST_UT_ENABLE_SANITIZERS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer
-  -fsanitize=address,leak,undefined")
+  -fsanitize=address,leak,undefined"
+  )
 endif()
 
 if(BOOST_UT_DISABLE_MODULE)
@@ -82,18 +83,10 @@ if(NOT TARGET Boost::ut)
   add_library(Boost::ut ALIAS ut)
 endif()
 
-if (EMSCRIPTEN)
+if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
-  target_link_options(ut INTERFACE
-          "SHELL:-s ALLOW_MEMORY_GROWTH=1"
-          "SHELL:-s EXIT_RUNTIME=1"
-          -fwasm-exceptions
-          -g
-          )
-  target_compile_options(ut INTERFACE
-          -fwasm-exceptions
-          -g
-          )
+  target_link_options(ut INTERFACE "SHELL:-s ALLOW_MEMORY_GROWTH=1" "SHELL:-s EXIT_RUNTIME=1" -fwasm-exceptions -g)
+  target_compile_options(ut INTERFACE -fwasm-exceptions -g)
 endif()
 
 # Note: now we can use the target Boost::ut

@@ -28,9 +28,11 @@ int main() {
   } | std::vector{1, 2, 3};
 
   /// Alternative syntax
+#ifndef __EMSCRIPTEN__
   "views"_test = [](auto arg) {
     expect(arg > 0_i) << "all values greater than 0";
   } | std::views::iota(1, 4);
+#endif
 
   /// Alternative syntax
   "types"_test = []<class T>() {
