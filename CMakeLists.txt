@@ -22,7 +22,7 @@ endif()
 
 option(BOOST_UT_ENABLE_MEMCHECK "Run the unit tests and examples under valgrind if it is found" OFF)
 option(BOOST_UT_ENABLE_COVERAGE "Run coverage" OFF)
-option(BOOST_UT_ENABLE_SANITIZERS "Run static analysis" OFF)
+option(BOOST_UT_ENABLE_SANITIZERS "Build with sanitizers" OFF)
 option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" OFF)
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
@@ -50,11 +50,12 @@ add_custom_command(
 
 if(BOOST_UT_ENABLE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3 -O0")
 endif()
 
 if(BOOST_UT_ENABLE_SANITIZERS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak -fsanitize=undefined")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fno-omit-frame-pointer
+  -fsanitize=address,leak,undefined")
 endif()
 
 if(BOOST_UT_DISABLE_MODULE)

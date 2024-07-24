@@ -14,7 +14,7 @@ if(TEST_INSTALLED_VERSION)
     set(CMAKE_CXX_EXTENSIONS NO)
   endif()
 
-  find_package(ut 1.1 REQUIRED)
+  find_package(ut REQUIRED)
   include(../cmake/AddCustomCommandOrTest.cmake)
 
   enable_testing()

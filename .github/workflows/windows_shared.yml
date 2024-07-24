@@ -1,5 +1,5 @@
 ---
-name: Windows
+name: Windows_shared
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
 
       - name: configure
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO -DBOOST_UT_DISABLE_MODULE=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF -G "Visual Studio 17 2022" -T ${{matrix.toolset}} -DCMAKE_CXX_STANDARD:STRING=${{matrix.std}}
+          cmake -S . -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO -DBOOST_UT_DISABLE_MODULE=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF -G "Visual Studio 17 2022" -T ${{matrix.toolset}} -DCMAKE_CXX_STANDARD:STRING=${{matrix.std}}
 
       - name: build
         run: cmake --build build --config Debug -j4 --verbose

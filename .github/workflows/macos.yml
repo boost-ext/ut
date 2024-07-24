@@ -39,16 +39,16 @@ jobs:
         shell: bash
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF
 
       - name: build
-        run: cmake --build build -j4
+        run: cmake --build build -j4 --verbose
 
       - name: test
         shell: bash
         run: |
           cd build
-          ctest --build-config Debug
+          ctest --build-config Debug -j4 
 
       - name: Run clang-tidy
         shell: bash
