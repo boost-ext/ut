@@ -33,7 +33,9 @@ jobs:
 
       - name: Install builddriver
         shell: bash
-        run: pip3 install builddriver cmake_format==0.6.11 pyyaml
+        run:
+          brew install pipx
+          pip3 install builddriver cmake_format==0.6.11 pyyaml
 
       - name: configure
         shell: bash
@@ -48,7 +50,7 @@ jobs:
         shell: bash
         run: |
           cd build
-          ctest --build-config Debug -j4 
+          ctest --build-config Debug -j4 --verbose
 
       - name: Run clang-tidy
         shell: bash

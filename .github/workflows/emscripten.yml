@@ -43,15 +43,16 @@ jobs:
       - name: configure
         run: |
           source ~/emsdk/emsdk_env.sh
-          emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO
+          emcmake cmake -S . -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF
+
 
       - name: build
         run: |
           source ~/emsdk/emsdk_env.sh
-          cmake --build build -j4
+          cmake --build build -j4 --verbose
 
       - name: test
         run: |
           source ~/emsdk/emsdk_env.sh
           cd build
-          ctest --build-config Debug
+          ctest --build-config Debug -j4 --verbose
