@@ -3,3 +3,7 @@ build*
 /.vs
 /checks.json
 /.vscode
+install_dir/
+cmake_build*/
+compile_commands.json
+.cache/

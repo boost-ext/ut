@@ -32,7 +32,7 @@ jobs:
 
       - name: build and install library
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO -DBOOST_UT_ENABLE_INSTALL=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCPM_DOWNLOAD_ALL=1 -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO -DBOOST_UT_ENABLE_INSTALL=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF
           cmake --build build --target all -j4 --verbose
           cmake --install build --prefix ./install_dir
           rm -rf build
