@@ -105,7 +105,7 @@ export import std;
 #include <source_location>
 #endif
 
-struct unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_ {
+struct unique_name_for_auto_detect_prefix_and_suffix_length_0123456789_struct_ {
 };
 
 BOOST_UT_EXPORT
@@ -298,29 +298,29 @@ template <typename TargetType>
 
 inline constexpr const std::string_view raw_type_name =
     get_template_function_name_use_decay_type<
-        unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_>();
+        unique_name_for_auto_detect_prefix_and_suffix_length_0123456789_struct_>();
 
 inline constexpr const std::size_t raw_length = raw_type_name.length();
 inline constexpr const std::string_view need_name =
 #if defined(_MSC_VER) and not defined(__clang__)
     "struct "
-    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_";
+    "unique_name_for_auto_detect_prefix_and_suffix_length_0123456789_struct_";
 #else
-    "unique_name_for_auto_detect_prefix_and_suffix_lenght_0123456789_struct_";
+    "unique_name_for_auto_detect_prefix_and_suffix_length_0123456789_struct_";
 #endif
 inline constexpr const std::size_t need_length = need_name.length();
 static_assert(need_length <= raw_length,
-              "Auto find prefix and suffix lenght broken error 1");
+              "Auto find prefix and suffix length broken error 1");
 inline constexpr const std::size_t prefix_length =
     raw_type_name.find(need_name);
 static_assert(prefix_length != std::string_view::npos,
-              "Auto find prefix and suffix lenght broken error 2");
+              "Auto find prefix and suffix length broken error 2");
 static_assert(prefix_length <= raw_length,
-              "Auto find prefix and suffix lenght broken error 3");
-inline constexpr const std::size_t tail_lenght = raw_length - prefix_length;
-static_assert(need_length <= tail_lenght,
-              "Auto find prefix and suffix lenght broken error 4");
-inline constexpr const std::size_t suffix_length = tail_lenght - need_length;
+              "Auto find prefix and suffix length broken error 3");
+inline constexpr const std::size_t tail_length = raw_length - prefix_length;
+static_assert(need_length <= tail_length,
+              "Auto find prefix and suffix length broken error 4");
+inline constexpr const std::size_t suffix_length = tail_length - need_length;
 
 }  // namespace detail
 
