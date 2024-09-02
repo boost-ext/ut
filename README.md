@@ -1497,12 +1497,12 @@ namespace boost::inline ext::ut::inline v2_1_0 {
      * Explicitly runs registered test suites
      * If not called directly test suites are executed with run's destructor
      * @example return run({.report_errors = true})
-     * @param run_cfg.report_errors {default: false} if true it prints the summary after runnig
+     * @param run_cfg.report_errors {default: false} if true it prints the summary after running
      */
     auto run(run_cfg);
 
     /**
-     * Runs registered test suites if they haven't been explicilty executed already
+     * Runs registered test suites if they haven't been explicitly executed already
      */
     ~run();
   };
@@ -1624,7 +1624,7 @@ namespace boost::inline ext::ut::inline v2_1_0 {
 
   ```cpp
   /**
-   * Reperesents suite object
+   * Represents suite object
    * @example suite _ = []{};
    */
   struct suite final {
@@ -1722,14 +1722,14 @@ namespace boost::inline ext::ut::inline v2_1_0 {
   /**
    * Comparison Operator
    */
-  template <Operator TLhs, Opeartor TRhs>
+  template <Operator TLhs, Operator TRhs>
   struct eq final {
     TLhs lhs{}; // Left-hand side operator
     TRhs rhs{}; // Right-hand side operator
 
     /**
-     * Performs comparison operatation
-     * @return true if expression is succesful
+     * Performs comparison operation
+     * @return true if expression is successful
      */
     [[nodiscard]] constexpr explicit operator bool() const {
       return lhs == rhs;
