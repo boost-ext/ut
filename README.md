@@ -389,6 +389,7 @@ in: main.cpp:12 - test condition:  [false]
 ===============================================================================
 tests:   1 | 2 failed
 asserts: 0 | 0 passed | 2 failed
+```
 
 > https://godbolt.org/z/v2PDuU
 
