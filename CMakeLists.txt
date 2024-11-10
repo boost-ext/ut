@@ -43,8 +43,8 @@ if(BOOST_UT_USE_WARNINGS_AS_ERORS)
 endif()
 
 add_custom_target(style)
-add_custom_command(POST_BUILD
-  TARGET style COMMAND find ${CMAKE_CURRENT_LIST_DIR}/benchmark ${CMAKE_CURRENT_LIST_DIR}/example ${CMAKE_CURRENT_LIST_DIR}/include
+add_custom_command(
+  TARGET style POST_BUILD COMMAND find ${CMAKE_CURRENT_LIST_DIR}/benchmark ${CMAKE_CURRENT_LIST_DIR}/example ${CMAKE_CURRENT_LIST_DIR}/include
                        ${CMAKE_CURRENT_LIST_DIR}/test -iname "*.hpp" -or -iname "*.cpp" | xargs clang-format -i
 )
 
