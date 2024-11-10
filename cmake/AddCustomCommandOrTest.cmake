@@ -13,7 +13,7 @@ function(ut_add_custom_command_or_test)
   target_link_libraries(${PARSE_TARGET} PRIVATE Boost::ut)
 
   if(BOOST_UT_ENABLE_RUN_AFTER_BUILD)
-    add_custom_command(TARGET ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
+    add_custom_command(POST_BUILD TARGET ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
   else()
     add_test(NAME ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})
   endif()
