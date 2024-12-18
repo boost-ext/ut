@@ -25,7 +25,6 @@ readability-*,\
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
-AnalyzeTemporaryDtors: false
 FormatStyle:     file
 User:            clausklein
 ...
