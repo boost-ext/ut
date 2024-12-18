@@ -822,7 +822,7 @@ struct cfg {
     }
     query_pattern = "";
     bool found_first_option = false;
-    for (auto i = 1U; i < n_args; i++) {
+    for (auto i = 1U; i < n_args && argv != nullptr; i++) {
       std::string cmd(argv[i]);
       auto cmd_option = find_arg(cmd);
       if (!cmd_option.has_value()) {
