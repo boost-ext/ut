@@ -31,11 +31,7 @@ option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
 add_library(ut INTERFACE)
-
-if(NOT DEFINED INCLUDE_INSTALL_DIR)
-  set(INCLUDE_INSTALL_DIR include/${PROJECT_NAME}-${PROJECT_VERSION}/include)
-endif()
-target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>)
+target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
 
 if(BOOST_UT_USE_WARNINGS_AS_ERORS)
@@ -66,32 +62,40 @@ if(BOOST_UT_DISABLE_MODULE)
   target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
 endif()
 
-if(BOOST_UT_ENABLE_INSTALL AND NOT CMAKE_SKIP_INSTALL_RULES)
-  include(cmake/PackageProject.cmake)
-  # Create target Boost::ut and install target
-  packageproject(
-    NAME
-    ${PROJECT_NAME}
-    VERSION
-    ${PROJECT_VERSION}
-    NAMESPACE
-    Boost
-    BINARY_DIR
-    ${PROJECT_BINARY_DIR}
-    INCLUDE_DIR
-    ${PROJECT_SOURCE_DIR}/include
-    INCLUDE_DESTINATION
-    ${INCLUDE_INSTALL_DIR}
-    # XXX variant: DISABLE_VERSION_SUFFIX YES
-    COMPATIBILITY
-    SameMajorVersion
-    # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
-  )
-endif()
-
 if(NOT TARGET Boost::ut)
   add_library(Boost::ut ALIAS ut)
 endif()
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+install(
+  FILES include/boost/ut.hpp
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boost
+)
+
+install(
+  TARGETS ut
+  EXPORT ut_Targets
+  INCLUDES DESTINATION include
+)
+install(
+  EXPORT ut_Targets
+  FILE utConfig.cmake
+  NAMESPACE Boost::
+  DESTINATION lib/cmake/ut
+)
+
+write_basic_package_version_file(
+  "utConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+  ARCH_INDEPENDENT
+)
+install(
+  FILES "${PROJECT_BINARY_DIR}/utConfigVersion.cmake"
+  DESTINATION lib/cmake/ut
+)
 
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
