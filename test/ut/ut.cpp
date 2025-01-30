@@ -1535,22 +1535,26 @@ int main() {
 
       "args vector"_test = [](const auto& arg) {
         expect(arg > 0_i) << "all values greater than 0";
-      } | std::vector{1, 2, 3};
+      } | std::vector{1, 2, 3, 4};
 
-      test_assert(3 == std::size(test_cfg.run_calls));
-      test_assert("args vector"sv == test_cfg.run_calls[0].name);
+      test_assert(4 == std::size(test_cfg.run_calls));
+      test_assert("args vector (1st parameter)"sv == test_cfg.run_calls[0].name);
       test_assert(1 == std::any_cast<int>(test_cfg.run_calls[0].arg));
-      test_assert("args vector"sv == test_cfg.run_calls[1].name);
+      test_assert("args vector (2nd parameter)"sv == test_cfg.run_calls[1].name);
       test_assert(2 == std::any_cast<int>(test_cfg.run_calls[1].arg));
-      test_assert("args vector"sv == test_cfg.run_calls[2].name);
+      test_assert("args vector (3rd parameter)"sv == test_cfg.run_calls[2].name);
       test_assert(3 == std::any_cast<int>(test_cfg.run_calls[2].arg));
-      test_assert(3 == std::size(test_cfg.assertion_calls));
+      test_assert("args vector (4th parameter)"sv == test_cfg.run_calls[3].name);
+      test_assert(3 == std::any_cast<int>(test_cfg.run_calls[2].arg));
+      test_assert(4 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
       test_assert("1 > 0" == test_cfg.assertion_calls[0].expr);
       test_assert(test_cfg.assertion_calls[1].result);
       test_assert("2 > 0" == test_cfg.assertion_calls[1].expr);
       test_assert(test_cfg.assertion_calls[2].result);
       test_assert("3 > 0" == test_cfg.assertion_calls[2].expr);
+      test_assert(test_cfg.assertion_calls[3].result);
+      test_assert("4 > 0" == test_cfg.assertion_calls[3].expr);
     }
 
     {
@@ -1561,9 +1565,9 @@ int main() {
       } | std::array{99, 11};
 
       test_assert(2 == std::size(test_cfg.run_calls));
-      test_assert("args array"sv == test_cfg.run_calls[0].name);
+      test_assert("args array (1st parameter)"sv == test_cfg.run_calls[0].name);
       test_assert(99 == std::any_cast<int>(test_cfg.run_calls[0].arg));
-      test_assert("args array"sv == test_cfg.run_calls[1].name);
+      test_assert("args array (2nd parameter)"sv == test_cfg.run_calls[1].name);
       test_assert(11 == std::any_cast<int>(test_cfg.run_calls[1].arg));
       test_assert(2 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
@@ -1580,11 +1584,11 @@ int main() {
       } | std::string{"str"};
 
       test_assert(3 == std::size(test_cfg.run_calls));
-      test_assert("args string"sv == test_cfg.run_calls[0].name);
+      test_assert("args string (1st parameter)"sv == test_cfg.run_calls[0].name);
       test_assert('s' == std::any_cast<char>(test_cfg.run_calls[0].arg));
-      test_assert("args string"sv == test_cfg.run_calls[1].name);
+      test_assert("args string (2nd parameter)"sv == test_cfg.run_calls[1].name);
       test_assert('t' == std::any_cast<char>(test_cfg.run_calls[1].arg));
-      test_assert("args string"sv == test_cfg.run_calls[2].name);
+      test_assert("args string (3rd parameter)"sv == test_cfg.run_calls[2].name);
       test_assert('r' == std::any_cast<char>(test_cfg.run_calls[2].arg));
       test_assert(3 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
@@ -1608,11 +1612,11 @@ int main() {
       } | std::map<char, int>{{'a', 1}, {'b', 2}};
 
       test_assert(2 == std::size(test_cfg.run_calls));
-      test_assert("args map"sv == test_cfg.run_calls[0].name);
+      test_assert("args map (1st parameter)"sv == test_cfg.run_calls[0].name);
       test_assert(
           std::pair<const char, int>{'a', 1} ==
           std::any_cast<std::pair<const char, int>>(test_cfg.run_calls[0].arg));
-      test_assert("args map"sv == test_cfg.run_calls[1].name);
+      test_assert("args map (2nd parameter)"sv == test_cfg.run_calls[1].name);
       test_assert(
           std::pair<const char, int>{'b', 2} ==
           std::any_cast<std::pair<const char, int>>(test_cfg.run_calls[1].arg));
@@ -1638,11 +1642,11 @@ int main() {
       } | std::tuple<bool, int, void*>{};
 
       test_assert(3 == std::size(test_cfg.run_calls));
-      test_assert("types"sv == test_cfg.run_calls[0].name);
+      test_assert("types (bool)"sv == test_cfg.run_calls[0].name);
       void(std::any_cast<bool>(test_cfg.run_calls[0].arg));
-      test_assert("types"sv == test_cfg.run_calls[1].name);
+      test_assert("types (int)"sv == test_cfg.run_calls[1].name);
       void(std::any_cast<int>(test_cfg.run_calls[1].arg));
-      test_assert("types"sv == test_cfg.run_calls[2].name);
+      test_assert("types (void *)"sv == test_cfg.run_calls[2].name);
       void(std::any_cast<void*>(test_cfg.run_calls[2].arg));
       test_assert(3 == std::size(test_cfg.assertion_calls));
       test_assert("(true or void == bool)" == test_cfg.assertion_calls[0].expr);
@@ -1663,9 +1667,9 @@ int main() {
       } | std::tuple{42, 'x'};
 
       test_assert(2 == std::size(test_cfg.run_calls));
-      test_assert("args and types"sv == test_cfg.run_calls[0].name);
+      test_assert("args and types (1st parameter, int)"sv == test_cfg.run_calls[0].name);
       test_assert(42 == std::any_cast<int>(test_cfg.run_calls[0].arg));
-      test_assert("args and types"sv == test_cfg.run_calls[1].name);
+      test_assert("args and types (2nd parameter, char)"sv == test_cfg.run_calls[1].name);
       test_assert('x' == std::any_cast<char>(test_cfg.run_calls[1].arg));
       test_assert(4 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);

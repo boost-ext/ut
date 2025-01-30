@@ -2738,29 +2738,65 @@ template <class Test>
   return detail::tag{tag};
 }
 
-template <class F, class T,
-          type_traits::requires_t<type_traits::is_range_v<T>> = 0>
-[[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
+[[nodiscard]] constexpr auto get_ordinal_suffix(int number) {
+  // See https://stackoverflow.com/a/13627586
+  const auto last_digit = number % 10;
+  const auto last_two_digits = number % 100;
+  if (last_digit == 1 && last_two_digits != 11) {
+    return "st";
+  }
+  if (last_digit == 2 && last_two_digits != 12) {
+    return "nd";
+  }
+  if (last_digit == 3 && last_two_digits != 13) {
+    return "rd";
+  }
+  return "th";
+};
+
+template <class F, class T>
+[[nodiscard]] constexpr auto operator|(const F& f, const T& t)
+  requires std::ranges::range<T>
+{
   return [f, t](const auto name) {
-    for (const auto& arg : t) {
+    for (int counter = 1; const auto& arg : t) {
+      const auto unique_name =
+          std::string{name} + std::format(" ({}{} parameter)", counter,
+                                          get_ordinal_suffix(counter));
       detail::on<F>(events::test<F, decltype(arg)>{.type = "test",
-                                                   .name = std::string{name},
+                                                   .name = unique_name,
                                                    .tag = {},
                                                    .location = {},
                                                    .arg = arg,
                                                    .run = f});
+      ++counter;
     }
   };
 }
 
-template <class F, template <class...> class T, class... Ts,
-          type_traits::requires_t<not type_traits::is_range_v<T<Ts...>>> = 0>
-[[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t) {
-  return [f, t](const auto name) {
+template <class F, template <class...> class T, class... Ts>
+[[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t)
+  requires (!std::ranges::range<T<Ts...>>)
+{
+  constexpr auto unique_name = []<class TArg>(const auto& name, int& counter) {
+    auto ret = std::string{name};
+    if (std::invocable<F, TArg>) {
+      ret += std::format(" ({}{} parameter, {})", counter,
+                         get_ordinal_suffix(counter),
+                         reflection::type_name<TArg>());
+    } else {
+      ret += std::format(" ({})", reflection::type_name<TArg>());
+    }
+    ++counter;
+    return ret;
+  };
+
+  return [f, t, unique_name](const auto name) {
+    int counter = 1;
     apply(
-        [f, name](const auto&... args) {
+        [f, name, unique_name, &counter](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
-                                             .name = std::string{name},
+                                             .name = unique_name.template operator()<Ts>(name, counter),
                                              .tag = {},
                                              .location = {},
                                              .arg = args,
