@@ -2760,9 +2760,9 @@ template <class F, class T>
 {
   return [f, t](const auto name) {
     for (int counter = 1; const auto& arg : t) {
-      const auto unique_name =
-          std::string{name} + std::format(" ({}{} parameter)", counter,
-                                          get_ordinal_suffix(counter));
+      const auto unique_name = std::string{name} + " (" +
+                               std::to_string(counter) +
+                               get_ordinal_suffix(counter) + " parameter)";
       detail::on<F>(events::test<F, decltype(arg)>{.type = "test",
                                                    .name = unique_name,
                                                    .tag = {},
@@ -2779,14 +2779,11 @@ template <class F, template <class...> class T, class... Ts>
   requires (!std::ranges::range<T<Ts...>>)
 {
   constexpr auto unique_name = []<class TArg>(const auto& name, int& counter) {
-    auto ret = std::string{name};
+    auto ret = std::string{name} + " (";
     if (std::invocable<F, TArg>) {
-      ret += std::format(" ({}{} parameter, {})", counter,
-                         get_ordinal_suffix(counter),
-                         reflection::type_name<TArg>());
-    } else {
-      ret += std::format(" ({})", reflection::type_name<TArg>());
+      ret += std::to_string(counter) + get_ordinal_suffix(counter) + " parameter, ";
     }
+    ret += std::string(reflection::type_name<TArg>()) + ")";
     ++counter;
     return ret;
   };
