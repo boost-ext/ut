@@ -1787,7 +1787,7 @@ class reporter_junit {
     if (report_type_ == CONSOLE) {
       ss_out_ << "\n";
       ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
-      ss_out_ << "Running test \"" << test_event.name << "\"... ";
+      ss_out_ << "Running " << test_event.type << " \"" << test_event.name << "\"... ";
     }
   }
 
