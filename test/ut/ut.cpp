@@ -1646,7 +1646,8 @@ int main() {
       void(std::any_cast<bool>(test_cfg.run_calls[0].arg));
       test_assert("types (int)"sv == test_cfg.run_calls[1].name);
       void(std::any_cast<int>(test_cfg.run_calls[1].arg));
-      test_assert("types (void *)"sv == test_cfg.run_calls[2].name);
+      // the pointer is printed differently on different platforms, so we only check the prefix
+      test_assert(test_cfg.run_calls[2].name.starts_with("types (void"));
       void(std::any_cast<void*>(test_cfg.run_calls[2].arg));
       test_assert(3 == std::size(test_cfg.assertion_calls));
       test_assert("(true or void == bool)" == test_cfg.assertion_calls[0].expr);
