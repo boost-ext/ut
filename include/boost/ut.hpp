@@ -1025,7 +1025,12 @@ struct eq_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC
+            return lhs.value == rhs.value;
+#else
             return TLhs::value == TRhs::value;
+#endif
           } else if constexpr (type_traits::has_static_member_object_epsilon_v<
                                    TLhs> and
                                type_traits::has_static_member_object_epsilon_v<
@@ -1090,7 +1095,13 @@ struct neq_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC
+            return lhs.value != rhs.value;
+#else
             return TLhs::value != TRhs::value;
+#endif
+
           } else if constexpr (type_traits::has_static_member_object_epsilon_v<
                                    TLhs> and
                                type_traits::has_static_member_object_epsilon_v<
@@ -1125,7 +1136,13 @@ struct gt_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC
+            return lhs.value > rhs.value;
+#else
             return TLhs::value > TRhs::value;
+#endif
+
           } else {
             return get(lhs_) > get(rhs_);
           }
@@ -1148,7 +1165,13 @@ struct ge_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC
+            return lhs.value >= rhs.value;
+#else
             return TLhs::value >= TRhs::value;
+#endif
+
           } else {
             return get(lhs_) >= get(rhs_);
           }
@@ -1171,7 +1194,12 @@ struct lt_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC
+            return lhs.value < rhs.value;
+#else
             return TLhs::value < TRhs::value;
+#endif
           } else {
             return get(lhs_) < get(rhs_);
           }
@@ -1195,7 +1223,13 @@ struct le_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC
+            return lhs.value <= rhs.value;
+#else
             return TLhs::value <= TRhs::value;
+#endif
+
           } else {
             return get(lhs_) <= get(rhs_);
           }
