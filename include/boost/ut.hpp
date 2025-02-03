@@ -2778,8 +2778,6 @@ template <class Test>
   return detail::tag{tag};
 }
 
-// template <class F, class T,
-//           type_traits::requires_t<type_traits::is_range_v<T>> = 0>
 template <class F, class T>
   requires std::ranges::range<T>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
