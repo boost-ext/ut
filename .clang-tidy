@@ -20,6 +20,7 @@ performance-*,\
 portability-*,\
 readability-*,\
 -readability-identifier-length,\
+-readability-redundant-member-init,\
 -*implicit-bool-conversion,\
 -*magic-numbers,\
 -*named-parameter,\
