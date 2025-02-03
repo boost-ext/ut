@@ -7,13 +7,14 @@
 //
 #include <boost/ut.hpp>
 #include <complex>
+#include <concepts>
 #include <ranges>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <vector>
 
-namespace boost::ut {
+namespace boost::inline ext::ut {
 
 template <std::floating_point F>
 static std::string format_test_parameter(const std::complex<F>& arg,
