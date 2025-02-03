@@ -6,6 +6,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <boost/ut.hpp>
+#include <complex>
 #include <ranges>
 #include <string>
 #include <tuple>
