@@ -732,22 +732,22 @@ struct cfg {
 #endif
 
   static inline std::string executable_name = "unknown executable";
-  static inline std::string query_pattern = "";        // <- done
+  static inline std::string query_pattern;             // <- done
   static inline bool invert_query_pattern = false;     // <- done
-  static inline std::string query_regex_pattern = "";  // <- done
+  static inline std::string query_regex_pattern;       // <- done
   static inline bool show_help = false;                // <- done
   static inline bool show_tests = false;               // <- done
   static inline bool list_tags = false;                // <- done
   static inline bool show_successful_tests = false;    // <- done
-  static inline std::string output_filename = "";
+  static inline std::string output_filename;
   static inline std::string use_reporter = "console";  // <- done
-  static inline std::string suite_name = "";
+  static inline std::string suite_name;
   static inline bool abort_early = false;  // <- done
   static inline std::size_t abort_after_n_failures =
       std::numeric_limits<std::size_t>::max();  // <- done
   static inline bool show_duration = false;     // <- done
   static inline std::size_t show_min_duration = 0;
-  static inline std::string input_filename = "";
+  static inline std::string input_filename;
   static inline bool show_test_names = false;  // <- done
   static inline bool show_reporters = false;   // <- done
   static inline std::string sort_order = "decl";
