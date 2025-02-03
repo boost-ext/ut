@@ -46,6 +46,7 @@ struct public_static_member_object_value {
 };
 
 struct public_member_function_value {
+  // NOLINTNEXTLINE(-readability-convert-member-functions-to-static)
   int value() const { return 0; }
 };
 
