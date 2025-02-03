@@ -477,10 +477,6 @@ constexpr auto is_valid(...) -> bool {
 }
 
 template <class T>
-inline constexpr auto is_range_v =
-    is_valid<T>([](auto t) -> decltype(t.begin(), t.end(), void()) {});
-
-template <class T>
 inline constexpr auto has_user_print = is_valid<T>(
     [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
 
@@ -510,40 +506,6 @@ template <class T>
 inline constexpr bool has_static_member_object_epsilon_v =
     has_static_member_object_epsilon<T>::value;
 
-template <class T>
-inline constexpr auto is_floating_point_v = false;
-template <>
-inline constexpr auto is_floating_point_v<float> = true;
-template <>
-inline constexpr auto is_floating_point_v<double> = true;
-template <>
-inline constexpr auto is_floating_point_v<long double> = true;
-
-#if defined(__clang__) or defined(_MSC_VER)
-template <class From, class To>
-inline constexpr auto is_convertible_v = __is_convertible_to(From, To);
-#else
-template <class From, class To>
-constexpr auto is_convertible(int) -> decltype(bool(To(declval<From>()))) {
-  return true;
-}
-template <class...>
-constexpr auto is_convertible(...) {
-  return false;
-}
-template <class From, class To>
-constexpr auto is_convertible_v = is_convertible<From, To>(0);
-#endif
-
-template <bool>
-struct requires_ {};
-template <>
-struct requires_<true> {
-  using type = int;
-};
-
-template <bool Cond>
-using requires_t = typename requires_<Cond>::type;
 }  // namespace type_traits
 
 template <typename CharT, std::size_t SIZE>
@@ -959,9 +921,8 @@ struct value : op {
   T value_{};
 };
 
-template <class T>
-struct value<T, type_traits::requires_t<type_traits::is_floating_point_v<T>>>
-    : op {
+template <std::floating_point T>
+struct value<T> : op {
   using value_type = T;
   static inline auto epsilon = T{};
 
@@ -1347,7 +1308,7 @@ struct aborts_ : op {
 
 namespace type_traits {
 template <class T>
-inline constexpr auto is_op_v = __is_base_of(detail::op, T);
+concept is_op = std::derived_from<T, detail::op>;
 
 template <typename T, typename = void>
 struct is_stream_insertable : std::false_type {};
@@ -1383,9 +1344,8 @@ class printer {
     return *this;
   }
 
-  template <class T,
-            type_traits::requires_t<not type_traits::has_user_print<T> and
-                                    type_traits::is_range_v<T>> = 0>
+  template <class T>
+    requires std::ranges::range<T> && (!type_traits::has_user_print<T>)
   auto& operator<<(T&& t) {
     *this << '{';
     auto first = true;
@@ -2315,9 +2275,8 @@ struct test {
     return _test.test;
   }
 
-  template <class Test,
-            type_traits::requires_t<
-                not type_traits::is_convertible_v<Test, void (*)()>> = 0>
+  template <class Test>
+    requires(!std::convertible_to<Test, void (*)()>)
   constexpr auto operator=(Test _test) ->
       typename type_traits::identity<Test, decltype(_test())>::type {
     on<Test>(events::test<Test>{.type = type,
@@ -2333,9 +2292,8 @@ struct test {
     _test(name);
   }
 
-  template <class Test,
-            type_traits::requires_t<not type_traits::is_convertible_v<
-                Test, void (*)(std::string_view)>> = 0>
+  template <class Test>
+    requires(!std::convertible_to<Test, void (*)(std::string_view)>)
   constexpr auto operator=(Test _test)
       -> decltype(_test(type_traits::declval<std::string_view>())) {
     return _test(name);
@@ -2687,73 +2645,66 @@ namespace operators {
   return detail::neq_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_range_v<T>> = 0>
+template <std::ranges::range T>
 [[nodiscard]] constexpr auto operator==(T&& lhs, T&& rhs) {
   return detail::eq_{static_cast<T&&>(lhs), static_cast<T&&>(rhs)};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_range_v<T>> = 0>
+template <std::ranges::range T>
 [[nodiscard]] constexpr auto operator!=(T&& lhs, T&& rhs) {
   return detail::neq_{static_cast<T&&>(lhs), static_cast<T&&>(rhs)};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator==(const TLhs& lhs, const TRhs& rhs) {
   return detail::eq_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator!=(const TLhs& lhs, const TRhs& rhs) {
   return detail::neq_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator>(const TLhs& lhs, const TRhs& rhs) {
   return detail::gt_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator>=(const TLhs& lhs, const TRhs& rhs) {
   return detail::ge_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator<(const TLhs& lhs, const TRhs& rhs) {
   return detail::lt_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator<=(const TLhs& lhs, const TRhs& rhs) {
   return detail::le_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   return detail::and_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 [[nodiscard]] constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   return detail::or_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 [[nodiscard]] constexpr auto operator not(const T& t) {
   return detail::not_{t};
 }
@@ -2804,8 +2755,8 @@ template <class F, class T>
   };
 }
 
-template <class F, template <class...> class T, class... Ts,
-          type_traits::requires_t<not type_traits::is_range_v<T<Ts...>>> = 0>
+template <class F, template <class...> class T, class... Ts>
+  requires (!std::ranges::range<T<Ts...>>)
 [[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t)
 {
   constexpr auto unique_name = []<class TArg>(const auto& name, const TArg& arg, int& counter) {
@@ -2859,7 +2810,8 @@ inline auto operator>>(const T& t,
   return fatal_{t};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator==(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using eq_t = detail::eq_<T, detail::value_location<typename T::value_type>>;
@@ -2871,7 +2823,8 @@ constexpr auto operator==(
   return eq_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator==(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using eq_t = detail::eq_<detail::value_location<typename T::value_type>, T>;
@@ -2883,7 +2836,8 @@ constexpr auto operator==(
   return eq_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator!=(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using neq_t = detail::neq_<T, detail::value_location<typename T::value_type>>;
@@ -2895,7 +2849,8 @@ constexpr auto operator!=(
   return neq_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator!=(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using neq_t = detail::neq_<detail::value_location<typename T::value_type>, T>;
@@ -2907,7 +2862,8 @@ constexpr auto operator!=(
   return neq_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator>(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using gt_t = detail::gt_<T, detail::value_location<typename T::value_type>>;
@@ -2919,7 +2875,8 @@ constexpr auto operator>(
   return gt_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator>(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using gt_t = detail::gt_<detail::value_location<typename T::value_type>, T>;
@@ -2931,7 +2888,8 @@ constexpr auto operator>(
   return gt_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator>=(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using ge_t = detail::ge_<T, detail::value_location<typename T::value_type>>;
@@ -2943,7 +2901,8 @@ constexpr auto operator>=(
   return ge_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator>=(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using ge_t = detail::ge_<detail::value_location<typename T::value_type>, T>;
@@ -2955,7 +2914,8 @@ constexpr auto operator>=(
   return ge_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator<(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using lt_t = detail::lt_<T, detail::value_location<typename T::value_type>>;
@@ -2967,7 +2927,8 @@ constexpr auto operator<(
   return lt_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator<(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using lt_t = detail::lt_<detail::value_location<typename T::value_type>, T>;
@@ -2979,7 +2940,8 @@ constexpr auto operator<(
   return lt_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator<=(
     const T& lhs, const detail::value_location<typename T::value_type>& rhs) {
   using le_t = detail::le_<T, detail::value_location<typename T::value_type>>;
@@ -2991,7 +2953,8 @@ constexpr auto operator<=(
   return le_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator<=(
     const detail::value_location<typename T::value_type>& lhs, const T& rhs) {
   using le_t = detail::le_<detail::value_location<typename T::value_type>, T>;
@@ -3003,9 +2966,8 @@ constexpr auto operator<=(
   return le_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   using and_t = detail::and_<typename TLhs::type, typename TRhs::type>;
   struct and_ : and_t, detail::log {
@@ -3016,9 +2978,8 @@ constexpr auto operator and(const TLhs& lhs, const TRhs& rhs) {
   return and_{lhs, rhs};
 }
 
-template <class TLhs, class TRhs,
-          type_traits::requires_t<type_traits::is_op_v<TLhs> or
-                                  type_traits::is_op_v<TRhs>> = 0>
+template <class TLhs, class TRhs>
+  requires type_traits::is_op<TLhs> || type_traits::is_op<TRhs>
 constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   using or_t = detail::or_<typename TLhs::type, typename TRhs::type>;
   struct or_ : or_t, detail::log {
@@ -3029,7 +2990,8 @@ constexpr auto operator or(const TLhs& lhs, const TRhs& rhs) {
   return or_{lhs, rhs};
 }
 
-template <class T, type_traits::requires_t<type_traits::is_op_v<T>> = 0>
+template <class T>
+  requires type_traits::is_op<T>
 constexpr auto operator not(const T& t) {
   using not_t = detail::not_<typename T::type>;
   struct not_ : not_t, detail::log {
@@ -3043,9 +3005,8 @@ constexpr auto operator not(const T& t) {
 }  // namespace terse
 }  // namespace operators
 
-template <class TExpr, type_traits::requires_t<
-                           type_traits::is_op_v<TExpr> or
-                           type_traits::is_convertible_v<TExpr, bool>> = 0>
+template <class TExpr>
+  requires type_traits::is_op<TExpr> || std::convertible_to<TExpr, bool>
 constexpr auto expect(const TExpr& expr,
                       const reflection::source_location& sl =
                           reflection::source_location::current()) {
@@ -3140,53 +3101,46 @@ struct suite {
 template <class T = void>
 [[maybe_unused]] constexpr auto type = detail::type_<T>();
 
-template <class TLhs, class TRhs,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto eq(const TLhs& lhs, const TRhs& rhs) {
   return detail::eq_{lhs, rhs};
 }
-template <class TLhs, class TRhs, class TEpsilon,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs, class TEpsilon>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto approx(const TLhs& lhs, const TRhs& rhs,
                                     const TEpsilon& epsilon) {
   return detail::approx_{lhs, rhs, epsilon};
 }
-template <class TLhs, class TRhs,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto neq(const TLhs& lhs, const TRhs& rhs) {
   return detail::neq_{lhs, rhs};
 }
-template <class TLhs, class TRhs,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto gt(const TLhs& lhs, const TRhs& rhs) {
   return detail::gt_{lhs, rhs};
 }
-template <class TLhs, class TRhs,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto ge(const TLhs& lhs, const TRhs& rhs) {
   return detail::ge_{lhs, rhs};
 }
-template <class TLhs, class TRhs,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto lt(const TLhs& lhs, const TRhs& rhs) {
   return detail::lt_{lhs, rhs};
 }
-template <class TLhs, class TRhs,
-          typename = type_traits::requires_t<
-              type_traits::is_stream_insertable_v<TLhs> and
-              type_traits::is_stream_insertable_v<TRhs>>>
+template <class TLhs, class TRhs>
+  requires type_traits::is_stream_insertable_v<TLhs> &&
+           type_traits::is_stream_insertable_v<TRhs>
 [[nodiscard]] constexpr auto le(const TLhs& lhs, const TRhs& rhs) {
   return detail::le_{lhs, rhs};
 }
