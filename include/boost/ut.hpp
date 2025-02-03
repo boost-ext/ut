@@ -5,6 +5,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
+#include <complex>
+#include <string>
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export module boost.ut;
 export import std;
@@ -2664,6 +2666,106 @@ constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
 }
 }  // namespace literals
 
+[[nodiscard]] constexpr auto get_ordinal_suffix(int number) {
+  // See https://stackoverflow.com/a/13627586
+  const auto last_digit = number % 10;
+  const auto last_two_digits = number % 100;
+  if (last_digit == 1 && last_two_digits != 11) {
+    return "st";
+  }
+  if (last_digit == 2 && last_two_digits != 12) {
+    return "nd";
+  }
+  if (last_digit == 3 && last_two_digits != 13) {
+    return "rd";
+  }
+  return "th";
+};
+
+template <class T, class... Types>
+concept is_any_of = (std::is_same_v<T, Types> || ...);
+
+// standard character types, see https://en.cppreference.com/w/cpp/language/types#Character_types
+template <class T>
+concept character = is_any_of<T, char, signed char, unsigned char, char8_t, char16_t, char32_t, wchar_t>;
+
+template <class TArg>
+struct test_parameter_formatter {
+  static std::string format([[maybe_unused]] const TArg& arg, const int counter) {
+    return std::to_string(counter) + get_ordinal_suffix(counter) + " parameter";
+  }
+};
+
+template <class TArg>
+struct test_parameter_formatter<const TArg> : test_parameter_formatter<TArg>
+{
+};
+
+template <class TArg>
+struct test_parameter_formatter<TArg&> : test_parameter_formatter<TArg>
+{
+};
+
+template <class TArg>
+struct test_parameter_formatter<TArg&&> : test_parameter_formatter<TArg>
+{
+};
+
+template <class F>
+  requires (std::integral<F> || std::floating_point<F>) && (!character<F>) && (!std::same_as<F, bool>)
+struct test_parameter_formatter<F> {
+  static std::string format([[maybe_unused]] const F arg,
+                            [[maybe_unused]] const int counter) {
+    std::ostringstream oss;
+    oss << arg;
+    return oss.str();
+  }
+};
+
+template<std::floating_point F>
+struct test_parameter_formatter<std::complex<F>> {
+  static std::string format(const std::complex<F>& arg, [[maybe_unused]] const int counter) {
+    std::ostringstream oss;
+    oss << arg;
+    return oss.str();
+  }
+};
+
+template <>
+struct test_parameter_formatter<bool> {
+  static std::string format(const bool arg,
+                            [[maybe_unused]] const int counter) {
+    return arg ? "true" : "false";
+  }
+};
+
+template <>
+struct test_parameter_formatter<std::string> {
+  static std::string format(const std::string& arg, [[maybe_unused]] const int counter) {
+    if (arg.size() > 20) {
+      std::string ret = std::to_string(counter) + get_ordinal_suffix(counter) + " parameter: ";
+      ret += arg.substr(0, 20) + "...";
+      return ret;
+    }
+    return arg;
+  }
+};
+
+template <class S>
+  requires is_any_of<S, const char*, std::string_view>
+struct test_parameter_formatter<S> {
+  static std::string format(S arg, [[maybe_unused]] const int counter) {
+    return test_parameter_formatter<std::string>::format(std::string{arg}, counter);
+  }
+};
+
+template <character C>
+struct test_parameter_formatter<C> {
+  static std::string format(const C arg, [[maybe_unused]] const int counter) {
+    return std::string{"'"} + arg + "'";
+  }
+};
+
 namespace operators {
 [[nodiscard]] constexpr auto operator==(std::string_view lhs,
                                         std::string_view rhs) {
@@ -2772,37 +2874,21 @@ template <class Test>
   return detail::tag{tag};
 }
 
-[[nodiscard]] constexpr auto get_ordinal_suffix(int number) {
-  // See https://stackoverflow.com/a/13627586
-  const auto last_digit = number % 10;
-  const auto last_two_digits = number % 100;
-  if (last_digit == 1 && last_two_digits != 11) {
-    return "st";
-  }
-  if (last_digit == 2 && last_two_digits != 12) {
-    return "nd";
-  }
-  if (last_digit == 3 && last_two_digits != 13) {
-    return "rd";
-  }
-  return "th";
-};
-
 template <class F, class T>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t)
   requires std::ranges::range<T>
 {
   return [f, t](const auto name) {
     for (int counter = 1; const auto& arg : t) {
-      const auto unique_name = std::string{name} + " (" +
-                               std::to_string(counter) +
-                               get_ordinal_suffix(counter) + " parameter)";
-      detail::on<F>(events::test<F, decltype(arg)>{.type = "test",
-                                                   .name = unique_name,
-                                                   .tag = {},
-                                                   .location = {},
-                                                   .arg = arg,
-                                                   .run = f});
+      detail::on<F>(events::test<F, decltype(arg)>{
+          .type = "test",
+          .name =
+              std::string{name} + " (" +
+              test_parameter_formatter<decltype(arg)>::format(arg, counter) + ")",
+          .tag = {},
+          .location = {},
+          .arg = arg,
+          .run = f});
       ++counter;
     }
   };
@@ -2812,10 +2898,10 @@ template <class F, template <class...> class T, class... Ts>
 [[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t)
   requires (!std::ranges::range<T<Ts...>>)
 {
-  constexpr auto unique_name = []<class TArg>(const auto& name, int& counter) {
+  constexpr auto unique_name = []<class TArg>(const auto& name, const TArg& arg, int& counter) {
     auto ret = std::string{name} + " (";
     if (std::invocable<F, TArg>) {
-      ret += std::to_string(counter) + get_ordinal_suffix(counter) + " parameter, ";
+      ret += test_parameter_formatter<TArg>::format(arg, counter) + ", ";
     }
     ret += std::string(reflection::type_name<TArg>()) + ")";
     ++counter;
@@ -2827,7 +2913,7 @@ template <class F, template <class...> class T, class... Ts>
     apply(
         [f, name, unique_name, &counter](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
-                                             .name = unique_name.template operator()<Ts>(name, counter),
+                                             .name = unique_name.template operator()<Ts>(name, args, counter),
                                              .tag = {},
                                              .location = {},
                                              .arg = args,
