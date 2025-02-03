@@ -1622,7 +1622,7 @@ class reporter_junit {
   using clock_ref = std::chrono::high_resolution_clock;
   using timePoint = std::chrono::time_point<clock_ref>;
   using timeDiff = std::chrono::milliseconds;
-  enum class ReportType { CONSOLE, JUNIT } report_type_;
+  enum class ReportType : std::uint8_t { CONSOLE, JUNIT } report_type_;
   static constexpr ReportType CONSOLE = ReportType::CONSOLE;
   static constexpr ReportType JUNIT = ReportType::JUNIT;
 
