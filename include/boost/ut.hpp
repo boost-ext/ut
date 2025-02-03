@@ -695,7 +695,7 @@ struct log {
 };
 template <class TMsg = std::string_view>
 log(TMsg) -> log<TMsg>;
-struct fatal_assertion {};
+struct fatal_assertion : std::exception {};
 struct exception {
   const char* msg{};
   [[nodiscard]] auto what() const -> const char* { return msg; }
@@ -1572,7 +1572,7 @@ class reporter {
     ++asserts_.fail;
   }
 
-  auto on(events::fatal_assertion) -> void {}
+  auto on(const events::fatal_assertion&) -> void {}
 
   auto on(events::summary) -> void {
     if (tests_.fail or asserts_.fail) {
@@ -1762,7 +1762,7 @@ class reporter_junit {
 
     if (report_type_ == CONSOLE) {
       ss_out_ << "\n";
-      ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
+      ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
       ss_out_ << "Running " << test_event.type << " \"" << test_event.name << "\"... ";
     }
   }
@@ -1777,7 +1777,7 @@ class reporter_junit {
         if (detail::cfg::show_successful_tests) {
           if (!active_scope_->nested_tests->empty()) {
             ss_out_ << "\n";
-            ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
+            ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
             ss_out_ << "Running test \"" << test_event.name << "\" - ";
           }
           ss_out_ << color_.pass << "PASSED" << color_.none;
@@ -1806,7 +1806,7 @@ class reporter_junit {
       active_scope_->status = "SKIPPED";
       active_scope_->skipped += 1;
       if (report_type_ == CONSOLE) {
-        lcout_ << '\n' << std::string(2 * active_test_.size() - 2, ' ');
+        lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
         lcout_ << "Running \"" << test_event.name << "\"... ";
         lcout_ << color_.skip << "SKIPPED" << color_.none;
       }
@@ -1832,7 +1832,7 @@ class reporter_junit {
       active_scope_->report_string += color_.none;
     }
     if (report_type_ == CONSOLE) {
-      lcout_ << std::string(2 * active_test_.size() - 2, ' ');
+      lcout_ << std::string((2 * active_test_.size()) - 2, ' ');
       lcout_ << "Running test \"" << active_test_.top() << "\"... ";
       lcout_ << color_.fail << "FAILED" << color_.none;
       print_duration(lcout_);
@@ -1879,7 +1879,7 @@ class reporter_junit {
     }
   }
 
-  auto on(events::fatal_assertion) -> void { active_scope_->fails++; }
+  auto on(const events::fatal_assertion&) -> void { active_scope_->fails++; }
 
   auto on(events::summary) -> void {
     std::cout.flush();
@@ -1943,7 +1943,8 @@ class reporter_junit {
 
   void print_junit_summary(std::ostream& stream) {
     // aggregate results
-    size_t n_tests = 0, n_fails = 0;
+    size_t n_tests = 0;
+    size_t n_fails = 0;
     double total_time = 0.0;
     auto suite_time = [](auto const& suite_result) {
       std::int64_t time_ms =
@@ -1984,7 +1985,7 @@ class reporter_junit {
     stream << "</testsuites>";
   }
   void print_result(std::ostream& stream, const std::string& suite_name,
-                    std::string indent, const test_result& parent) {
+                    const std::string& indent, const test_result& parent) {
     for (const auto& [name, result] : *parent.nested_tests) {
       stream << indent;
       stream << "<testcase classname=\"" << result.suite_name << '\"';
@@ -2328,8 +2329,8 @@ struct test {
     return _test;
   }
 
-  constexpr auto operator=(void (*_test)(std::string_view)) const {
-    return _test(name);
+  constexpr void operator=(void (*_test)(std::string_view)) const {
+    _test(name);
   }
 
   template <class Test,
@@ -2773,7 +2774,8 @@ template <class Test>
 
 [[nodiscard]] inline auto operator/(const detail::tag& lhs,
                                     const detail::tag& rhs) {
-  std::vector<std::string_view> tag{};
+  std::vector<std::string_view> tag;
+  tag.reserve(lhs.name.size() + rhs.name.size());
   for (const auto& name : lhs.name) {
     tag.push_back(name);
   }
