@@ -21,10 +21,7 @@ jobs:
     strategy:
       matrix:
         toolset: [ClangCl, v143]
-        std: [17, 20]
-        exclude:
-          - toolset: v143
-            std: 17
+        std: [20]
 
     steps:
       - uses: actions/checkout@v3
