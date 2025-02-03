@@ -16,8 +16,10 @@ modernize-*,\
 -modernize-pass-by-value,\
 -modernize-use-trailing-return-type,\
 performance-*,\
+-performance-avoid-endl,\
 portability-*,\
 readability-*,\
+-readability-identifier-length,\
 -*implicit-bool-conversion,\
 -*magic-numbers,\
 -*named-parameter,\
