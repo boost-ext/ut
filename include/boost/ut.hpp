@@ -711,7 +711,7 @@ struct fatal_;
 
 struct fatal {
   template <class T>
-  [[nodiscard]] inline auto operator()(const T& t) const {
+  [[nodiscard]] auto operator()(const T& t) const {
     return detail::fatal_{t};
   }
 };
@@ -813,7 +813,7 @@ struct cfg {
     std::cout << "version:        " << BOOST_UT_VERSION << std::endl;
   }
 
-  static inline void parse_arg_with_fallback(int argc, const char* argv[]) {
+  static void parse_arg_with_fallback(int argc, const char* argv[]) {
     if (argc > 0 && argv != nullptr) {
       cfg::largc = argc;
       cfg::largv = argv;
@@ -821,7 +821,7 @@ struct cfg {
     parse(cfg::largc, cfg::largv);
   }
 
-  static inline void parse(int argc, const char* argv[]) {
+  static void parse(int argc, const char* argv[]) {
     const std::size_t n_args = argc > 0 ? static_cast<std::size_t>(argc) : 0U;
     if (n_args > 0 && argv != nullptr) {
       executable_name = argv[0];
@@ -1369,7 +1369,7 @@ struct colors {
 };
 
 class printer {
-  [[nodiscard]] inline auto color(const bool cond) {
+  [[nodiscard]] auto color(const bool cond) {
     return cond ? colors_.pass : colors_.fail;
   }
 
