@@ -12,6 +12,18 @@
 #include <type_traits>
 #include <vector>
 
+namespace boost::ut {
+
+template <std::floating_point F>
+static std::string format_test_parameter(const std::complex<F>& arg,
+                                         [[maybe_unused]] const int counter) {
+  std::ostringstream oss;
+  oss << arg.real() << '+' << arg.imag() << 'i';
+  return oss.str();
+}
+
+}
+
 int main() {
   using namespace boost::ut;
 
@@ -58,4 +70,19 @@ int main() {
     expect(42_i == static_cast<int>(arg) or arg);
     expect(type<TArg> == type<int> or type<TArg> == type<bool>);
   } | std::tuple{42, true};
+
+  // Modifying test names when using alternative syntax
+  // When using the alternative syntax, the test names are extended based on the
+  // test parameters (to ensure uniqueness). Here, for simple built-in types,
+  // the parameter value is printed, while other types are simply enumerated.
+  // Without the `format_test_parameter` overload above, the test names for the
+  // test below would be:
+  //   "parameterized test names (42, int)"
+  //   "parameterized test names (true, bool)"
+  //   "parameterized test names (3rd parameter, std::complex<double>)"
+  // However, since the overload for std::complex is available, the third test name becomes:
+  //   "parameterized test names (1.5+2i, std::complex<double>)"
+  "parameterized test names"_test = []<class TArg>([[maybe_unused]] TArg arg) {
+    expect(true);
+  } | std::tuple{42, true, std::complex{1.5, 2.0}};
 }
