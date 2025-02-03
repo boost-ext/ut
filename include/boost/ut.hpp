@@ -5,8 +5,6 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#include <complex>
-#include <string>
 #if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
 export module boost.ut;
 export import std;
@@ -77,6 +75,7 @@ export import std;
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <concepts>
 #include <cstdint>
 #include <fstream>
 #include <functional>
@@ -85,6 +84,7 @@ export import std;
 #include <optional>
 #include <sstream>
 #include <stack>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
