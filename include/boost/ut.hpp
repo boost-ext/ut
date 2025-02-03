@@ -239,9 +239,15 @@ template <class T = std::string_view, class TDelim>
   return output;
 }
 constexpr auto regex_match(const char* str, const char* pattern) -> bool {
-  if (*pattern == '\0' && *str == '\0') return true;
-  if (*pattern == '\0' && *str != '\0') return false;
-  if (*str == '\0' && *pattern != '\0') return false;
+  if (*pattern == '\0' && *str == '\0') {
+    return true;
+  }
+  if (*pattern == '\0' && *str != '\0') {
+    return false;
+  }
+  if (*str == '\0' && *pattern != '\0') {
+    return false;
+  }
   if (*pattern == '.') {
     return regex_match(str + 1, pattern + 1);
   }
@@ -550,8 +556,11 @@ struct fixed_string {
   CharT _data[N + 1] = {};
 
   constexpr explicit(false) fixed_string(const CharT (&str)[N + 1]) noexcept {
-    if constexpr (N != 0)
-      for (std::size_t i = 0; i < N; ++i) _data[i] = str[i];
+    if constexpr (N != 0) {
+      for (std::size_t i = 0; i < N; ++i) {
+        _data[i] = str[i];
+      }
+    }
   }
 
   [[nodiscard]] constexpr std::size_t size() const noexcept { return N; }
