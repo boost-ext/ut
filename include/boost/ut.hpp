@@ -2658,32 +2658,15 @@ inline std::string format_test_parameter([[maybe_unused]] const TArg& arg, const
   return std::to_string(counter) + get_ordinal_suffix(counter) + " parameter";
 }
 
-#define TEST_PARAMETER_FORMATTER_SPECIALIZATION(type)           \
-  inline std::string format_test_parameter(const type& arg,     \
-                                           [[maybe_unused]] const int counter) { \
-    std::ostringstream oss;                                     \
-    oss << arg;                                                 \
-    return oss.str();                                           \
-  }                                                             \
-  static_assert(true)
+template <class F>
+  requires (std::integral<F> || std::floating_point<F>) && (!std::same_as<F, bool>)
+inline std::string format_test_parameter(const F& arg, [[maybe_unused]] const int counter) {
+  std::ostringstream oss;
+  oss << arg;
+  return oss.str();
+}
 
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(signed char);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned char);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(char);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(short);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned short);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(int);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned int);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(long);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned long);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(long long);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned long long);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(float);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(double);
-TEST_PARAMETER_FORMATTER_SPECIALIZATION(long double);
-#undef TEST_PARAMETER_FORMATTER_SPECIALIZATION
-
-inline std::string format_test_parameter(bool arg, [[maybe_unused]] const int counter) {
+inline std::string format_test_parameter(const bool& arg, [[maybe_unused]] const int counter) {
     return arg ? "true" : "false";
 }
 
@@ -2795,10 +2778,11 @@ template <class Test>
   return detail::tag{tag};
 }
 
-template <class F, class T,
-          type_traits::requires_t<type_traits::is_range_v<T>> = 0>
-[[nodiscard]] constexpr auto operator|(const F& f, const T& t)
-{
+// template <class F, class T,
+//           type_traits::requires_t<type_traits::is_range_v<T>> = 0>
+template <class F, class T>
+  requires std::ranges::range<T>
+[[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
   return [f, t](const auto name) {
     for (int counter = 1; const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
