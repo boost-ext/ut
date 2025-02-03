@@ -14,10 +14,6 @@ export import std;
 #define BOOST_UT_EXPORT
 #endif
 
-#if __has_include(<iso646.h>)
-#include <iso646.h>  // and, or, not, ...
-#endif
-
 #include <version>
 #if defined(_MSC_VER)
 #pragma push_macro("min")
