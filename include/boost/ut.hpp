@@ -283,7 +283,7 @@ class source_location {
 namespace detail {
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_type()
-    -> const std::string_view {
+    -> std::string_view {
 // for over compiler need over macros
 #if defined(_MSC_VER) && !defined(__clang__)
   return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
@@ -295,7 +295,7 @@ template <typename TargetType>
 // decay allows you to highlight a cleaner name
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
-    -> const std::string_view {
+    -> std::string_view {
   return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
 
@@ -328,7 +328,7 @@ inline constexpr const std::size_t suffix_length = tail_length - need_length;
 }  // namespace detail
 
 template <typename TargetType>
-[[nodiscard]] constexpr auto type_name() -> const std::string_view {
+[[nodiscard]] constexpr auto type_name() -> std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_type<TargetType>();
   const std::size_t end = raw_type_name.length() - detail::suffix_length;
@@ -339,7 +339,7 @@ template <typename TargetType>
 
 // decay allows you to highlight a cleaner name
 template <typename TargetType>
-[[nodiscard]] constexpr auto decay_type_name() -> const std::string_view {
+[[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<TargetType>();
   const std::size_t end = raw_type_name.length() - detail::suffix_length;
@@ -924,8 +924,8 @@ template <class T>
 template <class T>
 struct type_ : op {
   template <class TOther>
-  [[nodiscard]] constexpr auto operator()(const TOther&) const
-      -> const type_<TOther> {
+  [[nodiscard]] constexpr auto operator()(const TOther&) const // NOLINT(readability-const-return-type)
+      -> const type_<TOther> { 
     return {};
   }
   [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
