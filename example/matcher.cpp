@@ -11,7 +11,7 @@
 #include <tuple>
 #include <type_traits>
 
-class matcher : boost::ut::detail::op {
+class matcher : public boost::ut::detail::op {
  public:
   matcher(bool result, const std::string& str) : result_{result}, str_{str} {}
   constexpr explicit operator bool() const { return result_; }
