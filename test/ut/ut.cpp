@@ -362,13 +362,10 @@ struct custom_printable_type {
   int value;
 };
 
-template <>
-struct boost::ut::test_parameter_formatter<custom_printable_type> {
-  static std::string format(const custom_printable_type& value,
-                            [[maybe_unused]] const int counter) {
-    return "custom_printable_type(" + std::to_string(value.value) + ")";
-  }
-};
+static std::string format_test_parameter(const custom_printable_type& value,
+                                  [[maybe_unused]] const int counter) {
+  return "custom_printable_type(" + std::to_string(value.value) + ")";
+}
 
 template <class... Ts>
 static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
@@ -1597,11 +1594,11 @@ int main() {
       } | std::string{"str"};
 
       test_assert(3 == std::size(test_cfg.run_calls));
-      test_assert("args string ('s')"sv == test_cfg.run_calls[0].name);
+      test_assert("args string (s)"sv == test_cfg.run_calls[0].name);
       test_assert('s' == std::any_cast<char>(test_cfg.run_calls[0].arg));
-      test_assert("args string ('t')"sv == test_cfg.run_calls[1].name);
+      test_assert("args string (t)"sv == test_cfg.run_calls[1].name);
       test_assert('t' == std::any_cast<char>(test_cfg.run_calls[1].arg));
-      test_assert("args string ('r')"sv == test_cfg.run_calls[2].name);
+      test_assert("args string (r)"sv == test_cfg.run_calls[2].name);
       test_assert('r' == std::any_cast<char>(test_cfg.run_calls[2].arg));
       test_assert(3 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
@@ -1683,7 +1680,7 @@ int main() {
       test_assert(2 == std::size(test_cfg.run_calls));
       test_assert("args and types (42, int)"sv == test_cfg.run_calls[0].name);
       test_assert(42 == std::any_cast<int>(test_cfg.run_calls[0].arg));
-      test_assert("args and types ('x', char)"sv == test_cfg.run_calls[1].name);
+      test_assert("args and types (x, char)"sv == test_cfg.run_calls[1].name);
       test_assert('x' == std::any_cast<char>(test_cfg.run_calls[1].arg));
       test_assert(4 == std::size(test_cfg.assertion_calls));
       test_assert(test_cfg.assertion_calls[0].result);
@@ -1704,29 +1701,23 @@ int main() {
       "parameterized test names"_test = []<class TArg>(const TArg& /*arg*/) {
         expect(true);
       } | std::tuple {
-        custom_non_printable_type{0}, custom_non_printable_type{1}, custom_non_printable_type{2}, custom_non_printable_type{3},
-            std::string{"str"}, "str", "str"sv, 42.5, false, std::complex{1.5, 2.0}, custom_printable_type{42}, "a long string with more than 20 characters"};
+        custom_non_printable_type{0}, std::string{"str"}, "str", "str"sv,
+            42.5, false, std::complex{1.5, 2.0}, custom_printable_type{42}};
 
-      test_assert(12 == std::size(test_cfg.run_calls));
+      test_assert(8 == std::size(test_cfg.run_calls));
       test_assert(test_cfg.run_calls[0].name.starts_with("parameterized test names (1st parameter, "));
+      test_assert(test_cfg.run_calls[0].name.find("custom_non_printable_type") != std::string::npos);
       test_assert(test_cfg.run_calls[1].name.starts_with("parameterized test names (2nd parameter, "));
-      test_assert(test_cfg.run_calls[2].name.starts_with("parameterized test names (3rd parameter, "));
+      test_assert(test_cfg.run_calls[1].name.find("string") != std::string::npos);
+      test_assert(test_cfg.run_calls[2].name.starts_with("parameterized test names (3rd parameter, const char"));
+      test_assert(test_cfg.run_calls[2].name.find('*') != std::string::npos);
       test_assert(test_cfg.run_calls[3].name.starts_with("parameterized test names (4th parameter, "));
-      for (size_t i = 0; i < 4; ++i) {
-        test_assert(test_cfg.run_calls[i].name.find("custom_non_printable_type") != std::string::npos);
-      }
-      test_assert(test_cfg.run_calls[4].name.starts_with("parameterized test names (str, "));
-      test_assert(test_cfg.run_calls[4].name.find("string") != std::string::npos);
-      test_assert(test_cfg.run_calls[5].name.starts_with("parameterized test names (str, const char"));
-      test_assert(test_cfg.run_calls[5].name.find("*") != std::string::npos);
-      test_assert(test_cfg.run_calls[6].name.starts_with("parameterized test names (str, "));
-      test_assert(test_cfg.run_calls[6].name.find("string_view") != std::string::npos);
-      test_assert("parameterized test names (42.5, double)"sv == test_cfg.run_calls[7].name);
-      test_assert("parameterized test names (false, bool)"sv == test_cfg.run_calls[8].name);
-      test_assert(test_cfg.run_calls[9].name.starts_with("parameterized test names ((1.5,2), "));
-      test_assert(test_cfg.run_calls[9].name.find("std::complex<double>") != std::string::npos);
-      test_assert(test_cfg.run_calls[10].name.starts_with("parameterized test names (custom_printable_type(42), "));
-      test_assert(test_cfg.run_calls[11].name.starts_with("parameterized test names (12th parameter: a long string with m..., const char"));
+      test_assert(test_cfg.run_calls[3].name.find("string_view") != std::string::npos);
+      test_assert(test_cfg.run_calls[4].name == "parameterized test names (42.5, double)"sv);
+      test_assert(test_cfg.run_calls[5].name == "parameterized test names (false, bool)"sv);
+      test_assert(test_cfg.run_calls[6].name.starts_with("parameterized test names (7th parameter, "));
+      test_assert(test_cfg.run_calls[6].name.find("std::complex<double>") != std::string::npos);
+      test_assert(test_cfg.run_calls[7].name.starts_with("parameterized test names (custom_printable_type(42), "));
     }
 #endif
 

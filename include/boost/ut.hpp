@@ -77,7 +77,6 @@ export import std;
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <concepts>
 #include <cstdint>
 #include <fstream>
 #include <functional>
@@ -2654,89 +2653,39 @@ constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
   return "th";
 };
 
-template <class T, class... Types>
-concept is_any_of = (std::is_same_v<T, Types> || ...);
+template<class TArg>
+inline std::string format_test_parameter([[maybe_unused]] const TArg& arg, const int counter) {
+  return std::to_string(counter) + get_ordinal_suffix(counter) + " parameter";
+}
 
-// standard character types, see https://en.cppreference.com/w/cpp/language/types#Character_types
-template <class T>
-concept character = is_any_of<T, char, signed char, unsigned char, char8_t, char16_t, char32_t, wchar_t>;
+#define TEST_PARAMETER_FORMATTER_SPECIALIZATION(type)           \
+  inline std::string format_test_parameter(const type& arg,     \
+                                           [[maybe_unused]] const int counter) { \
+    std::ostringstream oss;                                     \
+    oss << arg;                                                 \
+    return oss.str();                                           \
+  }                                                             \
+  static_assert(true)
 
-template <class TArg>
-struct test_parameter_formatter {
-  static std::string format([[maybe_unused]] const TArg& arg, const int counter) {
-    return std::to_string(counter) + get_ordinal_suffix(counter) + " parameter";
-  }
-};
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(signed char);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned char);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(char);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(short);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned short);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(int);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned int);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(long);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned long);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(long long);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(unsigned long long);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(float);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(double);
+TEST_PARAMETER_FORMATTER_SPECIALIZATION(long double);
+#undef TEST_PARAMETER_FORMATTER_SPECIALIZATION
 
-template <class TArg>
-struct test_parameter_formatter<const TArg> : test_parameter_formatter<TArg>
-{
-};
-
-template <class TArg>
-struct test_parameter_formatter<TArg&> : test_parameter_formatter<TArg>
-{
-};
-
-template <class TArg>
-struct test_parameter_formatter<TArg&&> : test_parameter_formatter<TArg>
-{
-};
-
-template <class F>
-  requires (std::integral<F> || std::floating_point<F>) && (!character<F>) && (!std::same_as<F, bool>)
-struct test_parameter_formatter<F> {
-  static std::string format([[maybe_unused]] const F arg,
-                            [[maybe_unused]] const int counter) {
-    std::ostringstream oss;
-    oss << arg;
-    return oss.str();
-  }
-};
-
-template<std::floating_point F>
-struct test_parameter_formatter<std::complex<F>> {
-  static std::string format(const std::complex<F>& arg, [[maybe_unused]] const int counter) {
-    std::ostringstream oss;
-    oss << arg;
-    return oss.str();
-  }
-};
-
-template <>
-struct test_parameter_formatter<bool> {
-  static std::string format(const bool arg,
-                            [[maybe_unused]] const int counter) {
+inline std::string format_test_parameter(bool arg, [[maybe_unused]] const int counter) {
     return arg ? "true" : "false";
-  }
-};
-
-template <>
-struct test_parameter_formatter<std::string> {
-  static std::string format(const std::string& arg, [[maybe_unused]] const int counter) {
-    if (arg.size() > 20) {
-      std::string ret = std::to_string(counter) + get_ordinal_suffix(counter) + " parameter: ";
-      ret += arg.substr(0, 20) + "...";
-      return ret;
-    }
-    return arg;
-  }
-};
-
-template <class S>
-  requires is_any_of<S, const char*, std::string_view>
-struct test_parameter_formatter<S> {
-  static std::string format(S arg, [[maybe_unused]] const int counter) {
-    return test_parameter_formatter<std::string>::format(std::string{arg}, counter);
-  }
-};
-
-template <character C>
-struct test_parameter_formatter<C> {
-  static std::string format(const C arg, [[maybe_unused]] const int counter) {
-    return std::string{"'"} + arg + "'";
-  }
-};
+}
 
 namespace operators {
 [[nodiscard]] constexpr auto operator==(std::string_view lhs,
@@ -2846,9 +2795,9 @@ template <class Test>
   return detail::tag{tag};
 }
 
-template <class F, class T>
+template <class F, class T,
+          type_traits::requires_t<type_traits::is_range_v<T>> = 0>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t)
-  requires std::ranges::range<T>
 {
   return [f, t](const auto name) {
     for (int counter = 1; const auto& arg : t) {
@@ -2856,7 +2805,7 @@ template <class F, class T>
           .type = "test",
           .name =
               std::string{name} + " (" +
-              test_parameter_formatter<decltype(arg)>::format(arg, counter) + ")",
+              format_test_parameter(arg, counter) + ")",
           .tag = {},
           .location = {},
           .arg = arg,
@@ -2866,14 +2815,14 @@ template <class F, class T>
   };
 }
 
-template <class F, template <class...> class T, class... Ts>
+template <class F, template <class...> class T, class... Ts,
+          type_traits::requires_t<not type_traits::is_range_v<T<Ts...>>> = 0>
 [[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t)
-  requires (!std::ranges::range<T<Ts...>>)
 {
   constexpr auto unique_name = []<class TArg>(const auto& name, const TArg& arg, int& counter) {
     auto ret = std::string{name} + " (";
     if (std::invocable<F, TArg>) {
-      ret += test_parameter_formatter<TArg>::format(arg, counter) + ", ";
+      ret += format_test_parameter(arg, counter) + ", ";
     }
     ret += std::string(reflection::type_name<TArg>()) + ")";
     ++counter;
