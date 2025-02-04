@@ -1708,6 +1708,29 @@ int main() { // NOLINT(readability-function-size)
     }
 
     {
+      // See https://github.com/boost-ext/ut/issues/581
+      test_cfg = fake_cfg{};
+      test("count asserts using operator|") = []() {
+        test("MyTest") = [](auto fixture) {
+          expect(fixture > 0);
+          expect(false);
+        } | std::vector{1, 2, 3, 4};
+      };
+      test_assert(test_cfg.assertion_calls.size() == 8);
+
+      test_cfg = fake_cfg{};
+      test("count asserts using for") = []() {
+        for (auto fixture : std::vector{1, 2, 3, 4}) {
+          test("MyTest" + std::to_string(fixture)) = [&fixture]() {
+            expect(fixture > 0);
+            expect(false);
+          };
+        }
+      };
+      test_assert(test_cfg.assertion_calls.size() == 8);
+    }
+
+    {
       test_cfg = fake_cfg{};
 
       using namespace ut::bdd;
