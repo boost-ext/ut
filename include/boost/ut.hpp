@@ -14,10 +14,6 @@ export import std;
 #define BOOST_UT_EXPORT
 #endif
 
-#if __has_include(<iso646.h>)
-#include <iso646.h>  // and, or, not, ...
-#endif
-
 #include <version>
 #if defined(_MSC_VER)
 #pragma push_macro("min")
@@ -84,6 +80,7 @@ export import std;
 #include <optional>
 #include <sstream>
 #include <stack>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
@@ -238,9 +235,15 @@ template <class T = std::string_view, class TDelim>
   return output;
 }
 constexpr auto regex_match(const char* str, const char* pattern) -> bool {
-  if (*pattern == '\0' && *str == '\0') return true;
-  if (*pattern == '\0' && *str != '\0') return false;
-  if (*str == '\0' && *pattern != '\0') return false;
+  if (*pattern == '\0' && *str == '\0') {
+    return true;
+  }
+  if (*pattern == '\0' && *str != '\0') {
+    return false;
+  }
+  if (*str == '\0' && *pattern != '\0') {
+    return false;
+  }
   if (*pattern == '.') {
     return regex_match(str + 1, pattern + 1);
   }
@@ -280,7 +283,7 @@ class source_location {
 namespace detail {
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_type()
-    -> const std::string_view {
+    -> std::string_view {
 // for over compiler need over macros
 #if defined(_MSC_VER) && !defined(__clang__)
   return {&__FUNCSIG__[0], sizeof(__FUNCSIG__)};
@@ -292,7 +295,7 @@ template <typename TargetType>
 // decay allows you to highlight a cleaner name
 template <typename TargetType>
 [[nodiscard]] constexpr auto get_template_function_name_use_decay_type()
-    -> const std::string_view {
+    -> std::string_view {
   return get_template_function_name_use_type<std::decay_t<TargetType>>();
 }
 
@@ -325,7 +328,7 @@ inline constexpr const std::size_t suffix_length = tail_length - need_length;
 }  // namespace detail
 
 template <typename TargetType>
-[[nodiscard]] constexpr auto type_name() -> const std::string_view {
+[[nodiscard]] constexpr auto type_name() -> std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_type<TargetType>();
   const std::size_t end = raw_type_name.length() - detail::suffix_length;
@@ -336,7 +339,7 @@ template <typename TargetType>
 
 // decay allows you to highlight a cleaner name
 template <typename TargetType>
-[[nodiscard]] constexpr auto decay_type_name() -> const std::string_view {
+[[nodiscard]] constexpr auto decay_type_name() -> std::string_view {
   const std::string_view raw_type_name =
       detail::get_template_function_name_use_decay_type<TargetType>();
   const std::size_t end = raw_type_name.length() - detail::suffix_length;
@@ -549,8 +552,11 @@ struct fixed_string {
   CharT _data[N + 1] = {};
 
   constexpr explicit(false) fixed_string(const CharT (&str)[N + 1]) noexcept {
-    if constexpr (N != 0)
-      for (std::size_t i = 0; i < N; ++i) _data[i] = str[i];
+    if constexpr (N != 0) {
+      for (std::size_t i = 0; i < N; ++i) {
+        _data[i] = str[i];
+      }
+    }
   }
 
   [[nodiscard]] constexpr std::size_t size() const noexcept { return N; }
@@ -689,7 +695,7 @@ struct log {
 };
 template <class TMsg = std::string_view>
 log(TMsg) -> log<TMsg>;
-struct fatal_assertion {};
+struct fatal_assertion : std::exception {};
 struct exception {
   const char* msg{};
   [[nodiscard]] auto what() const -> const char* { return msg; }
@@ -705,7 +711,7 @@ struct fatal_;
 
 struct fatal {
   template <class T>
-  [[nodiscard]] inline auto operator()(const T& t) const {
+  [[nodiscard]] auto operator()(const T& t) const {
     return detail::fatal_{t};
   }
 };
@@ -726,22 +732,22 @@ struct cfg {
 #endif
 
   static inline std::string executable_name = "unknown executable";
-  static inline std::string query_pattern = "";        // <- done
+  static inline std::string query_pattern;             // <- done
   static inline bool invert_query_pattern = false;     // <- done
-  static inline std::string query_regex_pattern = "";  // <- done
+  static inline std::string query_regex_pattern;       // <- done
   static inline bool show_help = false;                // <- done
   static inline bool show_tests = false;               // <- done
   static inline bool list_tags = false;                // <- done
   static inline bool show_successful_tests = false;    // <- done
-  static inline std::string output_filename = "";
+  static inline std::string output_filename;
   static inline std::string use_reporter = "console";  // <- done
-  static inline std::string suite_name = "";
+  static inline std::string suite_name;
   static inline bool abort_early = false;  // <- done
   static inline std::size_t abort_after_n_failures =
       std::numeric_limits<std::size_t>::max();  // <- done
   static inline bool show_duration = false;     // <- done
   static inline std::size_t show_min_duration = 0;
-  static inline std::string input_filename = "";
+  static inline std::string input_filename;
   static inline bool show_test_names = false;  // <- done
   static inline bool show_reporters = false;   // <- done
   static inline std::string sort_order = "decl";
@@ -807,7 +813,7 @@ struct cfg {
     std::cout << "version:        " << BOOST_UT_VERSION << std::endl;
   }
 
-  static inline void parse_arg_with_fallback(int argc, const char* argv[]) {
+  static void parse_arg_with_fallback(int argc, const char* argv[]) {
     if (argc > 0 && argv != nullptr) {
       cfg::largc = argc;
       cfg::largv = argv;
@@ -815,7 +821,7 @@ struct cfg {
     parse(cfg::largc, cfg::largv);
   }
 
-  static inline void parse(int argc, const char* argv[]) {
+  static void parse(int argc, const char* argv[]) {
     const std::size_t n_args = argc > 0 ? static_cast<std::size_t>(argc) : 0U;
     if (n_args > 0 && argv != nullptr) {
       executable_name = argv[0];
@@ -918,8 +924,8 @@ template <class T>
 template <class T>
 struct type_ : op {
   template <class TOther>
-  [[nodiscard]] constexpr auto operator()(const TOther&) const
-      -> const type_<TOther> {
+  [[nodiscard]] constexpr auto operator()(const TOther&) const // NOLINT(readability-const-return-type)
+      -> const type_<TOther> { 
     return {};
   }
   [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
@@ -1025,7 +1031,7 @@ struct eq_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
-            return TLhs::value == TRhs::value;
+            return lhs.value == rhs.value;
           } else if constexpr (type_traits::has_static_member_object_epsilon_v<
                                    TLhs> and
                                type_traits::has_static_member_object_epsilon_v<
@@ -1090,7 +1096,7 @@ struct neq_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
-            return TLhs::value != TRhs::value;
+            return lhs.value != rhs.value;
           } else if constexpr (type_traits::has_static_member_object_epsilon_v<
                                    TLhs> and
                                type_traits::has_static_member_object_epsilon_v<
@@ -1125,7 +1131,7 @@ struct gt_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
-            return TLhs::value > TRhs::value;
+            return lhs.value > rhs.value;
           } else {
             return get(lhs_) > get(rhs_);
           }
@@ -1148,7 +1154,7 @@ struct ge_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
-            return TLhs::value >= TRhs::value;
+            return lhs.value >= rhs.value;
           } else {
             return get(lhs_) >= get(rhs_);
           }
@@ -1171,7 +1177,13 @@ struct lt_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
+#if defined(_MSC_VER) && !defined(__clang__)
+            // for some reason, accessing the static member via :: does not compile on MSVC,
+            // and the next line does not compile on clang, so we have to use the ifdef here
+            return lhs.value < rhs.value;
+#else
             return TLhs::value < TRhs::value;
+#endif
           } else {
             return get(lhs_) < get(rhs_);
           }
@@ -1195,7 +1207,7 @@ struct le_ : op {
 
           if constexpr (type_traits::has_static_member_object_value_v<TLhs> and
                         type_traits::has_static_member_object_value_v<TRhs>) {
-            return TLhs::value <= TRhs::value;
+            return lhs.value <= rhs.value;
           } else {
             return get(lhs_) <= get(rhs_);
           }
@@ -1357,7 +1369,7 @@ struct colors {
 };
 
 class printer {
-  [[nodiscard]] inline auto color(const bool cond) {
+  [[nodiscard]] auto color(const bool cond) {
     return cond ? colors_.pass : colors_.fail;
   }
 
@@ -1560,7 +1572,7 @@ class reporter {
     ++asserts_.fail;
   }
 
-  auto on(events::fatal_assertion) -> void {}
+  auto on(const events::fatal_assertion&) -> void {}
 
   auto on(events::summary) -> void {
     if (tests_.fail or asserts_.fail) {
@@ -1610,7 +1622,7 @@ class reporter_junit {
   using clock_ref = std::chrono::high_resolution_clock;
   using timePoint = std::chrono::time_point<clock_ref>;
   using timeDiff = std::chrono::milliseconds;
-  enum class ReportType { CONSOLE, JUNIT } report_type_;
+  enum class ReportType : std::uint8_t { CONSOLE, JUNIT } report_type_;
   static constexpr ReportType CONSOLE = ReportType::CONSOLE;
   static constexpr ReportType JUNIT = ReportType::JUNIT;
 
@@ -1750,8 +1762,8 @@ class reporter_junit {
 
     if (report_type_ == CONSOLE) {
       ss_out_ << "\n";
-      ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
-      ss_out_ << "Running test \"" << test_event.name << "\"... ";
+      ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
+      ss_out_ << "Running " << test_event.type << " \"" << test_event.name << "\"... ";
     }
   }
 
@@ -1765,7 +1777,7 @@ class reporter_junit {
         if (detail::cfg::show_successful_tests) {
           if (!active_scope_->nested_tests->empty()) {
             ss_out_ << "\n";
-            ss_out_ << std::string(2 * active_test_.size() - 2, ' ');
+            ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
             ss_out_ << "Running test \"" << test_event.name << "\" - ";
           }
           ss_out_ << color_.pass << "PASSED" << color_.none;
@@ -1794,7 +1806,7 @@ class reporter_junit {
       active_scope_->status = "SKIPPED";
       active_scope_->skipped += 1;
       if (report_type_ == CONSOLE) {
-        lcout_ << '\n' << std::string(2 * active_test_.size() - 2, ' ');
+        lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
         lcout_ << "Running \"" << test_event.name << "\"... ";
         lcout_ << color_.skip << "SKIPPED" << color_.none;
       }
@@ -1820,7 +1832,7 @@ class reporter_junit {
       active_scope_->report_string += color_.none;
     }
     if (report_type_ == CONSOLE) {
-      lcout_ << std::string(2 * active_test_.size() - 2, ' ');
+      lcout_ << std::string((2 * active_test_.size()) - 2, ' ');
       lcout_ << "Running test \"" << active_test_.top() << "\"... ";
       lcout_ << color_.fail << "FAILED" << color_.none;
       print_duration(lcout_);
@@ -1867,7 +1879,7 @@ class reporter_junit {
     }
   }
 
-  auto on(events::fatal_assertion) -> void { active_scope_->fails++; }
+  auto on(const events::fatal_assertion&) -> void { active_scope_->fails++; }
 
   auto on(events::summary) -> void {
     std::cout.flush();
@@ -1931,7 +1943,8 @@ class reporter_junit {
 
   void print_junit_summary(std::ostream& stream) {
     // aggregate results
-    size_t n_tests = 0, n_fails = 0;
+    size_t n_tests = 0;
+    size_t n_fails = 0;
     double total_time = 0.0;
     auto suite_time = [](auto const& suite_result) {
       std::int64_t time_ms =
@@ -1972,7 +1985,7 @@ class reporter_junit {
     stream << "</testsuites>";
   }
   void print_result(std::ostream& stream, const std::string& suite_name,
-                    std::string indent, const test_result& parent) {
+                    const std::string& indent, const test_result& parent) {
     for (const auto& [name, result] : *parent.nested_tests) {
       stream << indent;
       stream << "<testcase classname=\"" << result.suite_name << '\"';
@@ -2316,8 +2329,8 @@ struct test {
     return _test;
   }
 
-  constexpr auto operator=(void (*_test)(std::string_view)) const {
-    return _test(name);
+  constexpr void operator=(void (*_test)(std::string_view)) const {
+    _test(name);
   }
 
   template <class Test,
@@ -2630,6 +2643,39 @@ constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
 }
 }  // namespace literals
 
+[[nodiscard]] constexpr auto get_ordinal_suffix(int number) {
+  // See https://stackoverflow.com/a/13627586
+  const auto last_digit = number % 10;
+  const auto last_two_digits = number % 100;
+  if (last_digit == 1 && last_two_digits != 11) {
+    return "st";
+  }
+  if (last_digit == 2 && last_two_digits != 12) {
+    return "nd";
+  }
+  if (last_digit == 3 && last_two_digits != 13) {
+    return "rd";
+  }
+  return "th";
+};
+
+template<class TArg>
+inline std::string format_test_parameter([[maybe_unused]] const TArg& arg, const int counter) {
+  return std::to_string(counter) + get_ordinal_suffix(counter) + " parameter";
+}
+
+template <class F>
+  requires (std::integral<F> || std::floating_point<F>) && (!std::same_as<F, bool>)
+inline std::string format_test_parameter(const F& arg, [[maybe_unused]] const int counter) {
+  std::ostringstream oss;
+  oss << arg;
+  return oss.str();
+}
+
+inline std::string format_test_parameter(const bool& arg, [[maybe_unused]] const int counter) {
+    return arg ? "true" : "false";
+}
+
 namespace operators {
 [[nodiscard]] constexpr auto operator==(std::string_view lhs,
                                         std::string_view rhs) {
@@ -2728,7 +2774,8 @@ template <class Test>
 
 [[nodiscard]] inline auto operator/(const detail::tag& lhs,
                                     const detail::tag& rhs) {
-  std::vector<std::string_view> tag{};
+  std::vector<std::string_view> tag;
+  tag.reserve(lhs.name.size() + rhs.name.size());
   for (const auto& name : lhs.name) {
     tag.push_back(name);
   }
@@ -2738,29 +2785,45 @@ template <class Test>
   return detail::tag{tag};
 }
 
-template <class F, class T,
-          type_traits::requires_t<type_traits::is_range_v<T>> = 0>
+template <class F, class T>
+  requires std::ranges::range<T>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
   return [f, t](const auto name) {
-    for (const auto& arg : t) {
-      detail::on<F>(events::test<F, decltype(arg)>{.type = "test",
-                                                   .name = std::string{name},
-                                                   .tag = {},
-                                                   .location = {},
-                                                   .arg = arg,
-                                                   .run = f});
+    for (int counter = 1; const auto& arg : t) {
+      detail::on<F>(events::test<F, decltype(arg)>{
+          .type = "test",
+          .name =
+              std::string{name} + " (" +
+              format_test_parameter(arg, counter) + ")",
+          .tag = {},
+          .location = {},
+          .arg = arg,
+          .run = f});
+      ++counter;
     }
   };
 }
 
 template <class F, template <class...> class T, class... Ts,
           type_traits::requires_t<not type_traits::is_range_v<T<Ts...>>> = 0>
-[[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t) {
-  return [f, t](const auto name) {
+[[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t)
+{
+  constexpr auto unique_name = []<class TArg>(const auto& name, const TArg& arg, int& counter) {
+    auto ret = std::string{name} + " (";
+    if (std::invocable<F, TArg>) {
+      ret += format_test_parameter(arg, counter) + ", ";
+    }
+    ret += std::string(reflection::type_name<TArg>()) + ")";
+    ++counter;
+    return ret;
+  };
+
+  return [f, t, unique_name](const auto name) {
+    int counter = 1;
     apply(
-        [f, name](const auto&... args) {
+        [f, name, unique_name, &counter](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{.type = "test",
-                                             .name = std::string{name},
+                                             .name = unique_name.template operator()<Ts>(name, args, counter),
                                              .tag = {},
                                              .location = {},
                                              .arg = args,

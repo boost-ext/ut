@@ -957,6 +957,17 @@ for (auto i : std::vector{1, 2, 3}) {
     }
   | std::tuple{true, 42};
 ```
+When using the `operator|` syntax instead of a `for` loop, the test name will automatically
+be extended to avoid duplicate names. For example, the test name for the `args and types` test
+will be `args and types (true, bool)` for the first parameter and `args and types (42, int)`
+for the second parameter. For simple built-in types (integral types and floating point numbers),
+the test name will contain the parameter values. For other types, the parameters will simply be
+enumerated. For example, if we would extend the test above to use
+`std::tuple{true, 42, std::complex<double>{0.5, 1}}`, the test name in the third run would be
+`args and types (3rd parameter, std::complex<double>)`. If you want to have the actual value of
+a non-integral type included in the test name, you can overload the `format_test_parameter` function.
+See the [example on parameterized tests](https://github.com/boost-ext/ut/blob/master/example/parameterized.cpp)
+for details.
 
 ```
 All tests passed (14 asserts in 10 tests)
