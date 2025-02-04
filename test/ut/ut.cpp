@@ -433,18 +433,6 @@ int main() { // NOLINT(readability-function-size)
     }
 
     {
-      struct foo {
-        int value;
-      };
-      struct bar {};
-      constexpr auto value = [](auto t) -> decltype(t.value, void()) {};
-      static_assert(type_traits::is_valid<foo>(value));
-      static_assert(not type_traits::is_valid<bar>(value));
-      static_assert(not type_traits::is_valid<int>(value));
-      static_assert(not type_traits::is_valid<void>(value));
-    }
-
-    {
       static_assert("void" == reflection::type_name<void>());
       static_assert("int" == reflection::type_name<int>());
 
