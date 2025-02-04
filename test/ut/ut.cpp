@@ -18,11 +18,8 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
-
-#if __has_include(<format>)
-#include <format>
-#endif
 
 namespace ut = boost::ut;
 
@@ -46,7 +43,7 @@ struct public_static_member_object_value {
 };
 
 struct public_member_function_value {
-  // NOLINTNEXTLINE(-readability-convert-member-functions-to-static)
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   int value() const { return 0; }
 };
 
@@ -70,6 +67,7 @@ struct public_static_member_object_epsilon {
 };
 
 struct public_member_function_epsilon {
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   int epsilon() const { return 0; }
 };
 
@@ -79,12 +77,13 @@ struct public_static_member_function_epsilon {
 
 }  // namespace test_has_member_object
 
-constexpr auto to_string = [](const auto expr) {
+constexpr auto to_string = [](const auto& expr) {
   ut::printer printer{{.none = "", .pass = "", .fail = ""}};
   printer << std::boolalpha << expr;
   return printer.str();
 };
 
+namespace {
 auto test_assert =
     [](const bool result, const ut::reflection::source_location& sl =
                               ut::reflection::source_location::current()) {
@@ -94,6 +93,7 @@ auto test_assert =
         std::abort();
       }
     };
+}
 
 struct fake_cfg {
   struct assertion_call {
@@ -143,7 +143,7 @@ struct fake_cfg {
   }
 
   template <class TExpr>
-  auto on(ut::events::assertion<TExpr> assertion) -> bool {
+  auto on(const ut::events::assertion<TExpr>& assertion) -> bool {
     assertion_calls.push_back({.expr = to_string(assertion.expr),
                                .location = assertion.location,
                                .result = assertion.expr});
@@ -173,7 +173,7 @@ template <class T>
 class fake_calculator {
  public:
   auto enter(const T& value) -> void { values_.push_back(value); }
-  auto name(std::string value) -> void { name_ = value; }
+  auto name(std::string value) -> void { name_ = std::move(value); }
   auto add() -> void {
     result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
   }
@@ -207,6 +207,7 @@ struct test_empty {
 };
 
 struct test_throw {
+  // NOLINTNEXTLINE(hicpp-exception-baseclass)
   auto operator()() -> void { throw 42; }
 };
 
@@ -291,13 +292,13 @@ struct test_summary_reporter : ut::reporter<ut::printer> {
 
   auto count_runs(std::size_t& counter) -> void { runs_counter_ = &counter; }
 
-  auto on(ut::events::summary) -> void {
+  auto on(ut::events::summary) const -> void {
     if (summary_counter_) {
       ++*summary_counter_;
     }
   }
 
-  auto on(ut::events::run_begin) -> void {
+  auto on(ut::events::run_begin) const -> void {
     if (runs_counter_) {
       ++*runs_counter_;
     }
@@ -312,15 +313,19 @@ struct test_summary_runner : ut::runner<test_summary_reporter> {
 };
 
 namespace ns {
+namespace {
 template <char... Cs>
 constexpr auto operator""_i() -> int {
   return sizeof...(Cs);
 }
-static auto f() -> int { return 0_i; }
+auto f() -> int { return 0_i; }
+}
 }  //  namespace ns
-static auto f() -> int {
+namespace {
+auto f() -> int {
   using namespace ns;
   return 42_i;
+}
 }
 
 struct custom {
@@ -363,15 +368,17 @@ struct custom_printable_type {
   int value;
 };
 
+// NOLINTBEGIN(misc-use-anonymous-namespace)
 static std::string format_test_parameter(const custom_printable_type& value,
-                                  [[maybe_unused]] const int counter) {
+                                         [[maybe_unused]] const int counter) {
   return "custom_printable_type(" + std::to_string(value.value) + ")";
 }
 
 template <class... Ts>
 static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
+// NOLINTEND(misc-use-anonymous-namespace)
 
-int main() {
+int main() { // NOLINT(readability-function-size)
   {
     using namespace ut;
     using namespace std::literals::string_view_literals;
@@ -670,8 +677,8 @@ int main() {
     {
       std::stringstream out{};
       std::stringstream err{};
-      auto old_cout = std::cout.rdbuf(out.rdbuf());
-      auto old_cerr = std::cerr.rdbuf(err.rdbuf());
+      auto* old_cout = std::cout.rdbuf(out.rdbuf());
+      auto* old_cerr = std::cerr.rdbuf(err.rdbuf());
 
       auto reporter = test_reporter{};
 
@@ -864,7 +871,7 @@ int main() {
       {
         test_summary_runner run;
         run.reporter_.count_summaries(summary_count);
-        test_assert(false == run.run({.report_errors = true}));
+        test_assert(!run.run({.report_errors = true}));
       }
       test_assert(1 == summary_count);
     }
@@ -874,7 +881,7 @@ int main() {
       {
         auto run = test_summary_runner{};
         run.reporter_.count_runs(run_count);
-        test_assert(false == run.run({.report_errors = true}));
+        test_assert(!run.run({.report_errors = true}));
       }
       test_assert(1 == run_count);
     }
@@ -1405,6 +1412,7 @@ int main() {
     }
 
     {
+      // NOLINTBEGIN(hicpp-exception-baseclass)
       test_cfg = fake_cfg{};
 
       "exceptions"_test = [] {
@@ -1452,7 +1460,9 @@ int main() {
 
       "should throw"_test = [] {
         auto f = [](const auto should_throw) {
-          if (should_throw) throw 42;
+          if (should_throw) {
+            throw 42;
+          }
           return 42;
         };
         expect(42_i == f(true));
@@ -1477,6 +1487,7 @@ int main() {
       test_assert("events::exception message"sv == test_cfg.exception_calls[2]);
       test_assert("Unknown exception"sv == test_cfg.exception_calls[3]);
       test_assert(6 == std::size(test_cfg.assertion_calls));
+      // NOLINTEND(hicpp-exception-baseclass)
     }
 
 #if __has_include(<unistd.h>) and __has_include(<sys/wait.h>) and not defined(EMSCRIPTEN)
@@ -1930,7 +1941,7 @@ int main() {
               calc.enter(value);
             };
             steps.when("I name it '{value}'") = [&](std::string value) {
-              calc.name(value);
+              calc.name(std::move(value));
             };
             steps.when("I press add") = [&] { calc.add(); };
             steps.when("I press sub") = [&] { calc.sub(); };
