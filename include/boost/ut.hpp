@@ -464,28 +464,12 @@ struct function_traits<R (T::*)(TArgs...) const> {
   using args = list<TArgs...>;
 };
 
-template <class T>
-T&& declval();
-template <class... Ts, class TExpr>
-constexpr auto is_valid(TExpr expr) -> decltype(expr(declval<Ts...>()),
-                                                bool()) {
-  return true;
-}
-template <class...>
-constexpr auto is_valid(...) -> bool {
-  return false;
-}
-
-template <class T>
-inline constexpr auto has_user_print = is_valid<T>(
-    [](auto t) -> decltype(void(declval<std::ostringstream&>() << t)) {});
-
 template <class T, class = void>
 struct has_static_member_object_value : std::false_type {};
 
 template <class T>
 struct has_static_member_object_value<T,
-                                      std::void_t<decltype(declval<T>().value)>>
+                                      std::void_t<decltype(std::declval<T>().value)>>
     : std::bool_constant<!std::is_member_pointer_v<decltype(&T::value)> &&
                          !std::is_function_v<decltype(T::value)>> {};
 
@@ -498,7 +482,7 @@ struct has_static_member_object_epsilon : std::false_type {};
 
 template <class T>
 struct has_static_member_object_epsilon<
-    T, std::void_t<decltype(declval<T>().epsilon)>>
+    T, std::void_t<decltype(std::declval<T>().epsilon)>>
     : std::bool_constant<!std::is_member_pointer_v<decltype(&T::epsilon)> &&
                          !std::is_function_v<decltype(T::epsilon)>> {};
 
@@ -2312,7 +2296,7 @@ struct test {
   template <class Test>
     requires(!std::convertible_to<Test, void (*)(std::string_view)>)
   constexpr auto operator=(Test _test)
-      -> decltype(_test(type_traits::declval<std::string_view>())) {
+      -> decltype(_test(std::declval<std::string_view>())) {
     return _test(name);
   }
 };
