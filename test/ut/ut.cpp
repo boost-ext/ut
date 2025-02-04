@@ -1641,7 +1641,6 @@ int main() {
       test_assert("2 > 0" == test_cfg.assertion_calls[3].expr);
     }
 
-#if not defined(__APPLE__)
     {
       test_cfg = fake_cfg{};
 
@@ -1719,7 +1718,6 @@ int main() {
       test_assert(test_cfg.run_calls[6].name.find("std::complex<double>") != std::string::npos);
       test_assert(test_cfg.run_calls[7].name.starts_with("parameterized test names (custom_printable_type(42), "));
     }
-#endif
 
     {
       test_cfg = fake_cfg{};
