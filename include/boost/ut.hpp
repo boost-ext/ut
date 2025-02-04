@@ -508,6 +508,23 @@ inline constexpr bool has_static_member_object_epsilon_v =
 
 }  // namespace type_traits
 
+namespace concepts
+{
+
+// std::convertible_to also requires implicit conversion to work
+// See https://stackoverflow.com/a/76547623
+template <class From, class To>
+concept explicitly_convertible_to = requires {
+    static_cast<To>(std::declval<From>());
+};
+
+template <class T>
+concept ostreamable = requires(std::ostringstream& os, T t) {
+  os << t;
+};
+
+} // namespace concepts
+
 template <typename CharT, std::size_t SIZE>
 struct fixed_string {
   constexpr static std::size_t N = SIZE;
@@ -1345,7 +1362,7 @@ class printer {
   }
 
   template <class T>
-    requires std::ranges::range<T> && (!type_traits::has_user_print<T>)
+    requires std::ranges::range<T> && (!concepts::ostreamable<T>)
   auto& operator<<(T&& t) {
     *this << '{';
     auto first = true;
@@ -3006,7 +3023,7 @@ constexpr auto operator not(const T& t) {
 }  // namespace operators
 
 template <class TExpr>
-  requires type_traits::is_op<TExpr> || std::convertible_to<TExpr, bool>
+  requires type_traits::is_op<TExpr> || concepts::explicitly_convertible_to<TExpr, bool>
 constexpr auto expect(const TExpr& expr,
                       const reflection::source_location& sl =
                           reflection::source_location::current()) {
