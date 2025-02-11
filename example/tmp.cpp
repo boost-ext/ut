@@ -25,8 +25,10 @@ int main() {
   };
 
   "constant"_test = [] {
+    // clang-format off
     expect(constant<42_i == i> and type<void> == type<void> and
            type<list<void, int>> == type<list<void, int>>);
+    // clang-format on
   };
 
 #if defined(__cpp_concepts)
@@ -37,7 +39,7 @@ int main() {
     struct bar {};
 
     expect([](auto t) { return requires { t.value; }; }(foo{}));
-    expect(not [](auto t) { return requires { t.value; }; }(bar{}));
+    expect(not[](auto t) { return requires { t.value; }; }(bar{}));
   };
 #endif
 }

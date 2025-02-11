@@ -19,14 +19,14 @@ namespace boost::inline ext::ut {
 namespace {
 template <std::floating_point F>
 std::string format_test_parameter(const std::complex<F>& arg,
-                                         [[maybe_unused]] const int counter) {
+                                  [[maybe_unused]] const int counter) {
   std::ostringstream oss;
   oss << arg.real() << '+' << arg.imag() << 'i';
   return oss.str();
 }
 }  // namespace
 
-} // namespace boost::inline ext::ut
+}  // namespace boost::inline ext::ut
 
 int main() {
   using namespace boost::ut;

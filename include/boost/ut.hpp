@@ -180,8 +180,8 @@ class function<R(TArgs...)> {
 }
 
 template <class TPattern, class TStr>
-[[nodiscard]] constexpr auto match(const TPattern& pattern,
-                                   const TStr& str) -> std::vector<TStr> {
+[[nodiscard]] constexpr auto match(const TPattern& pattern, const TStr& str)
+    -> std::vector<TStr> {
   std::vector<TStr> groups{};
   auto pi = 0u;
   auto si = 0u;
@@ -356,9 +356,8 @@ template <class T>
 }
 
 template <class T, class U>
-[[nodiscard]] constexpr auto abs_diff(const T t,
-                                      const U u) -> decltype(t < u ? u - t
-                                                                   : t - u) {
+[[nodiscard]] constexpr auto abs_diff(const T t, const U u)
+    -> decltype(t < u ? u - t : t - u) {
   return t < u ? u - t : t - u;
 }
 
@@ -468,8 +467,8 @@ template <class T, class = void>
 struct has_static_member_object_value : std::false_type {};
 
 template <class T>
-struct has_static_member_object_value<T,
-                                      std::void_t<decltype(std::declval<T>().value)>>
+struct has_static_member_object_value<
+    T, std::void_t<decltype(std::declval<T>().value)>>
     : std::bool_constant<!std::is_member_pointer_v<decltype(&T::value)> &&
                          !std::is_function_v<decltype(T::value)>> {};
 
@@ -492,22 +491,18 @@ inline constexpr bool has_static_member_object_epsilon_v =
 
 }  // namespace type_traits
 
-namespace concepts
-{
+namespace concepts {
 
 // std::convertible_to also requires implicit conversion to work
 // See https://stackoverflow.com/a/76547623
 template <class From, class To>
-concept explicitly_convertible_to = requires {
-    static_cast<To>(std::declval<From>());
-};
+concept explicitly_convertible_to =
+    requires { static_cast<To>(std::declval<From>()); };
 
 template <class T>
-concept ostreamable = requires(std::ostringstream& os, T t) {
-  os << t;
-};
+concept ostreamable = requires(std::ostringstream& os, T t) { os << t; };
 
-} // namespace concepts
+}  // namespace concepts
 
 template <typename CharT, std::size_t SIZE>
 struct fixed_string {
@@ -584,8 +579,8 @@ struct test {
   static constexpr auto run_impl(Test test, const none&) { test(); }
 
   template <class T>
-  static constexpr auto run_impl(T test, const TArg& arg) -> decltype(test(arg),
-                                                                      void()) {
+  static constexpr auto run_impl(T test, const TArg& arg)
+      -> decltype(test(arg), void()) {
     test(arg);
   }
 
@@ -695,13 +690,13 @@ struct cfg {
 #endif
 
   static inline std::string executable_name = "unknown executable";
-  static inline std::string query_pattern;             // <- done
-  static inline bool invert_query_pattern = false;     // <- done
-  static inline std::string query_regex_pattern;       // <- done
-  static inline bool show_help = false;                // <- done
-  static inline bool show_tests = false;               // <- done
-  static inline bool list_tags = false;                // <- done
-  static inline bool show_successful_tests = false;    // <- done
+  static inline std::string query_pattern;           // <- done
+  static inline bool invert_query_pattern = false;   // <- done
+  static inline std::string query_regex_pattern;     // <- done
+  static inline bool show_help = false;              // <- done
+  static inline bool show_tests = false;             // <- done
+  static inline bool list_tags = false;              // <- done
+  static inline bool show_successful_tests = false;  // <- done
   static inline std::string output_filename;
   static inline std::string use_reporter = "console";  // <- done
   static inline std::string suite_name;
@@ -887,8 +882,9 @@ template <class T>
 template <class T>
 struct type_ : op {
   template <class TOther>
-  [[nodiscard]] constexpr auto operator()(const TOther&) const // NOLINT(readability-const-return-type)
-      -> const type_<TOther> { 
+  [[nodiscard]] constexpr auto operator()(
+      const TOther&) const  // NOLINT(readability-const-return-type)
+      -> const type_<TOther> {
     return {};
   }
   [[nodiscard]] constexpr auto operator==(type_<T>) -> bool { return true; }
@@ -1149,7 +1145,8 @@ struct lt_ : op {
           } else {
             return get(lhs_) < get(rhs_);
           }
-        }()} {}
+        }()} {
+  }
 
   [[nodiscard]] constexpr operator bool() const { return value_; }
   [[nodiscard]] constexpr auto lhs() const { return get(lhs_); }
@@ -1543,8 +1540,9 @@ class reporter {
                << printer_.colors().fail << tests_.fail << " failed"
                << printer_.colors().none << '\n'
                << "asserts: " << (asserts_.pass + asserts_.fail) << " | "
-               << asserts_.pass << " passed" << " | " << printer_.colors().fail
-               << asserts_.fail << " failed" << printer_.colors().none << '\n';
+               << asserts_.pass << " passed"
+               << " | " << printer_.colors().fail << asserts_.fail << " failed"
+               << printer_.colors().none << '\n';
       std::cerr << printer_.str() << std::endl;
     } else {
       std::cout << printer_.colors().pass << "All tests passed"
@@ -1724,7 +1722,8 @@ class reporter_junit {
     if (report_type_ == CONSOLE) {
       ss_out_ << "\n";
       ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
-      ss_out_ << "Running " << test_event.type << " \"" << test_event.name << "\"... ";
+      ss_out_ << "Running " << test_event.type << " \"" << test_event.name
+              << "\"... ";
     }
   }
 
@@ -1884,8 +1883,9 @@ class reporter_junit {
             << "tests:   " << (suite_result.n_tests) << " | " << color_.fail
             << suite_result.fails << " failed" << color_.none << '\n'
             << "asserts: " << (suite_result.assertions) << " | "
-            << suite_result.passed << " passed" << " | " << color_.fail
-            << suite_result.fails << " failed" << color_.none << '\n';
+            << suite_result.passed << " passed"
+            << " | " << color_.fail << suite_result.fails << " failed"
+            << color_.none << '\n';
         std::cerr << std::endl;
       } else {
         out_stream << color_.pass << "Suite '" << suite_name
@@ -2001,8 +2001,8 @@ class runner {
         : path_{utility::split(_filter, delim)} {}
 
     template <class TPath>
-    constexpr auto operator()(const std::size_t level,
-                              const TPath& path) const -> bool {
+    constexpr auto operator()(const std::size_t level, const TPath& path) const
+        -> bool {
       for (auto i = 0u; i < math::min_value(level + 1, std::size(path_)); ++i) {
         if (not utility::is_match(path[i], path_[i])) {
           return false;
@@ -2618,21 +2618,25 @@ constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
   return "th";
 };
 
-template<class TArg>
-inline std::string format_test_parameter([[maybe_unused]] const TArg& arg, const int counter) {
+template <class TArg>
+inline std::string format_test_parameter([[maybe_unused]] const TArg& arg,
+                                         const int counter) {
   return std::to_string(counter) + get_ordinal_suffix(counter) + " parameter";
 }
 
 template <class F>
-  requires (std::integral<F> || std::floating_point<F>) && (!std::same_as<F, bool>)
-inline std::string format_test_parameter(const F& arg, [[maybe_unused]] const int counter) {
+  requires(std::integral<F> || std::floating_point<F>) &&
+          (!std::same_as<F, bool>)
+inline std::string
+    format_test_parameter(const F& arg, [[maybe_unused]] const int counter) {
   std::ostringstream oss;
   oss << arg;
   return oss.str();
 }
 
-inline std::string format_test_parameter(const bool& arg, [[maybe_unused]] const int counter) {
-    return arg ? "true" : "false";
+inline std::string format_test_parameter(const bool& arg,
+                                         [[maybe_unused]] const int counter) {
+  return arg ? "true" : "false";
 }
 
 namespace operators {
@@ -2744,9 +2748,8 @@ template <class F, class T>
     for (int counter = 1; const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
           .type = "test",
-          .name =
-              std::string{name} + " (" +
-              format_test_parameter(arg, counter) + ")",
+          .name = std::string{name} + " (" +
+                  format_test_parameter(arg, counter) + ")",
           .tag = {},
           .location = {},
           .arg = arg,
@@ -2757,10 +2760,10 @@ template <class F, class T>
 }
 
 template <class F, template <class...> class T, class... Ts>
-  requires (!std::ranges::range<T<Ts...>>)
-[[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t)
-{
-  constexpr auto unique_name = []<class TArg>(const auto& name, const TArg& arg, int& counter) {
+  requires(!std::ranges::range<T<Ts...>>)
+[[nodiscard]] constexpr auto operator|(const F& f, const T<Ts...>& t) {
+  constexpr auto unique_name = []<class TArg>(std::string_view name,
+                                              const TArg& arg, int& counter) {
     auto ret = std::string{name} + " (";
     if (std::invocable<F, TArg>) {
       ret += format_test_parameter(arg, counter) + ", ";
@@ -2774,12 +2777,13 @@ template <class F, template <class...> class T, class... Ts>
     int counter = 1;
     apply(
         [f, name, unique_name, &counter](const auto&... args) {
-          (detail::on<F>(events::test<F, Ts>{.type = "test",
-                                             .name = unique_name.template operator()<Ts>(name, args, counter),
-                                             .tag = {},
-                                             .location = {},
-                                             .arg = args,
-                                             .run = f}),
+          (detail::on<F>(events::test<F, Ts>{
+               .type = "test",
+               .name = unique_name.template operator()<Ts>(name, args, counter),
+               .tag = {},
+               .location = {},
+               .arg = args,
+               .run = f}),
            ...);
         },
         t);
@@ -3007,7 +3011,8 @@ constexpr auto operator not(const T& t) {
 }  // namespace operators
 
 template <class TExpr>
-  requires type_traits::is_op<TExpr> || concepts::explicitly_convertible_to<TExpr, bool>
+  requires type_traits::is_op<TExpr> ||
+           concepts::explicitly_convertible_to<TExpr, bool>
 constexpr auto expect(const TExpr& expr,
                       const reflection::source_location& sl =
                           reflection::source_location::current()) {
