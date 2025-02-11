@@ -2277,9 +2277,8 @@ struct test {
   }
 
   template <class Test>
-    requires(!std::convertible_to<Test, void (*)()>)
-  constexpr auto operator=(Test _test) ->
-      typename type_traits::identity<Test, decltype(_test())>::type {
+    requires std::invocable<Test> && (!std::convertible_to<Test, void (*)()>)
+  constexpr auto operator=(Test _test) {
     on<Test>(events::test<Test>{.type = type,
                                 .name = std::string{name},
                                 .tag = tag,
@@ -2289,15 +2288,17 @@ struct test {
     return _test;
   }
 
-  constexpr void operator=(void (*_test)(std::string_view)) const {
-    _test(name);
+  constexpr void operator=(void (*_test)(std::string_view,
+                                         std::string_view)) const {
+    _test(type, name);
   }
 
   template <class Test>
-    requires(!std::convertible_to<Test, void (*)(std::string_view)>)
-  constexpr auto operator=(Test _test)
-      -> decltype(_test(std::declval<std::string_view>())) {
-    return _test(name);
+    requires std::invocable<Test, std::string_view, std::string_view> &&
+             (!std::convertible_to<Test, void (*)(std::string_view,
+                                                  std::string_view)>)
+  constexpr auto operator=(Test _test) {
+    return _test(type, name);
   }
 };
 
@@ -2744,10 +2745,10 @@ template <class Test>
 template <class F, class T>
   requires std::ranges::range<T>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
-  return [f, t](const auto name) {
+  return [f, t](std::string_view type, std::string_view name) {
     for (int counter = 1; const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
-          .type = "test",
+          .type = type,
           .name = std::string{name} + " (" +
                   format_test_parameter(arg, counter) + ")",
           .tag = {},
@@ -2773,12 +2774,12 @@ template <class F, template <class...> class T, class... Ts>
     return ret;
   };
 
-  return [f, t, unique_name](const auto name) {
+  return [f, t, unique_name](std::string_view type, std::string_view name) {
     int counter = 1;
     apply(
-        [f, name, unique_name, &counter](const auto&... args) {
+        [=, &counter](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{
-               .type = "test",
+               .type = type,
                .name = unique_name.template operator()<Ts>(name, args, counter),
                .tag = {},
                .location = {},
