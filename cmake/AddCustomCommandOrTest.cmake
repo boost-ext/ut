@@ -17,6 +17,7 @@ function(ut_add_custom_command_or_test)
       TARGET ${PARSE_TARGET}
       POST_BUILD
       COMMAND ${PARSE_COMMAND}
+      COMMENT "Running ${PARSE_TARGET}"
     )
   else()
     add_test(NAME ${PARSE_TARGET} COMMAND ${PARSE_COMMAND})

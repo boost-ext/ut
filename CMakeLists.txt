@@ -42,12 +42,13 @@ if(BOOST_UT_USE_WARNINGS_AS_ERORS)
   include(cmake/WarningsAsErrors.cmake)
 endif()
 
-add_custom_target(style)
+add_custom_target(style COMMENT "Running clang-format")
 add_custom_command(
   TARGET style
   POST_BUILD
   COMMAND find ${CMAKE_CURRENT_LIST_DIR}/benchmark ${CMAKE_CURRENT_LIST_DIR}/example ${CMAKE_CURRENT_LIST_DIR}/include
           ${CMAKE_CURRENT_LIST_DIR}/test -iname "*.hpp" -or -iname "*.cpp" | xargs clang-format -i
+  COMMENT "Running clang-format"
 )
 
 if(BOOST_UT_ENABLE_COVERAGE)
@@ -68,15 +69,22 @@ endif()
 if(BOOST_UT_ENABLE_INSTALL AND NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/PackageProject.cmake)
   # Create target Boost::ut and install target
-  packageProject(
-    NAME ${PROJECT_NAME}
-    VERSION ${PROJECT_VERSION}
-    NAMESPACE Boost
-    BINARY_DIR ${PROJECT_BINARY_DIR}
-    INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
-    INCLUDE_DESTINATION ${INCLUDE_INSTALL_DIR}
+  packageproject(
+    NAME
+    ${PROJECT_NAME}
+    VERSION
+    ${PROJECT_VERSION}
+    NAMESPACE
+    Boost
+    BINARY_DIR
+    ${PROJECT_BINARY_DIR}
+    INCLUDE_DIR
+    ${PROJECT_SOURCE_DIR}/include
+    INCLUDE_DESTINATION
+    ${INCLUDE_INSTALL_DIR}
     # XXX variant: DISABLE_VERSION_SUFFIX YES
-    COMPATIBILITY SameMajorVersion
+    COMPATIBILITY
+    SameMajorVersion
     # Note: only if needed i.e. DEPENDENCIES "fmt 7.1.3; span"
   )
 endif()
