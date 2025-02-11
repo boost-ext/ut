@@ -8,16 +8,14 @@
 #include <array>
 #include <boost/ut.hpp>
 #include <memory>
-#include <string>
 #include <string_view>
 #include <vector>
 
 constexpr auto sum = [](auto... args) { return (0 + ... + args); };
 
-struct dummy_struct{};
+struct dummy_struct {};
 int main() {
   using namespace boost::ut;
-
 
   "operators"_test = [] {
     expect(0_i == sum());
@@ -42,9 +40,9 @@ int main() {
 
   "eq/neq/gt/ge/lt/le"_test = [] {
     // type_traits::is_stream_insertable_v constraint check
-    
-    static_assert( type_traits::is_stream_insertable_v<int>);
-    static_assert( !type_traits::is_stream_insertable_v<dummy_struct>);
+
+    static_assert(type_traits::is_stream_insertable_v<int>);
+    static_assert(!type_traits::is_stream_insertable_v<dummy_struct>);
 
     // it seems it produces nice error information
     // leaving this as easy way to check failing compilation in case of doubt
@@ -106,7 +104,9 @@ int main() {
   "constant"_test = [] {
     constexpr auto compile_time_v = 42;
     auto run_time_v = 99;
+    // clang-format off
     expect(constant<42_i == compile_time_v> and run_time_v == 99_i);
+    // clang-format on
   };
 
   "convertible"_test = [] {

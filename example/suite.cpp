@@ -21,7 +21,7 @@ ut::suite errors = [] {
 
 #if not defined(__clang__) and not defined(_MSC_VER)
 struct calc {
-  static inline ut::suite sum_suite = []<class T = calc>()->void {
+  static inline ut::suite sum_suite = []<class T = calc>() -> void {
     using namespace ut;
 
     "sum"_test = [] {

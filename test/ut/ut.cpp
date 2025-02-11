@@ -84,16 +84,15 @@ constexpr auto to_string = [](const auto& expr) {
 };
 
 namespace {
-auto test_assert =
-    [](const bool result, const ut::reflection::source_location& sl =
-                              ut::reflection::source_location::current()) {
-      if (not result) {
-        std::cerr << sl.file_name() << ':' << sl.line() << ":FAILED"
-                  << std::endl;
-        std::abort();
-      }
-    };
-}
+auto test_assert = [](const bool result,
+                      const ut::reflection::source_location& sl =
+                          ut::reflection::source_location::current()) {
+  if (not result) {
+    std::cerr << sl.file_name() << ':' << sl.line() << ":FAILED" << std::endl;
+    std::abort();
+  }
+};
+}  // namespace
 
 struct fake_cfg {
   struct assertion_call {
@@ -319,14 +318,14 @@ constexpr auto operator""_i() -> int {
   return sizeof...(Cs);
 }
 auto f() -> int { return 0_i; }
-}
+}  // namespace
 }  //  namespace ns
 namespace {
 auto f() -> int {
   using namespace ns;
   return 42_i;
 }
-}
+}  // namespace
 
 struct custom {
   int i{};
@@ -378,7 +377,7 @@ template <class... Ts>
 static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
 // NOLINTEND(misc-use-anonymous-namespace)
 
-int main() { // NOLINT(readability-function-size)
+int main() {  // NOLINT(readability-function-size)
   {
     using namespace ut;
     using namespace std::literals::string_view_literals;
@@ -437,25 +436,24 @@ int main() { // NOLINT(readability-function-size)
       static_assert("int" == reflection::type_name<int>());
 
 #if defined(_MSC_VER) and not defined(__clang__)
-      static_assert("struct fake_cfg" ==
-                    reflection::type_name<fake_cfg>());
+      static_assert("struct fake_cfg" == reflection::type_name<fake_cfg>());
 #else
       static_assert("fake_cfg" == reflection::type_name<fake_cfg>());
 #endif
     }
 
     {
-     static_assert(utility::regex_match("", ""));
-     static_assert(utility::regex_match("hello", "hello"));
-     static_assert(utility::regex_match("hello", "h.llo"));
-     static_assert(utility::regex_match("hello", "he..o"));
-     static_assert(not utility::regex_match("hello", "hella"));
-     static_assert(not utility::regex_match("hello", "helao"));
-     static_assert(not utility::regex_match("hello", "hlllo"));
-     static_assert(not utility::regex_match("hello", ""));
-     static_assert(not utility::regex_match("", "hello"));
-     static_assert(not utility::regex_match("hi", "hello"));
-     static_assert(not utility::regex_match("hello there", "hello"));
+      static_assert(utility::regex_match("", ""));
+      static_assert(utility::regex_match("hello", "hello"));
+      static_assert(utility::regex_match("hello", "h.llo"));
+      static_assert(utility::regex_match("hello", "he..o"));
+      static_assert(not utility::regex_match("hello", "hella"));
+      static_assert(not utility::regex_match("hello", "helao"));
+      static_assert(not utility::regex_match("hello", "hlllo"));
+      static_assert(not utility::regex_match("hello", ""));
+      static_assert(not utility::regex_match("", "hello"));
+      static_assert(not utility::regex_match("hi", "hello"));
+      static_assert(not utility::regex_match("hello there", "hello"));
     }
 
     {
@@ -1006,6 +1004,7 @@ int main() { // NOLINT(readability-function-size)
     {
       test_cfg = fake_cfg{};
 
+      // clang-format off
       {
         constexpr auto c = 4;
         auto r = 2;
@@ -1023,6 +1022,7 @@ int main() { // NOLINT(readability-function-size)
         auto r = 3;
         expect(constant<4_i == c> and r == 2_i) << "fail run-time";
       }
+      // clang-format on
 
       test_assert(3 == std::size(test_cfg.assertion_calls));
 
@@ -1685,26 +1685,43 @@ int main() { // NOLINT(readability-function-size)
     {
       test_cfg = fake_cfg{};
 
-      "parameterized test names"_test = []<class TArg>(const TArg& /*arg*/) {
-        expect(true);
-      } | std::tuple {
-        custom_non_printable_type{0}, std::string{"str"}, "str", "str"sv,
-            42.5, false, std::complex{1.5, 2.0}, custom_printable_type{42}};
+      "parameterized test names"_test =
+          []<class TArg>(const TArg& /*arg*/) { expect(true); } |
+          std::tuple{custom_non_printable_type{0},
+                     std::string{"str"},
+                     "str",
+                     "str"sv,
+                     42.5,
+                     false,
+                     std::complex{1.5, 2.0},
+                     custom_printable_type{42}};
 
       test_assert(8 == std::size(test_cfg.run_calls));
-      test_assert(test_cfg.run_calls[0].name.starts_with("parameterized test names (1st parameter, "));
-      test_assert(test_cfg.run_calls[0].name.find("custom_non_printable_type") != std::string::npos);
-      test_assert(test_cfg.run_calls[1].name.starts_with("parameterized test names (2nd parameter, "));
-      test_assert(test_cfg.run_calls[1].name.find("string") != std::string::npos);
-      test_assert(test_cfg.run_calls[2].name.starts_with("parameterized test names (3rd parameter, const char"));
+      test_assert(test_cfg.run_calls[0].name.starts_with(
+          "parameterized test names (1st parameter, "));
+      test_assert(test_cfg.run_calls[0].name.find(
+                      "custom_non_printable_type") != std::string::npos);
+      test_assert(test_cfg.run_calls[1].name.starts_with(
+          "parameterized test names (2nd parameter, "));
+      test_assert(test_cfg.run_calls[1].name.find("string") !=
+                  std::string::npos);
+      test_assert(test_cfg.run_calls[2].name.starts_with(
+          "parameterized test names (3rd parameter, const char"));
       test_assert(test_cfg.run_calls[2].name.find('*') != std::string::npos);
-      test_assert(test_cfg.run_calls[3].name.starts_with("parameterized test names (4th parameter, "));
-      test_assert(test_cfg.run_calls[3].name.find("string_view") != std::string::npos);
-      test_assert(test_cfg.run_calls[4].name == "parameterized test names (42.5, double)"sv);
-      test_assert(test_cfg.run_calls[5].name == "parameterized test names (false, bool)"sv);
-      test_assert(test_cfg.run_calls[6].name.starts_with("parameterized test names (7th parameter, "));
-      test_assert(test_cfg.run_calls[6].name.find("std::complex<double>") != std::string::npos);
-      test_assert(test_cfg.run_calls[7].name.starts_with("parameterized test names (custom_printable_type(42), "));
+      test_assert(test_cfg.run_calls[3].name.starts_with(
+          "parameterized test names (4th parameter, "));
+      test_assert(test_cfg.run_calls[3].name.find("string_view") !=
+                  std::string::npos);
+      test_assert(test_cfg.run_calls[4].name ==
+                  "parameterized test names (42.5, double)"sv);
+      test_assert(test_cfg.run_calls[5].name ==
+                  "parameterized test names (false, bool)"sv);
+      test_assert(test_cfg.run_calls[6].name.starts_with(
+          "parameterized test names (7th parameter, "));
+      test_assert(test_cfg.run_calls[6].name.find("std::complex<double>") !=
+                  std::string::npos);
+      test_assert(test_cfg.run_calls[7].name.starts_with(
+          "parameterized test names (custom_printable_type(42), "));
     }
 
     {

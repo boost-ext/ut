@@ -10,17 +10,17 @@
 #include <Windows.h>
 
 #ifndef __MINGW32__
-  #if not defined(min) || not defined(max)
-    #error 'min' and 'max' should be defined
-  #endif
+#if not defined(min) || not defined(max)
+#error 'min' and 'max' should be defined
+#endif
 #endif
 
 #include "boost/ut.hpp"
 
 #ifndef __MINGW32__
-  #if not defined(min) || not defined(max)
-    #error 'min' and 'max' should still be defined
-  #endif
+#if not defined(min) || not defined(max)
+#error 'min' and 'max' should still be defined
+#endif
 #endif
 
 namespace ut = boost::ut;
