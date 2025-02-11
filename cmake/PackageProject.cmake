@@ -152,7 +152,10 @@ function(packageProject)
 
   mark_as_advanced("${PROJECT_NAME}_INSTALL_CMAKEDIR")
 
-  configure_package_config_file(${PACKAGE_PROJECT_ROOT_PATH}/Config.cmake.in "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" INSTALL_DESTINATION ${${PROJECT_NAME}_INSTALL_CMAKEDIR}/${PROJECT_NAME}Config.cmake)
+  configure_package_config_file(
+    ${PACKAGE_PROJECT_ROOT_PATH}/Config.cmake.in "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION ${${PROJECT_NAME}_INSTALL_CMAKEDIR}/${PROJECT_NAME}Config.cmake
+  )
 
   install(
     EXPORT ${PROJECT_NAME}Targets
