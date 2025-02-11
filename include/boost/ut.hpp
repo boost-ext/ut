@@ -882,8 +882,8 @@ template <class T>
 template <class T>
 struct type_ : op {
   template <class TOther>
-  [[nodiscard]] constexpr auto operator()(
-      const TOther&) const  // NOLINT(readability-const-return-type)
+  // NOLINTNEXTLINE(readability-const-return-type)
+  [[nodiscard]] constexpr auto operator()(const TOther&) const
       -> const type_<TOther> {
     return {};
   }
