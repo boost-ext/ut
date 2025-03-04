@@ -820,7 +820,7 @@ struct cfg {
         // parse size argument
         std::size_t last;
         std::string argument(argv[i]);
-        std::size_t val = std::stoull(argument, &last);
+        auto val = static_cast<std::size_t>(std::stoull(argument, &last));
         if (last != argument.length()) {
           std::cerr << "cannot parse option of " << argv[i - 1] << " "
                     << argv[i] << std::endl;
