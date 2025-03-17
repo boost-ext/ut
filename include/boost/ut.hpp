@@ -604,12 +604,12 @@ struct test {
       test();
     } else if constexpr (detail::is_wrapped_type<TArg>::value) {
       test.template operator()<typename TArg::type>();
-    } else if constexpr (std::invocable<Test>) {
-      test();
     } else if constexpr (std::invocable<Test, TArg>) {
       test(arg);
-    } else {
+    } else if constexpr (requires { test.template operator()<TArg>(); }) {
       test.template operator()<TArg>();
+    } else {
+      static_assert(false, "Invalid test function definition");
     }
   }
 };
