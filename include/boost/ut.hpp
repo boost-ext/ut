@@ -543,6 +543,29 @@ fixed_string(const CharT (&str)[N]) -> fixed_string<CharT, N - 1>;
 
 struct none {};
 
+namespace detail {
+template <typename T>
+struct wrapped_type {
+  using type = T;
+};
+
+template <typename>
+struct is_wrapped_type : std::false_type {};
+
+template <typename T>
+struct is_wrapped_type<wrapped_type<T>> : std::true_type {};
+}  // namespace detail
+
+template <typename... Ts>
+struct type_list {
+  using types = std::tuple<Ts...>;
+  static constexpr auto size = sizeof...(Ts);
+
+  template <std::size_t I>
+    requires(I < size)
+  using get = detail::wrapped_type<std::tuple_element_t<I, types>>;
+};
+
 namespace events {
 struct run_begin {
   int argc{};
@@ -576,18 +599,18 @@ struct test {
   constexpr auto operator()() const { run_impl(static_cast<Test&&>(run), arg); }
 
  private:
-  static constexpr auto run_impl(Test test, const none&) { test(); }
-
-  template <class T>
-  static constexpr auto run_impl(T test, const TArg& arg)
-      -> decltype(test(arg), void()) {
-    test(arg);
-  }
-
-  template <class T>
-  static constexpr auto run_impl(T test, const TArg&)
-      -> decltype(test.template operator()<TArg>(), void()) {
-    test.template operator()<TArg>();
+  static constexpr auto run_impl(Test test, const TArg& arg) {
+    if constexpr (std::same_as<TArg, none>) {
+      test();
+    } else if constexpr (detail::is_wrapped_type<TArg>::value) {
+      test.template operator()<typename TArg::type>();
+    } else if constexpr (std::invocable<Test>) {
+      test();
+    } else if constexpr (std::invocable<Test, TArg>) {
+      test(arg);
+    } else {
+      test.template operator()<TArg>();
+    }
   }
 };
 template <class Test, class TArg>
@@ -2788,6 +2811,31 @@ template <class F, template <class...> class T, class... Ts>
            ...);
         },
         t);
+  };
+}
+
+template <class F, class... Ts>
+[[nodiscard]] constexpr auto operator|(const F& f, type_list<Ts...>) {
+  using curr_type_list = type_list<Ts...>;
+
+  constexpr auto unique_name = []<std::size_t I>(std::string_view name) {
+    using type = curr_type_list::template get<I>::type;
+    auto type_name = std::string{reflection::type_name<type>()};
+    return std::string{name} + " (" + type_name + ")";
+  };
+
+  return [f, unique_name](std::string_view type, std::string_view name) {
+    const auto handler = [&]<std::size_t... I>(std::index_sequence<I...>) {
+      (detail::on<F>(events::test<F, typename curr_type_list::template get<I>>{
+           .type = type,
+           .name = unique_name.template operator()<I>(name),
+           .tag = {},
+           .location = {},
+           .arg = {},
+           .run = f}),
+       ...);
+    };
+    handler(std::index_sequence_for<Ts...>{});
   };
 }
 
