@@ -772,9 +772,15 @@ struct cfg {
   }
 
   static void parse_arg_with_fallback(int argc, const char* argv[]) {
+    //int before call main
     if (argc > 0 && argv != nullptr) {
       cfg::largc = argc;
       cfg::largv = argv;
+    }
+    else
+    {
+      cfg::largc = 0;
+      cfg::largv = nullptr;
     }
     parse(cfg::largc, cfg::largv);
   }
