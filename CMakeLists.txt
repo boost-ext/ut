@@ -4,9 +4,9 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
+option(BOOST_UT_DISABLE_MODULE "Disable ut module" ON)
 
-if(!BOOST_UT_DISABLE_MODULE)
+if(NOT BOOST_UT_DISABLE_MODULE)
 cmake_minimum_required(VERSION 4.0.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
@@ -39,12 +39,12 @@ option(BOOST_UT_ENABLE_INSTALL "Enable install targets" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(ut INTERFACE)
-if(!BOOST_UT_DISABLE_MODULE)
+if(NOT BOOST_UT_DISABLE_MODULE)
 add_library(ut_module)
 endif()
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
-if(!BOOST_UT_DISABLE_MODULE)
+if(NOT BOOST_UT_DISABLE_MODULE)
 target_compile_features(ut_module INTERFACE cxx_std_23)
 endif()
 
@@ -76,7 +76,7 @@ if(BOOST_UT_DISABLE_MODULE)
   target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
 endif()
 
-if(!BOOST_UT_DISABLE_MODULE)
+if(NOT BOOST_UT_DISABLE_MODULE)
 target_sources(ut_module PUBLIC FILE_SET CXX_MODULES FILES include/boost/ut.cppm)
 endif()
 
@@ -84,7 +84,7 @@ if(NOT TARGET Boost::ut)
   add_library(Boost::ut ALIAS ut)
 endif()
 
-if(!BOOST_UT_DISABLE_MODULE)
+if(NOT BOOST_UT_DISABLE_MODULE)
 add_library(Boost::ut_module ALIAS ut_module)
 endif()
 
