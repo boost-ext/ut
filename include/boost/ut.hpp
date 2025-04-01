@@ -2805,11 +2805,11 @@ namespace terse {
 #pragma clang diagnostic ignored "-Wunused-comparison"
 #endif
 
-[[maybe_unused]] constexpr struct {
+[[maybe_unused]] constexpr struct placeholder_gcc_t {
 } _t;
 
 template <class T>
-constexpr auto operator%(const T& t, const decltype(_t)&) {
+constexpr auto operator%(const T& t, const placeholder_gcc_t&) {
   return detail::value<T>{t};
 }
 
