@@ -5,16 +5,17 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#if defined(__cpp_modules) && !defined(BOOST_UT_DISABLE_MODULE)
-export module boost.ut;
-export import std;
+#if defined(BOOST_UT_CXX_MODULES)
 #define BOOST_UT_EXPORT export
 #else
 #pragma once
 #define BOOST_UT_EXPORT
 #endif
 
+#if !defined(BOOST_UT_CXX_MODULES)
 #include <version>
+#endif
+
 #if defined(_MSC_VER)
 #pragma push_macro("min")
 #pragma push_macro("max")
@@ -68,6 +69,7 @@ export import std;
 #define __has_builtin(...) __has_##__VA_ARGS__
 #endif
 
+#if !defined(BOOST_UT_CXX_MODULES)
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -101,6 +103,7 @@ export import std;
 #if __has_include(<source_location>)
 #include <source_location>
 #endif
+#endif // cxx modules
 
 struct unique_name_for_auto_detect_prefix_and_suffix_length_0123456789_struct_ {
 };
