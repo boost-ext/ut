@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.21...3.25)
 endif()
 project(
   ut
-  VERSION 2.3.0
+  VERSION 2.3.1
   LANGUAGES CXX
 )
 
