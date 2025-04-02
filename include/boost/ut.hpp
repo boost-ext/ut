@@ -1777,7 +1777,7 @@ class reporter_junit {
       if (report_type_ == CONSOLE) {
         lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
         lcout_ << "Running \"" << test_event.name << "\"... ";
-        lcout_ << color_.skip << "SKIPPED" << color_.none;
+        lcout_ << color_.skip << "SKIPPED" << color_.none << '\n';
       }
       reset_printer();
       pop_scope(test_event.name);
