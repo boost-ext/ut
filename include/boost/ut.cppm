@@ -9,6 +9,4 @@ export module boost.ut;
 export import std;
 
 #define BOOST_UT_CXX_MODULES 1
-// #undef BOOST_UT_DISABLE_MODULE // not necessary anymore
-
 #include "ut.hpp"

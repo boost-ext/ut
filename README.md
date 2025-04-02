@@ -1,4 +1,4 @@
-<a href="https://conan.io/center/boost-ext-ut" target="_blank">![Version](https://badge.fury.io/gh/boost-ext%2Fut.svg)</a>
+<a href="https://conan.io/center/boost-ext-ut" target="_blank">![Version](https://img.shields.io/github/v/release/boost-ext/ut)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/linux.yml" target="_blank">![Linux](https://github.com/boost-ext/ut/actions/workflows/linux.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/macos.yml" target="_blank">![MacOs](https://github.com/boost-ext/ut/actions/workflows/macos.yml/badge.svg)</a>
 <a href="https://github.com/boost-ext/ut/actions/workflows/windows.yml" target="_blank">![Windows](https://github.com/boost-ext/ut/actions/workflows/windows.yml/badge.svg)</a>
@@ -190,7 +190,7 @@ target_link_libraries(my_test PRIVATE Boost::ut)
 > [Optional] [Conan](https://conan.io) integration
 
 The [boost-ext-ut](https://conan.io/center/boost-ext-ut) package is available from [Conan Center](https://conan.io/center/).
-Just include it in your project's Conanfile with `boost-ext-ut/2.3.0`.
+Just include it in your project's Conanfile with `boost-ext-ut/2.3.1`.
 
 </p>
 </details>
@@ -1255,7 +1255,7 @@ int main() {
 ```cpp
 export module boost.ut; /// __cpp_modules
 
-namespace boost::inline ext::ut::inline v2_3_0 {
+namespace boost::inline ext::ut::inline v2_3_1 {
   /**
    * Represents test suite object
    */
@@ -1616,7 +1616,7 @@ namespace boost::inline ext::ut::inline v2_3_0 {
 
 | Option | Description | Example |
 |-|-|-|
-| `BOOST_UT_VERSION`        | Current version | `2'3'0` |
+| `BOOST_UT_VERSION`        | Current version | `2'3'1` |
 
 </p>
 </details>
