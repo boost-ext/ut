@@ -2129,5 +2129,3 @@ All tests passed (4 asserts in 3 tests)
 ---
 
 **Disclaimer** `UT` is not an official Boost library.
-
-<p align="left"><img width="5%" src="https://github.com/boost-ext/ut/raw/gh-pages/images/logo.png" /></p>
