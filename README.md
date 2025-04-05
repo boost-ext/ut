@@ -78,7 +78,7 @@ There are quite a few problems with the approach above
 
 `UT` is trying to address these issues by simplifying testing experience with a few simple steps:
 
-* Just get a single [header/module](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp)
+* Just get a single [header](https://github.com/boost-ext/ut/blob/master/include/boost/ut.hpp) or [module+header](https://github.com/boost-ext/ut/blob/master/include/boost/ut.cppm)
 * Integrate it into your project
 * Learn a few simple concepts ([expect, test, suite](#api))
 
