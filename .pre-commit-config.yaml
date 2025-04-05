@@ -14,7 +14,6 @@ repos:
       - id: cmake-format
         args: [-i]
       - id: cmake-lint
-        exclude: cmake/PackageProject.cmake
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
