@@ -7,12 +7,13 @@
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" ON)
 
 if(NOT BOOST_UT_DISABLE_MODULE)
-cmake_minimum_required(VERSION 4.0.0)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
-set(CMAKE_CXX_MODULE_STD 1)
+  cmake_minimum_required(VERSION 4.0.0)
+  set(CMAKE_CXX_STANDARD 23)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
+  set(CMAKE_CXX_MODULE_STD 1)
+  set(CMAKE_CXX_SCAN_FOR_MODULES 1)
 else()
-cmake_minimum_required(VERSION 3.21...3.25)
+  cmake_minimum_required(VERSION 3.21...4.0)
 endif()
 project(
   ut
@@ -40,12 +41,12 @@ option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(ut INTERFACE)
 if(NOT BOOST_UT_DISABLE_MODULE)
-add_library(ut_module)
+  add_library(ut_module)
 endif()
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
 if(NOT BOOST_UT_DISABLE_MODULE)
-target_compile_features(ut_module INTERFACE cxx_std_23)
+  target_compile_features(ut_module INTERFACE cxx_std_23)
 endif()
 
 if(BOOST_UT_USE_WARNINGS_AS_ERORS)
@@ -77,7 +78,7 @@ if(BOOST_UT_DISABLE_MODULE)
 endif()
 
 if(NOT BOOST_UT_DISABLE_MODULE)
-target_sources(ut_module PUBLIC FILE_SET CXX_MODULES FILES include/boost/ut.cppm)
+  target_sources(ut_module PUBLIC FILE_SET CXX_MODULES FILES include/boost/ut.cppm)
 endif()
 
 if(NOT TARGET Boost::ut)
@@ -85,21 +86,19 @@ if(NOT TARGET Boost::ut)
 endif()
 
 if(NOT BOOST_UT_DISABLE_MODULE)
-add_library(Boost::ut_module ALIAS ut_module)
+  add_library(Boost::ut_module ALIAS ut_module)
 endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-install(
-  FILES include/boost/ut.hpp include/boost/ut.cppm
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boost
-)
+install(FILES include/boost/ut.hpp include/boost/ut.cppm DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boost)
 
 install(
   TARGETS ut
   EXPORT ut_Targets
-  INCLUDES DESTINATION include
+  INCLUDES
+  DESTINATION include
 )
 install(
   EXPORT ut_Targets
@@ -111,13 +110,9 @@ install(
 write_basic_package_version_file(
   "utConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion
-  ARCH_INDEPENDENT
+  COMPATIBILITY SameMajorVersion ARCH_INDEPENDENT
 )
-install(
-  FILES "${PROJECT_BINARY_DIR}/utConfigVersion.cmake"
-  DESTINATION lib/cmake/ut
-)
+install(FILES "${PROJECT_BINARY_DIR}/utConfigVersion.cmake" DESTINATION lib/cmake/ut)
 
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
