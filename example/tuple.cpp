@@ -34,7 +34,7 @@ std::tuple<double, char, std::string> get_student(int id) {
 struct S {
   int n;
   std::string s;
-  float d;
+  double d;
 
   friend bool operator<(const S& lhs, const S& rhs) noexcept {
     // compares lhs.n to rhs.n,
