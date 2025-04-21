@@ -7,6 +7,36 @@
 #include <string>
 #include <tuple>
 
+void test_optional() {
+  using namespace boost::ut;
+
+  std::cout << std::boolalpha;
+
+  std::optional<int> opt;
+  std::cout << opt.has_value() << '\n';
+  expect(!opt);
+
+  opt = 43;
+  // Checks whether *this contains a value.
+  if (opt) {
+    std::cout << "value set to " << opt.value() << '\n';
+  } else {
+    std::cout << "value not set\n";
+  }
+  expect(opt.has_value());
+  expect(opt == 43);
+  expect(*opt);
+
+  opt.reset();
+  if (opt.has_value()) {
+    std::cout << "value still set to " << opt.value() << '\n';
+  } else {
+    std::cout << "value no longer set\n";
+  }
+  expect(!opt.has_value());
+  expect(!opt);
+}
+
 namespace {
 std::optional<std::tuple<int, std::string>> findUserById(int id) {
   if (id == 42) {
@@ -130,6 +160,7 @@ int main() {
   std::atomic<bool> test_value{false};
   expect(!test_value);
 
+  // test std::optional<std::tuple<>>
   {
     auto result = findUserById(42);
     //FIXME: expect(result);
@@ -142,4 +173,6 @@ int main() {
     }
     expect(result != std::nullopt);
   }
+
+  test_optional();
 }
