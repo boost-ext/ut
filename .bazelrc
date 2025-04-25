@@ -1,0 +1,11 @@
+common --enable_bzlmod
+build --enable_platform_specific_config
+
+build:gcc15   --cxxopt=-std=c++23 --action_env=CC=/usr/bin/g++-15
+build:clang19 --cxxopt=-std=c++23 --action_env=CC=/usr/bin/clang++-19
+build:vs2019 --cxxopt=/std:c++20
+build:vs2022 --cxxopt=/std:c++20
+
+build:windows --config=vs2022
+build:linux --cxxopt=-std=c++20
+build:macos --cxxopt=-std=c++20
