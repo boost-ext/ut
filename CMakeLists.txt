@@ -4,7 +4,7 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
+option(BOOST_UT_DISABLE_MODULE "Disable ut module" ON)
 
 if(NOT BOOST_UT_DISABLE_MODULE)
 cmake_minimum_required(VERSION 4.0.0)
