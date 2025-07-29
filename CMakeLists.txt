@@ -8,8 +8,6 @@ option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
 if(NOT BOOST_UT_DISABLE_MODULE)
 cmake_minimum_required(VERSION 4.0.0)
-set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
-set(CMAKE_CXX_MODULE_STD 1)
 else()
 cmake_minimum_required(VERSION 3.21...3.25)
 endif()
