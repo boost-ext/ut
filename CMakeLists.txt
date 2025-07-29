@@ -4,11 +4,10 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
-option(BOOST_UT_DISABLE_MODULE "Disable ut module" ON)
+option(BOOST_UT_DISABLE_MODULE "Disable ut module" OFF)
 
 if(NOT BOOST_UT_DISABLE_MODULE)
 cmake_minimum_required(VERSION 4.0.0)
-set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
 set(CMAKE_CXX_MODULE_STD 1)
 else()
@@ -44,9 +43,6 @@ add_library(ut_module)
 endif()
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
-if(NOT BOOST_UT_DISABLE_MODULE)
-target_compile_features(ut_module INTERFACE cxx_std_23)
-endif()
 
 if(BOOST_UT_USE_WARNINGS_AS_ERORS)
   include(cmake/WarningsAsErrors.cmake)
