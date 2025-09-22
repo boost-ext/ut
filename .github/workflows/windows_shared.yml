@@ -39,6 +39,4 @@ jobs:
         run: cmake --build build --config Debug -j4 --verbose
 
       - name: test
-        run: |
-          cd build
-          ctest --build-config Debug -j4 --verbose
+        run: ctest --test-dir build --build-config Debug -j4 --verbose
