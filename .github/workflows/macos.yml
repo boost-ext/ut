@@ -19,6 +19,10 @@ jobs:
   build:
     runs-on: macos-latest
 
+    strategy:
+      matrix:
+        cxx: [clang++, g++-15]
+
     steps:
       - uses: actions/checkout@v5
 
@@ -27,29 +31,26 @@ jobs:
           path: "**/cpm_modules"
           key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
-      - name: Install ninja and python
-        shell: bash
-        run: brew install llvm clang-format ninja python pipx
+      - name: Install python
+        run: brew install llvm clang-format python pipx
 
       - name: Install builddriver
-        shell: bash
         run:
           pipx install builddriver cmake_format==0.6.11 pyaml
 
       - name: configure
-        shell: bash
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBOOST_UT_ENABLE_RUN_AFTER_BUILD=NO \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON --log-level=DEBUG -DFETCHCONTENT_QUIET=OFF -DCMAKE_CXX_COMPILER=${{matrix.cxx}}
 
       - name: build
         run: cmake --build build -j4 --verbose
 
       - name: test
-        shell: bash
         run: ctest --test-dir build --build-config Debug -j4 --verbose
 
       - name: Run clang-tidy
+        if: matrix.cc == 'clang'
         shell: bash
         run: |
           export PATH=$(brew --prefix llvm)/bin:${PATH}
