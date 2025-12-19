@@ -312,8 +312,8 @@ expect(1_i == 2);        // not executed
 ```
 main.cpp:6:FAILED [1 == 2]
 ===============================================================================
-tests:   1 | 1 failed
-asserts: 2 | 0 passed | 2 failed
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
 ```
 
 > https://godbolt.org/z/WMe8Y1
@@ -364,8 +364,8 @@ in: main.cpp:6 - test condition:  [1 == 2]
 
  fatal assertion
 ===============================================================================
-tests:   0 | 2 failed
-asserts: 0 | 0 passed | 2 failed
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
 ```
 
 > I use `std::expected`, can I stream its `error()` upon failure?
@@ -387,8 +387,8 @@ in: main.cpp:12 - test condition:  [false]
 
  lazy evaluated
 ===============================================================================
-tests:   1 | 2 failed
-asserts: 0 | 0 passed | 2 failed
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
 ```
 
 > https://godbolt.org/z/v2PDuU
@@ -463,7 +463,7 @@ int main() {
       v.resize(0);
       expect(0_ul == std::size(v));
     };
-  }
+  };
 }
 ```
 
@@ -1041,9 +1041,9 @@ All tests passed (2 asserts in 2 tests)
 
 ```cpp
 "logging"_test = [] {
-  log << "pre";
+  boost::ut::log << "pre";
   expect(42_i == 43) << "message on failure";
-  log << "post";
+  boost::ut::log << "post";
 };
 ```
 
@@ -1071,9 +1071,9 @@ This requires using C++20 with a standard library with std::format support.
 
 ```cpp
 "logging"_test = [] {
-  log("\npre  {} == {}\n", 42, 43);
+  boost::ut::log("\npre  {} == {}\n", 42, 43);
   expect(42_i == 43) << "message on failure";
-  log("\npost {} == {} -> {}\n", 42, 43, 42 == 43);
+  boost::ut::log("\npost {} == {} -> {}\n", 42, 43, 42 == 43);
 };
 ```
 
