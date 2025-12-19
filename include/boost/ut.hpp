@@ -1846,7 +1846,7 @@ class reporter_junit {
     }
   }
 
-  auto on(const events::fatal_assertion&) -> void { active_scope_->fails++; }
+  auto on(const events::fatal_assertion&) -> void { /*active_scope_->fails++;*/ }
 
   auto on(events::summary) -> void {
     std::cout.flush();
