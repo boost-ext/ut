@@ -1603,6 +1603,7 @@ class reporter_junit {
     timePoint run_start = clock_ref::now();
     timePoint run_stop = clock_ref::now();
     std::size_t n_tests = 0LU;
+    std::size_t fail_tests = 0LU;
     std::size_t assertions = 0LU;
     std::size_t passed = 0LU;
     std::size_t skipped = 0LU;
@@ -1660,7 +1661,8 @@ class reporter_junit {
       } else {
         active_scope_ = &results_[std::string{"global"}];
       }
-      active_scope_->n_tests += old_scope->n_tests + 1LU;
+      active_scope_->n_tests += old_scope->n_tests;
+      active_scope_->fail_tests += old_scope->fail_tests;
       active_scope_->assertions += old_scope->assertions;
       active_scope_->passed += old_scope->passed;
       active_scope_->skipped += old_scope->skipped;
@@ -1752,7 +1754,10 @@ class reporter_junit {
         }
       }
     }
-
+    active_scope_->n_tests = 1LU;
+    if (active_scope_->fails > 0 || active_scope_->fail_tests > 0) {
+      active_scope_->fail_tests = 1LU;
+    }
     pop_scope(test_event.name);
   }
 
@@ -1887,8 +1892,9 @@ class reporter_junit {
             << "\n========================================================"
                "=======================\n"
             << "Suite " << suite_name << '\n'  //
-            << "tests:   " << (suite_result.n_tests) << " | " << color_.fail
-            << suite_result.fails << " failed" << color_.none << '\n'
+            << "tests:   " << (suite_result.n_tests) << " | "
+            << (suite_result.fail_tests > 0 ? color_.fail : color_.none)
+            << suite_result.fail_tests << " failed" << color_.none << '\n'
             << "asserts: " << (suite_result.assertions) << " | "
             << suite_result.passed << " passed"
             << " | " << color_.fail << suite_result.fails << " failed"
