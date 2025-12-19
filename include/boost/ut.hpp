@@ -1652,9 +1652,6 @@ class reporter_junit {
     } else {
       active_scope_->status = active_scope_->fails > 0 ? "FAILED" : "PASSED";
     }
-    active_scope_->assertions =
-        active_scope_->assertions + active_scope_->fails;
-
     if (active_test_.top() == test_name) {
       active_test_.pop();
       auto old_scope = active_scope_;
@@ -1836,6 +1833,7 @@ class reporter_junit {
     ss << color_.fail << ']' << color_.none;
     active_scope_->report_string += ss.str();
     active_scope_->fails++;
+    active_scope_->assertions++;
     reset_printer();
     if (report_type_ == CONSOLE) {
       lcout_ << active_scope_->report_string << "\n\n";
