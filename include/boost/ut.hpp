@@ -1741,7 +1741,6 @@ class reporter_junit {
       reset_printer();
     } else {
       active_scope_->report_string = ss_out_.str();
-      active_scope_->passed += 1LU;
       if (report_type_ == CONSOLE) {
         if (detail::cfg::show_successful_tests) {
           if (!active_scope_->nested_tests->empty()) {
@@ -1819,6 +1818,7 @@ class reporter_junit {
   template <class TExpr>
   auto on(events::assertion_pass<TExpr>) -> void {
     active_scope_->assertions++;
+    active_scope_->passed++;
   }
 
   template <class TExpr>
