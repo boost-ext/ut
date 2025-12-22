@@ -1905,12 +1905,11 @@ class reporter_junit {
             << " | " << color_.fail << suite_result.fails << " failed"
             << color_.none << '\n';
         //std::cerr << std::endl;
-      } else {
+      } else if (suite_result.assertions || suite_result.n_tests || suite_result.skipped) {
         out_stream << color_.pass << "\nSuite '" << suite_name
                    << "': all tests passed" << color_.none << " ("
                    << suite_result.assertions << " asserts in "
                    << suite_result.n_tests << " tests)";
-
         if (suite_result.skipped) {
           std::cout << suite_result.skipped << " tests skipped\n";
         }
