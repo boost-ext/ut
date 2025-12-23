@@ -2048,8 +2048,8 @@ class runner {
     if (not dry_run_) {
       report_summary();
     }
-    std::cout << "\n========================================================"
-                 "=======================";
+    std::cout << "\nCompleted =============================================="
+                 "=======================\n";
     if (should_run and fails_) {
       std::exit(-1);
     }
@@ -2325,7 +2325,7 @@ struct log {
   struct next {
     template <class TMsg>
     auto& operator<<(const TMsg& msg) {
-      //on<TMsg>(events::log{' '});
+      on<TMsg>(events::log{' '});
       on<TMsg>(events::log{msg});
       return *this;
     }
@@ -2333,7 +2333,7 @@ struct log {
 
   template <class TMsg>
   auto operator<<(const TMsg& msg) -> next {
-    //on<TMsg>(events::log{'\n'});
+    on<TMsg>(events::log{'\n'});
     on<TMsg>(events::log{msg});
     return next{};
   }
