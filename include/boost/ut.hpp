@@ -1780,7 +1780,7 @@ class reporter_junit {
       if (report_type_ == CONSOLE) {
         lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
         lcout_ << "Running \"" << test_event.name << "\"... ";
-        lcout_ << color_.skip << "SKIPPED" << color_.none << '\n';
+        lcout_ << color_.skip << "SKIPPED" << color_.none;
       }
       reset_printer();
       pop_scope(test_event.name);
@@ -1903,7 +1903,7 @@ class reporter_junit {
             << "asserts: " << (suite_result.assertions) << " | "
             << suite_result.passed << " passed"
             << " | " << color_.fail << suite_result.fails << " failed"
-            << color_.none << '\n';
+            << color_.none;
         //std::cerr << std::endl;
       } else if (suite_result.assertions || suite_result.n_tests || suite_result.skipped) {
         out_stream << color_.pass << "\nSuite '" << suite_name
@@ -1911,7 +1911,7 @@ class reporter_junit {
                    << suite_result.assertions << " asserts in "
                    << suite_result.n_tests << " tests)";
         if (suite_result.skipped) {
-          std::cout << suite_result.skipped << " tests skipped\n";
+          std::cout << "; " << suite_result.skipped << " tests skipped";
         }
         std::cout.flush();
       }
@@ -2032,13 +2032,15 @@ class runner {
   };
 
  public:
-  constexpr runner() = default;
+  constexpr runner() {
+    std::cout << "UT starts ========================================================"
+                 "=============";
+  };
   constexpr runner(TReporter reporter, std::size_t suites_size)
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
   ~runner() {
     const auto should_run = not run_;
-
     if (should_run) {
       static_cast<void>(run());
     }
@@ -2046,7 +2048,8 @@ class runner {
     if (not dry_run_) {
       report_summary();
     }
-
+    std::cout << "\n========================================================"
+                 "=======================";
     if (should_run and fails_) {
       std::exit(-1);
     }
