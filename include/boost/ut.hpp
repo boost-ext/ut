@@ -5,18 +5,18 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
-#ifdef BOOST_UT_CXX_MODULES
+#if defined(BOOST_UT_CXX_MODULES)
 #define BOOST_UT_EXPORT export
 #else
 #pragma once
 #define BOOST_UT_EXPORT
 #endif
 
-#ifndef BOOST_UT_CXX_MODULES
+#if !defined(BOOST_UT_CXX_MODULES)
 #include <version>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #pragma push_macro("min")
 #pragma push_macro("max")
 #undef min
@@ -33,25 +33,25 @@
 #define BOOST_UT_HAS_FORMAT
 #endif
 
-#ifndef __cpp_rvalue_references
+#if not defined(__cpp_rvalue_references)
 #error "[Boost::ext].UT requires support for rvalue references";
-#elifndef __cpp_decltype
+#elif not defined(__cpp_decltype)
 #error "[Boost::ext].UT requires support for decltype";
-#elifndef __cpp_return_type_deduction
+#elif not defined(__cpp_return_type_deduction)
 #error "[Boost::ext].UT requires support for return type deduction";
-#elifndef __cpp_deduction_guides
+#elif not defined(__cpp_deduction_guides)
 #error "[Boost::ext].UT requires support for return deduction guides";
-#elifndef __cpp_generic_lambdas
+#elif not defined(__cpp_generic_lambdas)
 #error "[Boost::ext].UT requires support for generic lambdas";
-#elifndef __cpp_constexpr
+#elif not defined(__cpp_constexpr)
 #error "[Boost::ext].UT requires support for constexpr";
-#elifndef __cpp_alias_templates
+#elif not defined(__cpp_alias_templates)
 #error "[Boost::ext].UT requires support for alias templates";
-#elifndef __cpp_variadic_templates
+#elif not defined(__cpp_variadic_templates)
 #error "[Boost::ext].UT requires support for variadic templates";
-#elifndef __cpp_fold_expressions
+#elif not defined(__cpp_fold_expressions)
 #error "[Boost::ext].UT requires support for return fold expressions";
-#elifndef __cpp_static_assert
+#elif not defined(__cpp_static_assert)
 #error "[Boost::ext].UT requires support for static assert";
 #else
 #define BOOST_UT_VERSION 2'3'1
@@ -61,7 +61,7 @@
 #undef __has_builtin
 #endif
 
-#ifndef __has_builtin
+#if not defined(__has_builtin)
 #if defined(__GNUC__) and (__GNUC__ >= 9)
 #define __has___builtin_FILE 1
 #define __has___builtin_LINE 1
@@ -69,7 +69,7 @@
 #define __has_builtin(...) __has_##__VA_ARGS__
 #endif
 
-#ifndef BOOST_UT_CXX_MODULES
+#if !defined(BOOST_UT_CXX_MODULES)
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -93,7 +93,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
-#ifdef __cpp_exceptions
+#if defined(__cpp_exceptions)
 #include <exception>
 #endif
 
