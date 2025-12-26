@@ -1603,6 +1603,7 @@ class reporter_junit {
     timePoint run_start = clock_ref::now();
     timePoint run_stop = clock_ref::now();
     std::size_t n_tests = 0LU;
+    std::size_t fail_tests = 0LU;
     std::size_t assertions = 0LU;
     std::size_t passed = 0LU;
     std::size_t skipped = 0LU;
@@ -1652,9 +1653,6 @@ class reporter_junit {
     } else {
       active_scope_->status = active_scope_->fails > 0 ? "FAILED" : "PASSED";
     }
-    active_scope_->assertions =
-        active_scope_->assertions + active_scope_->fails;
-
     if (active_test_.top() == test_name) {
       active_test_.pop();
       auto old_scope = active_scope_;
@@ -1663,7 +1661,8 @@ class reporter_junit {
       } else {
         active_scope_ = &results_[std::string{"global"}];
       }
-      active_scope_->n_tests += old_scope->n_tests + 1LU;
+      active_scope_->n_tests += old_scope->n_tests;
+      active_scope_->fail_tests += old_scope->fail_tests;
       active_scope_->assertions += old_scope->assertions;
       active_scope_->passed += old_scope->passed;
       active_scope_->skipped += old_scope->skipped;
@@ -1737,11 +1736,12 @@ class reporter_junit {
   }
 
   auto on(events::test_end test_event) -> void {
+    active_scope_->report_string += ss_out_.str();
     if (active_scope_->fails > 0) {
-      reset_printer();
+      if (report_type_ == CONSOLE) {
+        lcout_ << ss_out_.str();
+      }
     } else {
-      active_scope_->report_string = ss_out_.str();
-      active_scope_->passed += 1LU;
       if (report_type_ == CONSOLE) {
         if (detail::cfg::show_successful_tests) {
           if (!active_scope_->nested_tests->empty()) {
@@ -1752,11 +1752,14 @@ class reporter_junit {
           ss_out_ << color_.pass << "PASSED" << color_.none;
           print_duration(ss_out_);
           lcout_ << ss_out_.str();
-          reset_printer();
         }
       }
     }
-
+    reset_printer();
+    active_scope_->n_tests = 1LU;
+    if (active_scope_->fails > 0 || active_scope_->fail_tests > 0) {
+      active_scope_->fail_tests = 1LU;
+    }
     pop_scope(test_event.name);
   }
 
@@ -1777,7 +1780,7 @@ class reporter_junit {
       if (report_type_ == CONSOLE) {
         lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
         lcout_ << "Running \"" << test_event.name << "\"... ";
-        lcout_ << color_.skip << "SKIPPED" << color_.none << '\n';
+        lcout_ << color_.skip << "SKIPPED" << color_.none;
       }
       reset_printer();
       pop_scope(test_event.name);
@@ -1787,9 +1790,6 @@ class reporter_junit {
   template <class TMsg>
   auto on(events::log<TMsg> log) -> void {
     ss_out_ << log.msg;
-    if (report_type_ == CONSOLE) {
-      lcout_ << log.msg;
-    }
   }
 
   auto on(events::exception exception) -> void {
@@ -1819,6 +1819,7 @@ class reporter_junit {
   template <class TExpr>
   auto on(events::assertion_pass<TExpr>) -> void {
     active_scope_->assertions++;
+    active_scope_->passed++;
   }
 
   template <class TExpr>
@@ -1826,29 +1827,34 @@ class reporter_junit {
     TPrinter ss{};
     ss << ss_out_.str();
     if (report_type_ == CONSOLE) {
-      ss << color_.fail << "FAILED\n" << color_.none;
+      ss << "\n";
+      if (active_test_.size()) {
+        ss << std::string((2 * active_test_.size()) - 2, ' ');
+      }
+      ss << color_.fail << "FAILED " << color_.none;
       print_duration(ss);
     }
     ss << "in: " << assertion.location.file_name() << ':'
        << assertion.location.line();
     ss << color_.fail << " - test condition: ";
-    ss << " [" << std::boolalpha << assertion.expr;
+    ss << '[' << std::boolalpha << assertion.expr;
     ss << color_.fail << ']' << color_.none;
     active_scope_->report_string += ss.str();
     active_scope_->fails++;
+    active_scope_->assertions++;
     reset_printer();
     if (report_type_ == CONSOLE) {
-      lcout_ << active_scope_->report_string << "\n\n";
+      lcout_ << ss.str();
     }
     if (detail::cfg::abort_early ||
-        active_scope_->fails >= detail::cfg::abort_after_n_failures) {
+        active_scope_->fails >= detail::cfg::abort_after_n_failures) { 
       std::cerr << "early abort for test : " << active_test_.top() << "after ";
       std::cerr << active_scope_->fails << " failures total." << std::endl;
       std::exit(-1);
     }
   }
 
-  auto on(const events::fatal_assertion&) -> void { active_scope_->fails++; }
+  auto on(const events::fatal_assertion&) -> void { /*active_scope_->fails++;*/ }
 
   auto on(events::summary) -> void {
     std::cout.flush();
@@ -1863,6 +1869,7 @@ class reporter_junit {
                                                              : std::cout);
       return;
     }
+    lcout_ << ss_out_.str();
     print_console_summary(
         detail::cfg::output_filename != "" ? maybe_of : std::cout,
         detail::cfg::output_filename != "" ? maybe_of : std::cerr);
@@ -1883,29 +1890,29 @@ class reporter_junit {
 
   void print_console_summary(std::ostream& out_stream,
                              std::ostream& err_stream) {
+
     for (const auto& [suite_name, suite_result] : results_) {
       if (suite_result.fails) {
         err_stream
             << "\n========================================================"
                "=======================\n"
-            << "Suite " << suite_name << '\n'  //
-            << "tests:   " << (suite_result.n_tests) << " | " << color_.fail
-            << suite_result.fails << " failed" << color_.none << '\n'
+            << "Suite " << suite_name << '\n'
+            << "tests:   " << (suite_result.n_tests) << " | "
+            << (suite_result.fail_tests > 0 ? color_.fail : color_.none)
+            << suite_result.fail_tests << " failed" << color_.none << '\n'
             << "asserts: " << (suite_result.assertions) << " | "
             << suite_result.passed << " passed"
             << " | " << color_.fail << suite_result.fails << " failed"
-            << color_.none << '\n';
-        std::cerr << std::endl;
-      } else {
-        out_stream << color_.pass << "Suite '" << suite_name
+            << color_.none;
+        //std::cerr << std::endl;
+      } else if (suite_result.assertions || suite_result.n_tests || suite_result.skipped) {
+        out_stream << color_.pass << "\nSuite '" << suite_name
                    << "': all tests passed" << color_.none << " ("
                    << suite_result.assertions << " asserts in "
-                   << suite_result.n_tests << " tests)\n";
-
+                   << suite_result.n_tests << " tests)";
         if (suite_result.skipped) {
-          std::cout << suite_result.skipped << " tests skipped\n";
+          std::cout << "; " << suite_result.skipped << " tests skipped";
         }
-
         std::cout.flush();
       }
     }
@@ -2025,13 +2032,15 @@ class runner {
   };
 
  public:
-  constexpr runner() = default;
+  constexpr runner() {
+    std::cout << "UT starts ========================================================"
+                 "=============";
+  };
   constexpr runner(TReporter reporter, std::size_t suites_size)
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
   ~runner() {
     const auto should_run = not run_;
-
     if (should_run) {
       static_cast<void>(run());
     }
@@ -2039,7 +2048,8 @@ class runner {
     if (not dry_run_) {
       report_summary();
     }
-
+    std::cout << "\nCompleted =============================================="
+                 "=======================\n";
     if (should_run and fails_) {
       std::exit(-1);
     }
