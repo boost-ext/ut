@@ -21,27 +21,28 @@
 constexpr auto sum(auto... values) { return (values + ...); }
 
 int main() {
-  using namespace boost::ut;
+    using namespace boost::ut;
 
-  "sum"_test = [] {
-    expect(sum(0) == 0_i);
-    expect(sum(1, 2) == 3_i);
-    expect(sum(1, 2) > 0_i and 41_i == sum(40, 2));
-  };
+    "sum"_test = [] {
+        expect(sum(0) == 0_i);
+        expect(sum(1, 2) == 3_i);
+        expect(sum(1, 2) > 0_i and 41_i == sum(40, 2)); // row 11
+    };
 }
 ```
 
 ```sh
-Running "sum"...
-  sum.cpp:11:FAILED [(3 > 0 and 41 == 42)]
-FAILED
-
+UT starts =====================================================================
+Running test "sum"...
+FAILED in: ...\example.cpp:11 - test condition: [(3 > 0 and 41 == 42)]
 ===============================================================================
+Suite global
 tests:   1 | 1 failed
 asserts: 3 | 2 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/f4jEcv9vo
+> https://godbolt.org/z/T873jdEx4
 
 <a name="motivation"></a>
 <details open><summary>Motivation</summary>
@@ -201,54 +202,68 @@ Just include it in your project's Conanfile with `boost-ext-ut/2.3.1`.
 > Let's write our first assertion, shall we?
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  boost::ut::expect(true);
+    boost::ut::expect(true);
 }
 ```
 
 ```
-All tests passed (1 asserts in 0 test)
+UT starts =====================================================================
+Suite 'global': all tests passed (1 asserts in 0 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/vfx-eB
+> https://godbolt.org/z/8MffxExsP
 
 
 > Okay, let's make it fail now?
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  boost::ut::expect(1 == 2);
+    boost::ut::expect(1 == 2); // row 4
 }
 ```
 
 ```
-main.cpp:4:FAILED [false]
+....                       v                    vvvvv
+FAILED in: ...\example.cpp:4 - test condition: [false]
 ===============================================================================
+Suite global
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/7qTePx
+> https://godbolt.org/z/8GjGoc7cn
 
 > Notice that expression `1 == 2` hasn't been printed. Instead we got `false`?
 
 > Let's print it then?
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  using namespace boost::ut;
-  expect(1_i == 2);
+    using namespace boost::ut;
+    expect(1_i == 2); // row 5
 }
 ```
 
 ```
-main.cpp:4:FAILED [1 == 2]
+....                       v                    vvvvvv
+FAILED in: ...\example.cpp:5 - test condition: [1 == 2]
 ===============================================================================
+Suite global
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/7MXVzu
+> https://godbolt.org/z/KaT651K5r
 
 > Okay, now we have it! `1 == 2` has been printed as expected.
 > Notice the User Defined Literal (UDL) `1_i` was used.
@@ -262,110 +277,148 @@ See the [User-guide](#user-guide) for more details.
 > Alternatively, a `terse` notation (no expect required) can be used.
 
 ```cpp
-int main() {
-  using namespace boost::ut::literals;
-  using namespace boost::ut::operators::terse;
+#include <boost/ut.hpp>
 
-  1_i == 2; // terse notation
+int main() {
+    using namespace boost::ut::literals;
+    using namespace boost::ut::operators::terse;
+
+    1_i == 2; // terse notation
 }
 ```
 
 ```
-main.cpp:7:FAILED [1 == 2]
+UT starts =====================================================================
+FAILED in: ...\example.cpp:7 - test condition: [1 == 2]
 ===============================================================================
+Suite global
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/s77GSm
+> https://godbolt.org/z/zvWhYzo97
 
 > Other expression syntaxes are also available.
 
 ```cpp
-expect(1_i == 2);       // UDL syntax
-expect(1 == 2_i);       // UDL syntax
-expect(that % 1 == 2);  // Matcher syntax
-expect(eq(1, 2));       // eq/neq/gt/ge/lt/le
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    expect(1_i == 2);       // UDL syntax
+    expect(1 == 2_i);       // UDL syntax
+    expect(that % 1 == 2);  // Matcher syntax
+    expect(eq(1, 2));       // eq/neq/gt/ge/lt/le
+}
 ```
 
 ```
-main.cpp:6:FAILED [1 == 2]
-main.cpp:7:FAILED [1 == 2]
-main.cpp:8:FAILED [1 == 2]
-main.cpp:9:FAILED [1 == 2]
+UT starts =====================================================================
+FAILED in: ...\example.cpp:6 - test condition: [1 == 2]
+FAILED in: ...\example.cpp:7 - test condition: [1 == 2]
+FAILED in: ...\example.cpp:8 - test condition: [1 == 2]
+FAILED in: ...\example.cpp:9 - test condition: [1 == 2]
 ===============================================================================
+Suite global
 tests:   0 | 0 failed
 asserts: 4 | 0 passed | 4 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/QbgGtc
+> https://godbolt.org/z/xe5ErqTqM
 
 > Okay, but what about the case if my assertion is fatal.
 > Meaning that the program will crash unless the processing will be terminated.
 > Nothing easier, let's just add `fatal` call to make the test fail immediately.
 
 ```cpp
-expect(fatal(1 == 2_i)); // fatal assertion
-expect(1_i == 2);        // not executed
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    expect((1 == 2_i) >> fatal); // fatal assertion
+    expect(1_i == 2);            // not executed
+}
 ```
 
 ```
-main.cpp:6:FAILED [1 == 2]
+UT starts =====================================================================
+FAILED in: ...\example.cpp:6 - test condition: [1 == 2]
 ===============================================================================
-tests:   1 | 1 failed
-asserts: 2 | 0 passed | 2 failed
+Suite global
+tests:   0 | 0 failed
+asserts: 1 | 0 passed | 1 failed
 ```
 
-> https://godbolt.org/z/WMe8Y1
+> https://godbolt.org/z/6Mvex8TaT
 
 > But my expression is more complex than just simple comparisons.
 > Not a problem, logic operators are also supported in the `expect` 👍.
 
 ```cpp
-expect(42l == 42_l and 1 == 2_i); // compound expression
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+    expect(42l == 42_l and 1 == 2_i); // compound expression
+}
 ```
 
 ```
-main.cpp:5:FAILED [(42 == 42 and 1 == 2)]
+UT starts =====================================================================
+FAILED in: ...\example.cpp:5 - test condition: [(42 == 42 and 1 == 2)]
 ===============================================================================
+Suite global
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/aEhX4t
+> https://godbolt.org/z/Tzv4K6qvY
 
 > Can I add a custom message though?
 > Sure, `expect` calls are streamable!
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  expect(42l == 42_l and 1 == 2_i) << "additional info";
+    using namespace boost::ut;
+    expect(42l == 42_l and 1 == 2_i) << "additional info";
 }
 ```
 
 ```
-main.cpp:5:FAILED [(42 == 42 and 1 == 2)] additional info
+UT starts =====================================================================
+FAILED in: ...\example.cpp:5 - test condition: [(42 == 42 and 1 == 2)] additional info
 ===============================================================================
+Suite global
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
+
+> https://godbolt.org/z/9G61xr4Ed
 
 > That's nice, can I use custom messages and fatal assertions?
 > Yes, stream the `fatal`!
 
 ```cpp
-expect(fatal(1 == 2_i)) << "fatal assertion";
-expect(1_i == 2);
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    expect(fatal(1 == 2_i)) << "fatal assertion";
+    expect(1_i == 2);
+}
 ```
 
 ```
-FAILED
-in: main.cpp:6 - test condition:  [1 == 2]
-
- fatal assertion
-===============================================================================
-tests:   0 | 2 failed
-asserts: 0 | 0 passed | 2 failed
+// results to be updated
 ```
 
 > I use `std::expected`, can I stream its `error()` upon failure?
@@ -373,25 +426,31 @@ asserts: 0 | 0 passed | 2 failed
 > value it requires lazy evaluation.
 
 ```cpp
-"lazy log"_test = [] {
-  std::expected<bool, std::string> e = std::unexpected("lazy evaluated");
-  expect(e.has_value()) << [&] { return e.error(); } << fatal;
-  expect(e.value() == true);
-};
+#include <boost/ut.hpp>
+#include <expected>
 
+int main() {
+    using namespace boost::ut;
+    "lazy log"_test = [] {
+        std::expected<bool, std::string> e = std::unexpected("lazy evaluated");
+        expect(e.has_value()) << [&] { return e.error(); } << fatal;
+        expect(e.value() == true);
+    };
+}
 ```
 
 ```
-Running test "lazy log"... FAILED
-in: main.cpp:12 - test condition:  [false]
-
- lazy evaluated
+UT starts =====================================================================
+Running test "lazy log"...
+FAILED in: ...\example.cpp:8 - test condition: [false] lazy evaluated
 ===============================================================================
-tests:   1 | 2 failed
-asserts: 0 | 0 passed | 2 failed
+Suite global
+tests:   1 | 1 failed
+asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/v2PDuU
+https://godbolt.org/z/6vTbE7bEP
 
 </p>
 </details>
@@ -403,16 +462,24 @@ asserts: 0 | 0 passed | 2 failed
 > `Test cases` are the way to go! They allow to group expectations for the same functionality into coherent units.
 
 ```cpp
-"hello world"_test = [] { };
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+    "hello world"_test = [] {};
+    //test("hello world") = [] {};
+}
 ```
 
 > Alternatively `test("hello world") = [] {}` can be used.
 
 ```
-All tests passed (0 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (0 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/Bh-EmY
+> https://godbolt.org/z/MGMYnM3bz
 
 
 > Notice `1 tests` but `0 asserts`.
@@ -420,24 +487,30 @@ All tests passed (0 asserts in 1 tests)
 > Let's make our first end-2-end test case, shall we?
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  "hello world"_test = [] {
-    int i = 43;
-    expect(42_i == i);
-  };
+    using namespace boost::ut;
+
+    "hello world"_test = [] {
+      int i = 43;
+      expect(42_i == i);
+    };
 }
 ```
 
 ```
-Running "hello world"...
-  main.cpp:8:FAILED [42 == 43]
-FAILED
+UT starts =====================================================================
+Running test "hello world"...
+FAILED in: ...\example.cpp:8 - test condition: [42 == 43]
 ===============================================================================
+Suite global
 tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/Y43mXz
+> https://godbolt.org/z/zMbrPn5Gb
 
 > 👍 We are done here!
 
@@ -446,117 +519,138 @@ asserts: 1 | 0 passed | 1 failed
 > Let's just take a look at the following example.
 
 ```cpp
+#include <vector>
+#include <boost/ut.hpp>
+
 int main() {
-  "[vector]"_test = [] {
-    std::vector<int> v(5);
+    using namespace boost::ut;
 
-    expect(fatal(5_ul == std::size(v)));
+    "[vector]"_test = [] {
+        std::vector<int> v(5);
 
-    should("resize bigger") = [v] { // or "resize bigger"_test
-      mut(v).resize(10);
-      expect(10_ul == std::size(v));
+        !expect(5_ul == std::size(v));
+
+        should("resize bigger") = [=]() mutable { // or "resize bigger"_test
+            v.resize(10);
+            expect(10_ul == std::size(v));
+        };
+
+        !expect(5_ul == std::size(v));
+
+        should("resize smaller") = [=]() mutable { // or "resize smaller"_test
+            v.resize(0);
+            expect(0_ul == std::size(v));
+        };
     };
-
-    expect(fatal(5_ul == std::size(v)));
-
-    should("resize smaller") = [=]() mutable { // or "resize smaller"_test
-      v.resize(0);
-      expect(0_ul == std::size(v));
-    };
-  }
 }
 ```
 
 ```
-All tests passed (4 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (4 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/XWAdYt
+> https://godbolt.org/z/rcWcP44f3
 
 > Nice! That was easy, but I'm a believer into Behaviour Driven Development (`BDD`).
 > Is there a support for that?
 > Yes! Same example as above just with the `BDD` syntax.
 
 ```cpp
+#include <vector>
+#include <boost/ut.hpp>
+
 int main() {
-  "vector"_test = [] {
-    given("I have a vector") = [] {
-      std::vector<int> v(5);
-      expect(fatal(5_ul == std::size(v)));
+    using namespace boost::ut;
+    using namespace boost::ut::bdd;
 
-      when("I resize bigger") = [=] {
-        mut(v).resize(10);
+    "vector"_test = [] {
+        given("I have a vector") = [] {
+            std::vector<int> v(5);
+            expect((5_ul == std::size(v)) >> fatal);
 
-        then("The size should increase") = [=] {
-          expect(10_ul == std::size(v));
+            when("I resize bigger") = [=] {
+                mut(v).resize(10);
+
+                then("The size should increase") = [=] {
+                    expect(10_ul == std::size(v));
+                };
+            };
         };
-      };
     };
-  };
 }
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/dnvxsE
+> https://godbolt.org/z/4YY7KzG64
 
 > On top of that, `feature/scenario` aliases can be leveraged.
 
 ```cpp
+#include <vector>
+#include <boost/ut.hpp>
+
 int main() {
-  feature("vector") = [] {
-    scenario("size") = [] {
-      given("I have a vector") = [] {
-        std::vector<int> v(5);
-        expect(fatal(5_ul == std::size(v)));
+    using namespace boost::ut;
+    using namespace boost::ut::bdd;
 
-        when("I resize bigger") = [=] {
-          mut(v).resize(10);
+    feature("vector") = [] {
+        scenario("size") = [] {
+            given("I have a vector") = [] {
+                std::vector<int> v(5);
+                expect((5_ul == std::size(v)) >> fatal);
 
-          then("The size should increase") = [=] {
-            expect(10_ul == std::size(v));
-          };
+                when("I resize bigger") = [=] {
+                    mut(v).resize(10);
+
+                    then("The size should increase") = [=] {
+                        expect(10_ul == std::size(v));
+                    };
+                };
+            };
         };
-      };
     };
-  };
 }
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/T4cWss
+> https://godbolt.org/z/qxdrKxxqn
 
 > Can I use `Gherkin`?
 > Yeah, let's rewrite the example using `Gherkin` specification
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  bdd::gherkin::steps steps = [](auto& steps) {
-    steps.feature("Vector") = [&] {
-      steps.scenario("*") = [&] {
-        steps.given("I have a vector") = [&] {
-          std::vector<int> v(5);
-          expect(fatal(5_ul == std::size(v)));
+    using namespace boost::ut;
 
-          steps.when("I resize bigger") = [&] {
-            v.resize(10);
-          };
-
-          steps.then("The size should increase") = [&] {
-            expect(10_ul == std::size(v));
-          };
+    bdd::gherkin::steps steps = [](auto& steps) {
+        steps.feature("Vector") = [&] {
+            steps.scenario("*") = [&] {
+                steps.given("I have a vector") = [&] {
+                    std::vector<int> v(5);
+                    expect((5_ul == std::size(v)) >> fatal);
+                    steps.when("I resize bigger") = [&] { v.resize(10); };
+                    steps.then("The size should increase") = [&] { expect(10_ul == std::size(v)); };
+                };
+            };
         };
-      };
     };
-  };
 
-  "Vector"_test = steps |
-    R"(
+    "Vector"_test = steps |
+        R"(
       Feature: Vector
         Scenario: Resize
           Given I have a vector
@@ -567,68 +661,92 @@ int main() {
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/jb1d8P
+> https://godbolt.org/z/nxW6dsPvj
 
 > Nice, is `Spec` notation supported as well?
 
 ```cpp
-int main() {
-  describe("vector") = [] {
-    std::vector<int> v(5);
-    expect(fatal(5_ul == std::size(v)));
+#include <vector>
+#include <boost/ut.hpp>
 
-    it("should resize bigger") = [v] {
-      mut(v).resize(10);
-      expect(10_ul == std::size(v));
+int main() {
+    using namespace boost::ut;
+    using namespace boost::ut::spec;
+
+    describe("vector") = [] {
+        std::vector<int> v(5);
+        expect((5_ul == std::size(v)) >> fatal);
+
+        it("should resize bigger") = [v] {
+            mut(v).resize(10);
+            expect(10_ul == std::size(v));
+        };
     };
-  };
 }
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/6jKKzT
+> https://godbolt.org/z/Y76sKKs4e
 
 > That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
 > Parameterized tests to the rescue!
 
 ```cpp
+#include <vector>
+#include <boost/ut.hpp>
+
 int main() {
-  for (auto i : std::vector{1, 2, 3}) {
-    test("parameterized " + std::to_string(i)) = [i] { // 3 tests
-      expect(that % i > 0); // 3 asserts
-    };
-  }
+    using namespace boost::ut;
+
+    for (const auto& i : std::vector{ 1, 2, 3 }) {
+        test("parameterized " + std::to_string(i)) = [i] { // 3 tests
+            expect(that % i > 0); // 3 asserts
+        };
+    }
 }
 ```
 
 ```
-All tests passed (3 asserts in 3 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (3 asserts in 3 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/Utnd6X
+> https://godbolt.org/z/Gnfh3fKbP
 
 > That's it 😮!
 > Alternatively, a convenient test syntax is also provided 👍
 
 ```cpp
+#include <vector>
+#include <boost/ut.hpp>
+
 int main() {
-  "args"_test = [](const auto& arg) {
-    expect(arg > 0_i) << "all values greater than 0";
-  } | std::vector{1, 2, 3};
+    using namespace boost::ut;
+
+    "args"_test = [](const auto& arg) {
+        expect(arg > 0_i) << "all values greater than 0";
+        } | std::vector{ 1, 2, 3 };
 }
 ```
 
 ```
-All tests passed (3 asserts in 3 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (3 asserts in 3 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/6FHtpq
+> https://godbolt.org/z/Gnfh3fKbP
 
 > Check [Examples](#examples) for further reading.
 
@@ -643,24 +761,31 @@ All tests passed (3 asserts in 3 tests)
 > `tests` defined inside will be automatically registered 👍
 
 ```cpp
-suite errors = [] { // or suite<"nameofsuite">
-  "exception"_test = [] {
-    expect(throws([] { throw 0; })) << "throws any exception";
-  };
+#include <boost/ut.hpp>
+#include <cassert>
 
-  "failure"_test = [] {
-    expect(aborts([] { assert(false); }));
-  };
-};
+boost::ut::suite errors = [] {
+    using namespace boost::ut;
 
-int main() { }
+    "exception"_test = [] {
+        expect(throws([] { throw 0; })) << "throws any exception";
+        };
+
+    "failure"_test = [] {
+        expect(aborts([] { assert(false); })); // for Unix-like operating systems
+        };
+    };
+
+int main() {}
 ```
 
 ```
-All tests passed (2 asserts in 2 tests)
+UT starts =====================================================================
+Suite 'unnamed suite': all tests passed (2 asserts in 2 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/_ccGwZ
+> https://godbolt.org/z/6TxWETerc
 
 ---
 
@@ -736,14 +861,17 @@ expect(sum() == 1_i or 2_i == sum()) << "sum?";
 ```
 
 ```
-assertions.cpp:53:FAILED [1 == 2] should fail
-assertions.cpp:54:FAILED [(0 == 1 or 2 == 0)] sum?
+UT starts =====================================================================
+FAILED in: ...\example.cpp:46 - test condition: [1 == 2] should fail
+FAILED in: ...\example.cpp:47 - test condition: [(0 == 1 or 2 == 0)] sum?
 ===============================================================================
-tests:   0  | 0 failed
+Suite global
+tests:   0 | 0 failed
 asserts: 20 | 18 passed | 2 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/E1c7G5
+> https://godbolt.org/z/o5GqKvG87
 
 </p>
 </details>
@@ -755,34 +883,38 @@ asserts: 20 | 18 passed | 2 failed
 <p>
 
 ```cpp
-"run UDL"_test = [] {
-  expect(42_i == 42);
-};
+#include <boost/ut.hpp>
 
-skip / "don't run UDL"_test = [] {
-  expect(42_i == 43) << "should not fire!";
-};
+int main() {
+    using namespace boost::ut;
+    // use ""_test
+    "run UDL"_test = [] {
+        expect(42_i == 42);
+    };
+
+    skip / "don't run UDL"_test = [] {
+        expect(42_i == 43) << "should not fire!";
+    };
+    // test()
+    test("run function") = [] {
+        expect(42_i == 42);
+    };
+
+    skip / test("don't run function") = [] {
+        expect(42_i == 43) << "should not fire!";
+    };
+}
 ```
 
 ```
-All tests passed (1 asserts in 1 tests)
-1 tests skipped
+UT starts =====================================================================
+Running "don't run UDL"... SKIPPED
+Running "don't run function"... SKIPPED
+Suite 'global': all tests passed (2 asserts in 2 tests); 2 tests skipped
+Completed =====================================================================
 ```
 
-```cpp
-test("run function") = [] {
-  expect(42_i == 42);
-};
-
-skip / test("don't run function") = [] {
-  expect(42_i == 43) << "should not fire!";
-};
-```
-
-```
-All tests passed (1 asserts in 1 tests)
-1 tests skipped
-```
+> https://godbolt.org/z/9zr4daoPr
 
 ```cpp
 tag("nightly") / tag("slow") /
@@ -805,8 +937,6 @@ All tests passed (1 asserts in 1 tests)
 1 tests skipped
 ```
 
-> https://godbolt.org/z/X3_kG4
-
 </p>
 </details>
 
@@ -814,30 +944,39 @@ All tests passed (1 asserts in 1 tests)
 <p>
 
 ```cpp
-"[vector]"_test = [] {
-  std::vector<int> v(5);
+#include <vector>
+#include <boost/ut.hpp>
 
-  expect(fatal(5_ul == std::size(v)));
+int main() {
+    using namespace boost::ut;
 
-  should("resize bigger") = [=] { // or "resize bigger"_test
-    mut(v).resize(10);
-    expect(10_ul == std::size(v));
-  };
+    "[vector]"_test = [] {
+        std::vector<int> v(5);
 
-  expect(fatal(5_ul == std::size(v)));
+        expect((5_ul == std::size(v)) >> fatal);
 
-  should("resize smaller") = [=]() mutable { // or "resize smaller"_test
-    v.resize(0);
-    expect(0_ul == std::size(v));
-  };
-};
+        should("resize bigger") = [=]() mutable { // or "resize bigger"_test
+            v.resize(10);
+            expect(10_ul == std::size(v));
+        };
+
+        expect((5_ul == std::size(v)) >> fatal);
+
+        should("resize smaller") = [=]() mutable { // or "resize smaller"_test
+            v.resize(0);
+            expect(0_ul == std::size(v));
+        };
+    };
+}
 ```
 
 ```
-All tests passed (4 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (4 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/cE91bj
+> https://godbolt.org/z/rez4qMhxE
 
 </p>
 </details>
@@ -846,21 +985,30 @@ All tests passed (4 asserts in 1 tests)
 <p>
 
 ```cpp
-"Scenario"_test = [] {
-  given("I have...") = [] {
-    when("I run...") = [] {
-      then("I expect...") = [] { expect(1_i == 1); };
-      then("I expect...") = [] { expect(1 == 1_i); };
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+    using namespace boost::ut::bdd;
+
+    "scenario"_test = [] {
+        given("I have...") = [] {
+            when("I run...") = [] {
+                then("I expect 1...") = [] { expect(1_i == 1); };
+                then("I expect 2...") = [] { expect(1 == 1_i); };
+            };
+        };
     };
-  };
-};
+}
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/mNBySr
+> https://godbolt.org/z/6roq7v1dj
 
 </p>
 </details>
@@ -869,25 +1017,25 @@ All tests passed (2 asserts in 1 tests)
 <p>
 
 ```cpp
-int main() {
-  bdd::gherkin::steps steps = [](auto& steps) {
-    steps.feature("*") = [&] {
-      steps.scenario("*") = [&] {
-        steps.given("I have a number {value}") = [&](int value) {
-          auto number = value;
-          steps.when("I add {value} to it") = [&](int value) {
-            number += value;
-          };
-          steps.then("I expect number to be {value}") = [&](int value) {
-            expect(that % number == value);
-          };
-        };
-      };
-    };
-  };
+#include <boost/ut.hpp>
 
-  "Gherkin"_test = steps |
-    R"(
+int main() {
+    using namespace boost::ut;
+
+    bdd::gherkin::steps steps = [](auto& steps) {
+        steps.feature("*") = [&] {
+            steps.scenario("*") = [&] {
+                steps.given("I have a number {value}") = [&](int value) {
+                    auto number = value;
+                    steps.when("I add {value} to it") = [&](int value) { number += value; };
+                    steps.then("I expect number to be {value}") = [&](int value) { expect(that % number == value); };
+                };
+            };
+        };
+    };
+
+    "Gherkin"_test = steps |
+        R"(
       Feature: Number
         Scenario: Addition
           Given I have a number 40
@@ -898,10 +1046,12 @@ int main() {
 ```
 
 ```
-All tests passed (1 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (1 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/BP3hyt
+> https://godbolt.org/z/YnaeTrboG
 
 </p>
 </details>
@@ -910,19 +1060,26 @@ All tests passed (1 asserts in 1 tests)
 <p>
 
 ```cpp
+#include <boost/ut.hpp>
+
 int main() {
-  describe("equality") = [] {
-    it("should be equal")     = [] { expect(0_i == 0); };
-    it("should not be equal") = [] { expect(1_i != 0); };
-  };
+    using namespace boost::ut;
+    using namespace boost::ut::spec;
+
+    describe("equality") = [] {
+        it("should be equal") = [] { expect(0_i == 0_i); };
+        it("should not be equal") = [] { expect(1_i != 0_i); };
+    };
 }
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/BXYJ3a
+> https://godbolt.org/z/znPfdn1jM
 
 </p>
 </details>
@@ -931,31 +1088,40 @@ All tests passed (2 asserts in 1 tests)
 <p>
 
 ```cpp
-for (auto i : std::vector{1, 2, 3}) {
-  test("parameterized " + std::to_string(i)) = [i] {
-    expect(that % i > 0);
-  };
+#include <vector>
+#include <tuple>
+#include <type_traits>
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    for (const auto& i : std::vector{ 1, 2, 3 }) {
+        test("parameterized " + std::to_string(i)) = [i] {
+            expect(that % i > 0);
+        };
+    }
+
+    "args"_test =
+        [](const auto& arg) {
+        expect(arg >= 1_i);
+        }
+    | std::vector{ 1, 2, 3 };
+
+    "types"_test =
+        []<class T>() {
+        expect(std::is_integral_v<T>) << "all types are integrals";
+    }
+    | std::tuple<bool, int>{};
+
+    "args and types"_test =
+        []<class TArg>(const TArg & arg) {
+        expect(std::is_integral_v<TArg> >> fatal);
+        expect(42_i == static_cast<int>(arg) or arg);
+        expect(type<TArg> == type<int> or type<TArg> == type<bool>);
+    }
+    | std::tuple{ true, 42 };
 }
-
-"args"_test =
-   [](auto arg) {
-      expect(arg >= 1_i);
-    }
-  | std::vector{1, 2, 3};
-
-"types"_test =
-    []<class T> {
-      expect(std::is_integral_v<T>) << "all types are integrals";
-    }
-  | std::tuple<bool, int>{};
-
-"args and types"_test =
-    []<class TArg>(TArg arg) {
-      expect(fatal(std::is_integral_v<TArg>));
-      expect(42_i == arg or "is true"_b == arg);
-      expect(type<TArg> == type<int> or type<TArg> == type<bool>);
-    }
-  | std::tuple{true, 42};
 ```
 When using the `operator|` syntax instead of a `for` loop, the test name will automatically
 be extended to avoid duplicate names. For example, the test name for the `args and types` test
@@ -970,31 +1136,45 @@ See the [example on parameterized tests](https://github.com/boost-ext/ut/blob/ma
 for details.
 
 ```
-All tests passed (14 asserts in 10 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (14 asserts in 10 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/4xGGdo
+> https://godbolt.org/z/rEo4Tn4G4
 
 
 > And whenever I need to know the specific type for which the test failed,
 > I can use `reflection::type_name<T>()`, like this:
 
 ```cpp
-"types with type name"_test =
-    []<class T>() {
-      expect(std::is_unsigned_v<T>) << reflection::type_name<T>() << "is unsigned";
+#include <tuple>
+#include <type_traits>
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    "types with type name"_test =
+        []<class T>() {
+        expect(std::is_unsigned_v<T>) << reflection::type_name<T>() << "is unsigned";
     }
-  | std::tuple<unsigned int, float>{};
+    | std::tuple<unsigned int, float>{};
+}
 ```
 
 ```
-Running "types with type name"...PASSED
-Running "types with type name"...
-  <source>:10:FAILED [false] float is unsigned
-FAILED
+UT starts =====================================================================
+Running test "types with type name (float)"...
+FAILED in: ...\example.cpp:10 - test condition: [false] float is unsigned
+===============================================================================
+Suite global
+tests:   2 | 1 failed
+asserts: 2 | 1 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/MEnGnbTY4
+> https://godbolt.org/z/oEW3f1dfM
 
 </p>
 </details>
@@ -1007,28 +1187,31 @@ FAILED
 <p>
 
 ```cpp
+#include <boost/ut.hpp>
+
 namespace ut = boost::ut;
 
 ut::suite errors = [] {
-  using namespace ut;
+    using namespace ut;
 
-  "throws"_test = [] {
-    expect(throws([] { throw 0; }));
-  };
-
-  "doesn't throw"_test = [] {
-    expect(nothrow([]{}));
-  };
+    "throws"_test = [] {
+        expect(throws([] { throw 0; }));
+    };
+    "doesn't throw"_test = [] {
+        expect(nothrow([] {}));
+    };
 };
 
-int main() { }
+int main() {}
 ```
 
 ```
-All tests passed (2 asserts in 2 tests)
+UT starts =====================================================================
+Suite 'unnamed suite': all tests passed (2 asserts in 2 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/CFbTP9
+> https://godbolt.org/z/bGs96hdqG
 
 </p>
 </details>
@@ -1040,27 +1223,33 @@ All tests passed (2 asserts in 2 tests)
 <p>
 
 ```cpp
-"logging"_test = [] {
-  log << "pre";
-  expect(42_i == 43) << "message on failure";
-  log << "post";
-};
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    "logging"_test = [] {
+        boost::ut::log << "pre";
+        expect(42_i == 43) << "message on failure";
+        boost::ut::log << "post";
+    };
+}
 ```
 
 ```
-Running "logging"...
+UT starts =====================================================================
+Running test "logging"...
 pre
-  logging.cpp:8:FAILED [42 == 43] message on failure
+FAILED in: ...\example.cpp:8 - test condition: [42 == 43] message on failure
 post
-FAILED
-
 ===============================================================================
-
+Suite global
 tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/26fPSY
+> https://godbolt.org/z/odfrY848n
 
 </p>
 </details>
@@ -1070,27 +1259,33 @@ asserts: 1 | 0 passed | 1 failed
 This requires using C++20 with a standard library with std::format support.
 
 ```cpp
-"logging"_test = [] {
-  log("\npre  {} == {}\n", 42, 43);
-  expect(42_i == 43) << "message on failure";
-  log("\npost {} == {} -> {}\n", 42, 43, 42 == 43);
-};
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    "logging"_test = [] {
+        boost::ut::log("\npre  {} == {}", 42, 43);
+        expect(42_i == 43) << "message on failure";
+        boost::ut::log("\npost {} == {} -> {}", 42, 43, 42 == 43);
+    };
+}
 ```
 
 ```
-Running "logging"...
-pre  42 == 43
-  logging.cpp:8:FAILED [42 == 43] message on failure
-post 42 == 43 -> false
-FAILED
-
+UT starts =====================================================================
+Running test "logging"...
+pre
+FAILED in: ...\example.cpp:8 - test condition: [42 == 43] message on failure
+post
 ===============================================================================
-
+Suite global
 tests:   1 | 1 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/26fPSY
+> https://godbolt.org/z/bhxKKPnTh
 
 </p>
 </details>
@@ -1099,23 +1294,31 @@ asserts: 1 | 0 passed | 1 failed
 <p>
 
 ```cpp
-"matchers"_test = [] {
-  constexpr auto is_between = [](auto lhs, auto rhs) {
-    return [=](auto value) {
-      return that % value >= lhs and that % value <= rhs;
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    "matcher"_test = [] {
+        constexpr auto is_between = [](auto lhs, auto rhs) {
+            return [=](auto value) {
+                return that % value >= lhs and that % value <= rhs;
+            };
+        };
+
+        expect(is_between(1, 100)(42));
+        expect(not is_between(1, 100)(0));
     };
-  };
-
-  expect(is_between(1, 100)(42));
-  expect(not is_between(1, 100)(0));
-};
+}
 ```
 
 ```
-All tests passed (2 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (2 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/4qwrCi
+> https://godbolt.org/z/348a8zofd
 
 </p>
 </details>
@@ -1124,20 +1327,29 @@ All tests passed (2 asserts in 1 tests)
 <p>
 
 ```cpp
-"exceptions/aborts"_test = [] {
-  expect(throws<std::runtime_error>([] { throw std::runtime_error{""}; }))
-    << "throws runtime_error";
-  expect(throws([] { throw 0; })) << "throws any exception";
-  expect(nothrow([]{})) << "doesn't throw";
-  expect(aborts([] { assert(false); }));
-};
+#include <stdexcept>
+#include <boost/ut.hpp>
+
+int main() {
+    using namespace boost::ut;
+
+    "exceptions"_test = [] {
+        expect(throws<std::runtime_error>([] {throw std::runtime_error{ "" }; }))
+            << "throws runtime_error";
+        expect(throws([] {throw 0; })) << "throws any exception";
+        expect(nothrow([] {})) << "doesn't throw";
+		expect(aborts([] { assert(false); })); // only for Unix-like operating systems
+    };
+}
 ```
 
 ```
-All tests passed (4 asserts in 1 tests)
+UT starts =====================================================================
+Suite 'global': all tests passed (4 asserts in 1 tests)
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/A2EehK
+> https://godbolt.org/z/1nbqdc9xh
 
 </p>
 </details>
@@ -1232,7 +1444,7 @@ int main() {
 }
 ```
 
-> https://godbolt.org/z/XCscF9
+> https://godbolt.org/z/cfKoE8P5n
 
 </p>
 </details>
