@@ -1413,14 +1413,14 @@ class printer {
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::and_<TLhs, TRhs>& op) {
-    return (*this << '(' << op.lhs() << color(op) << " and " << colors_.none
-                  << op.rhs() << ')');
+    return (*this << color(op) << '(' << op.lhs() << color(op) << " and "
+                  << op.rhs() << color(op) << ')') << colors_.none;
   }
 
   template <class TLhs, class TRhs>
   auto& operator<<(const detail::or_<TLhs, TRhs>& op) {
-    return (*this << '(' << op.lhs() << color(op) << " or " << colors_.none
-                  << op.rhs() << ')');
+    return (*this << color(op) << '(' << op.lhs() << color(op) << " or "
+                  << op.rhs() << color(op) << ')') << colors_.none;
   }
 
   template <class T>
