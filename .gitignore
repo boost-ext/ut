@@ -7,3 +7,5 @@ install_dir/
 cmake_build*/
 compile_commands.json
 .cache/
+bazel-*
+MODULE.bazel.lock

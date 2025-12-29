@@ -40,11 +40,14 @@ option(BOOST_UT_ENABLE_INSTALL "Enable install targets" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(ut INTERFACE)
+
 if(NOT BOOST_UT_DISABLE_MODULE)
   add_library(ut_module)
 endif()
+
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
+
 if(NOT BOOST_UT_DISABLE_MODULE)
   target_compile_features(ut_module INTERFACE cxx_std_23)
 endif()

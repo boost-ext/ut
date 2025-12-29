@@ -1,0 +1,6 @@
+
+cc_binary(
+    name = "example_main",
+    srcs = ["main.cpp"],
+    deps = ["//:ut"],
+)
