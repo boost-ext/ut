@@ -1602,8 +1602,6 @@ class reporter_junit {
   
   struct test_result {
     test_result* parent = nullptr;
-    std::string class_name;
-    std::string suite_name;
     std::string test_name;
     StatusType status = UNDEFINED;
     timePoint run_start = clock_ref::now();
@@ -1637,8 +1635,7 @@ class reporter_junit {
     const std::string str_name(test_name);
     active_test_.push(str_name);
     const auto [iter, inserted] = active_scope_->nested_tests->try_emplace(
-        str_name, test_result{active_scope_, detail::cfg::executable_name,
-                              active_suite_, str_name});
+        str_name, test_result{active_scope_, str_name});
     active_scope_ = &active_scope_->nested_tests->at(str_name);
     if (active_test_.size() == 1) {
       reset_printer();
@@ -1967,7 +1964,7 @@ class reporter_junit {
                     const std::string& indent, const test_result& parent) {
     for (const auto& [name, result] : *parent.nested_tests) {
       stream << indent;
-      stream << "<testcase classname=\"" << result.suite_name << '\"';
+      stream << "<testcase classname=\"" << suite_name << '\"';
       stream << " name=\"" << name << '\"';
       stream << " tests=\"" << result.assertions << '\"';
       stream << " errors=\"" << result.fails << '\"';
