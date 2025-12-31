@@ -1593,13 +1593,19 @@ class reporter_junit {
   enum class ReportType : std::uint8_t { CONSOLE, JUNIT } report_type_;
   static constexpr ReportType CONSOLE = ReportType::CONSOLE;
   static constexpr ReportType JUNIT = ReportType::JUNIT;
-
+  enum class StatusType : std::uint8_t { PASSED, FAILED, SKIPPED, UNDEFINED };
+  static constexpr StatusType PASSED = StatusType::PASSED;
+  static constexpr StatusType FAILED = StatusType::FAILED;
+  static constexpr StatusType SKIPPED = StatusType::SKIPPED;
+  static constexpr StatusType UNDEFINED = StatusType::UNDEFINED;
+  inline static const std::string statusStrings[] = { "PASSED", "FAILED", "SKIPPED", "UNDEFINED" };
+  
   struct test_result {
     test_result* parent = nullptr;
     std::string class_name;
     std::string suite_name;
     std::string test_name;
-    std::string status = "STARTED";
+    StatusType status = UNDEFINED;
     timePoint run_start = clock_ref::now();
     timePoint run_stop = clock_ref::now();
     std::size_t n_tests = 0LU;
@@ -1647,11 +1653,10 @@ class reporter_junit {
   void pop_scope(std::string_view test_name_sv) {
     const std::string test_name(test_name_sv);
     active_scope_->run_stop = clock_ref::now();
-    if (active_scope_->skipped) {
-      active_scope_->status = "SKIPPED";
-    } else {
-      active_scope_->status = active_scope_->fails > 0 ? "FAILED" : "PASSED";
-    }
+    active_scope_->status =
+        active_scope_->skipped
+            ? SKIPPED
+            : (active_scope_->fails > 0 ? FAILED : PASSED);
     if (active_test_.top() == test_name) {
       active_test_.pop();
       auto old_scope = active_scope_;
@@ -1773,7 +1778,7 @@ class reporter_junit {
     ss_out_.clear();
     if (!active_scope_->nested_tests->contains(std::string(test_event.name))) {
       check_for_scope(test_event.name);
-      active_scope_->status = "SKIPPED";
+      active_scope_->status = SKIPPED;
       active_scope_->skipped += 1;
       if (report_type_ == CONSOLE) {
         lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
@@ -1973,7 +1978,7 @@ class reporter_junit {
               result.run_stop - result.run_start)
               .count();
       stream << " time=\"" << (static_cast<double>(time_ms) / 1000.0) << "\"";
-      stream << " status=\"" << result.status << '\"';
+      stream << " status=\"" << statusStrings[(int)result.status] << '\"';
       if (result.report_string.empty() && result.nested_tests->empty()) {
         stream << " />\n";
       } else if (!result.nested_tests->empty()) {
