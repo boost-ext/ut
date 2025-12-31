@@ -1605,7 +1605,6 @@ class reporter_junit {
     std::size_t n_tests = 0LU;
     std::size_t fail_tests = 0LU;
     std::size_t assertions = 0LU;
-    std::size_t passed = 0LU;
     std::size_t skipped = 0LU;
     std::size_t fails = 0LU;
     std::string report_string{};
@@ -1664,7 +1663,6 @@ class reporter_junit {
       active_scope_->n_tests += old_scope->n_tests;
       active_scope_->fail_tests += old_scope->fail_tests;
       active_scope_->assertions += old_scope->assertions;
-      active_scope_->passed += old_scope->passed;
       active_scope_->skipped += old_scope->skipped;
       active_scope_->fails += old_scope->fails;
       return;
@@ -1819,7 +1817,6 @@ class reporter_junit {
   template <class TExpr>
   auto on(events::assertion_pass<TExpr>) -> void {
     active_scope_->assertions++;
-    active_scope_->passed++;
   }
 
   template <class TExpr>
@@ -1901,7 +1898,7 @@ class reporter_junit {
             << (suite_result.fail_tests > 0 ? color_.fail : color_.none)
             << suite_result.fail_tests << " failed" << color_.none << '\n'
             << "asserts: " << (suite_result.assertions) << " | "
-            << suite_result.passed << " passed"
+            << (suite_result.assertions - suite_result.fails) << " passed"
             << " | " << color_.fail << suite_result.fails << " failed"
             << color_.none;
         //std::cerr << std::endl;
