@@ -1585,8 +1585,6 @@ class reporter {
 
 template <class TPrinter = printer>
 class reporter_junit {
-  template <typename Key, typename T>
-  using map = std::unordered_map<Key, T>;
   using clock_ref = std::chrono::high_resolution_clock;
   using timePoint = std::chrono::time_point<clock_ref>;
   using timeDiff = std::chrono::milliseconds;
@@ -1599,10 +1597,10 @@ class reporter_junit {
   static constexpr StatusType SKIPPED = StatusType::SKIPPED;
   static constexpr StatusType UNDEFINED = StatusType::UNDEFINED;
   inline static const std::string statusStrings[] = { "PASSED", "FAILED", "SKIPPED", "UNDEFINED" };
-  
+
   struct test_result {
-    test_result* parent = nullptr;
     std::string test_name;
+    test_result* parent = nullptr;
     StatusType status = UNDEFINED;
     timePoint run_start = clock_ref::now();
     timePoint run_stop = clock_ref::now();
@@ -1612,14 +1610,23 @@ class reporter_junit {
     std::size_t skipped = 0LU;
     std::size_t fails = 0LU;
     std::string report_string{};
-    std::unique_ptr<map<std::string, test_result>> nested_tests =
-        std::make_unique<map<std::string, test_result>>();
+    std::vector<std::unique_ptr<test_result>> children;
+
+    explicit test_result(std::string name, test_result* p = nullptr)
+        : test_name(std::move(name)), parent(p) {}
+    test_result(const test_result&) = delete;
+    test_result& operator=(const test_result&) = delete;
+    test_result(test_result&&) noexcept = default;
+    test_result& operator=(test_result&&) noexcept = default;
+    test_result& add_child(std::string name) {
+      children.emplace_back(std::make_unique<test_result>(std::move(name), this));
+      return *children.back();
+    }
   };
+  inline static int layer_ = 0;
   colors color_{};
-  map<std::string, test_result> results_;
-  std::string active_suite_{"global"};
-  test_result* active_scope_ = &results_[active_suite_];
-  std::stack<std::string> active_test_{};
+  std::vector<std::unique_ptr<test_result>> suites_results_;
+  test_result* current_node_ = nullptr;
 
   std::streambuf* cout_save = std::cout.rdbuf();
   std::ostream lcout_;
@@ -1631,59 +1638,44 @@ class reporter_junit {
     ss_out_.clear();
   }
 
-  void check_for_scope(std::string_view test_name) {
-    const std::string str_name(test_name);
-    active_test_.push(str_name);
-    const auto [iter, inserted] = active_scope_->nested_tests->try_emplace(
-        str_name, test_result{active_scope_, str_name});
-    active_scope_ = &active_scope_->nested_tests->at(str_name);
-    if (active_test_.size() == 1) {
+  void add_node(std::string node_name) {
+    if (current_node_->parent == nullptr) {
       reset_printer();
     }
-    active_scope_->run_start = clock_ref::now();
-    if (!inserted) {
-      std::cout << "WARNING test '" << str_name << "' for test suite '"
-                << active_suite_ << "' already present\n";
-    }
+    layer_++;
+    current_node_ = &current_node_->add_child(node_name);
   }
 
-  void pop_scope(std::string_view test_name_sv) {
-    const std::string test_name(test_name_sv);
-    active_scope_->run_stop = clock_ref::now();
-    active_scope_->status =
-        active_scope_->skipped
-            ? SKIPPED
-            : (active_scope_->fails > 0 ? FAILED : PASSED);
-    if (active_test_.top() == test_name) {
-      active_test_.pop();
-      auto old_scope = active_scope_;
-      if (active_scope_->parent != nullptr) {
-        active_scope_ = active_scope_->parent;
-      } else {
-        active_scope_ = &results_[std::string{"global"}];
-      }
-      active_scope_->n_tests += old_scope->n_tests;
-      active_scope_->fail_tests += old_scope->fail_tests;
-      active_scope_->assertions += old_scope->assertions;
-      active_scope_->skipped += old_scope->skipped;
-      active_scope_->fails += old_scope->fails;
-      return;
+  void count_result() {
+    current_node_->run_stop = clock_ref::now();
+    current_node_->status =
+        current_node_->skipped
+        ? SKIPPED : (current_node_->fails > 0 ? FAILED : PASSED);
+    auto parent = current_node_->parent;
+    if (parent != nullptr) {
+      parent->n_tests += current_node_->n_tests;
+      parent->fail_tests += current_node_->fail_tests;
+      parent->assertions += current_node_->assertions;
+      parent->skipped += current_node_->skipped;
+      parent->fails += current_node_->fails;
     }
-    std::stringstream ss("runner returned from test w/o signaling: ");
-    ss << "not popping because '" << active_test_.top() << "' differs from '"
-       << test_name << "'" << std::endl;
-#if defined(__cpp_exceptions)
-    throw std::logic_error(ss.str());
-#else
-    std::abort();
-#endif
+    current_node_ = parent;
+    layer_--;
+  }
+
+  inline std::string getLeadingSpace() {
+    return layer_ > 0 ? std::format("\n{}", std::string(2 * (layer_ - 1), ' '))
+                      : "\n";
   }
 
  public:
   constexpr auto operator=(TPrinter printer) {
     printer_ = static_cast<TPrinter&&>(printer);
   }
-  reporter_junit() : lcout_(std::cout.rdbuf()) {}
+  reporter_junit() : lcout_(std::cout.rdbuf()) {
+    suites_results_.emplace_back(std::make_unique<test_result>("global"));
+    current_node_ = suites_results_.front().get();
+  }
   ~reporter_junit() { std::cout.rdbuf(cout_save); }
 
   auto on(events::run_begin run) {
@@ -1709,58 +1701,45 @@ class reporter_junit {
   }
 
   auto on(events::suite_begin suite) -> void {
-    while (active_test_.size() > 0) {
-      pop_scope(active_test_.top());
-    }
-    active_suite_ = suite.name;
-    active_scope_ = &results_[active_suite_];
+    suites_results_.emplace_back(std::make_unique<test_result>((std::string)suite.name));
+    current_node_ = suites_results_.back().get();
   }
 
   auto on(events::suite_end) -> void {
-    while (active_test_.size() > 0) {
-      pop_scope(active_test_.top());
-    }
-    active_suite_ = "global";
-    active_scope_ = &results_[active_suite_];
+    current_node_ = suites_results_.front().get();
   }
 
   auto on(events::test_begin test_event) -> void {  // starts outermost test
-    check_for_scope(test_event.name);
-
+    add_node((std::string)test_event.name);
     if (report_type_ == CONSOLE) {
-      ss_out_ << "\n";
-      ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
+      ss_out_ << getLeadingSpace();
       ss_out_ << "Running " << test_event.type << " \"" << test_event.name
               << "\"... ";
     }
   }
 
   auto on(events::test_end test_event) -> void {
-    active_scope_->report_string += ss_out_.str();
-    if (active_scope_->fails > 0) {
-      if (report_type_ == CONSOLE) {
+    current_node_->report_string += ss_out_.str();
+    if (report_type_ == CONSOLE) {
+      if (current_node_->fails > 0) {
         lcout_ << ss_out_.str();
       }
-    } else {
-      if (report_type_ == CONSOLE) {
-        if (detail::cfg::show_successful_tests) {
-          if (!active_scope_->nested_tests->empty()) {
-            ss_out_ << "\n";
-            ss_out_ << std::string((2 * active_test_.size()) - 2, ' ');
-            ss_out_ << "Running test \"" << test_event.name << "\" - ";
-          }
-          ss_out_ << color_.pass << "PASSED" << color_.none;
-          print_duration(ss_out_);
-          lcout_ << ss_out_.str();
+      else if (detail::cfg::show_successful_tests) {
+        if (!current_node_->children.empty()) {
+          ss_out_ << getLeadingSpace();
+          ss_out_ << "Running test \"" << test_event.name << "\" ... ";
         }
+        ss_out_ << color_.pass << "PASSED" << color_.none;
+        print_duration(ss_out_);
+        lcout_ << ss_out_.str();
       }
     }
     reset_printer();
-    active_scope_->n_tests = 1LU;
-    if (active_scope_->fails > 0 || active_scope_->fail_tests > 0) {
-      active_scope_->fail_tests = 1LU;
+    current_node_->n_tests = 1LU;
+    if (current_node_->fails > 0 || current_node_->fail_tests > 0) {
+      current_node_->fail_tests = 1LU;
     }
-    pop_scope(test_event.name);
+    count_result();
   }
 
   auto on(events::test_run test_event) -> void {  // starts nested test
@@ -1773,18 +1752,16 @@ class reporter_junit {
 
   auto on(events::test_skip test_event) -> void {
     ss_out_.clear();
-    if (!active_scope_->nested_tests->contains(std::string(test_event.name))) {
-      check_for_scope(test_event.name);
-      active_scope_->status = SKIPPED;
-      active_scope_->skipped += 1;
-      if (report_type_ == CONSOLE) {
-        lcout_ << '\n' << std::string((2 * active_test_.size()) - 2, ' ');
-        lcout_ << "Running \"" << test_event.name << "\"... ";
-        lcout_ << color_.skip << "SKIPPED" << color_.none;
-      }
-      reset_printer();
-      pop_scope(test_event.name);
+    add_node((std::string)test_event.name);
+    current_node_->status = SKIPPED;
+    current_node_->skipped += 1;
+    if (report_type_ == CONSOLE) {
+      lcout_ << getLeadingSpace();
+      lcout_ << "Running \"" << test_event.name << "\"... ";
+      lcout_ << color_.skip << "SKIPPED" << color_.none;
     }
+    reset_printer();
+    count_result();
   }
 
   template <class TMsg>
@@ -1793,32 +1770,30 @@ class reporter_junit {
   }
 
   auto on(events::exception exception) -> void {
-    active_scope_->fails++;
-    if (!active_test_.empty()) {
-      active_scope_->report_string += color_.fail;
-      active_scope_->report_string += "Unexpected exception with message:\n";
-      active_scope_->report_string += exception.what();
-      active_scope_->report_string += color_.none;
-    }
+    current_node_->fails++;
+    current_node_->report_string += color_.fail;
+    current_node_->report_string += "Unexpected exception with message:\n";
+    current_node_->report_string += exception.what();
+    current_node_->report_string += color_.none;
     if (report_type_ == CONSOLE) {
-      lcout_ << std::string((2 * active_test_.size()) - 2, ' ');
-      lcout_ << "Running test \"" << active_test_.top() << "\"... ";
+      lcout_ << getLeadingSpace();
+      lcout_ << "Running test \"" << current_node_->test_name << "\"... ";
       lcout_ << color_.fail << "FAILED" << color_.none;
       print_duration(lcout_);
       lcout_ << '\n';
-      lcout_ << active_scope_->report_string << '\n';
+      lcout_ << current_node_->report_string << '\n';
     }
     if (detail::cfg::abort_early ||
-        active_scope_->fails >= detail::cfg::abort_after_n_failures) {
-      std::cerr << "early abort for test : " << active_test_.top() << "after ";
-      std::cerr << active_scope_->fails << " failures total." << std::endl;
+        current_node_->fails >= detail::cfg::abort_after_n_failures) {
+      std::cerr << "early abort for test : " << current_node_->test_name << "after ";
+      std::cerr << current_node_->fails << " failures total." << std::endl;
       std::exit(-1);
     }
   }
 
   template <class TExpr>
   auto on(events::assertion_pass<TExpr>) -> void {
-    active_scope_->assertions++;
+    current_node_->assertions++;
   }
 
   template <class TExpr>
@@ -1826,10 +1801,7 @@ class reporter_junit {
     TPrinter ss{};
     ss << ss_out_.str();
     if (report_type_ == CONSOLE) {
-      ss << "\n";
-      if (active_test_.size()) {
-        ss << std::string((2 * active_test_.size()) - 2, ' ');
-      }
+      ss << getLeadingSpace();
       ss << color_.fail << "FAILED " << color_.none;
       print_duration(ss);
     }
@@ -1838,22 +1810,22 @@ class reporter_junit {
     ss << color_.fail << " - test condition: ";
     ss << '[' << std::boolalpha << assertion.expr;
     ss << color_.fail << ']' << color_.none;
-    active_scope_->report_string += ss.str();
-    active_scope_->fails++;
-    active_scope_->assertions++;
+    current_node_->report_string += ss.str();
+    current_node_->fails++;
+    current_node_->assertions++;
     reset_printer();
     if (report_type_ == CONSOLE) {
       lcout_ << ss.str();
     }
     if (detail::cfg::abort_early ||
-        active_scope_->fails >= detail::cfg::abort_after_n_failures) { 
-      std::cerr << "early abort for test : " << active_test_.top() << "after ";
-      std::cerr << active_scope_->fails << " failures total." << std::endl;
+        current_node_->fails >= detail::cfg::abort_after_n_failures) {
+      std::cerr << "early abort for test : " << current_node_->test_name << "after ";
+      std::cerr << current_node_->fails << " failures total." << std::endl;
       std::exit(-1);
     }
   }
 
-  auto on(const events::fatal_assertion&) -> void { /*active_scope_->fails++;*/ }
+  auto on(const events::fatal_assertion&) -> void {}
 
   auto on(events::summary) -> void {
     std::cout.flush();
@@ -1879,7 +1851,7 @@ class reporter_junit {
     if (detail::cfg::show_duration) {
       std::int64_t time_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
-              active_scope_->run_stop - active_scope_->run_start)
+              current_node_->run_stop - current_node_->run_start)
               .count();
       // rounded to nearest ms
       double time_s = static_cast<double>(time_ms) / 1000.0;
@@ -1889,28 +1861,27 @@ class reporter_junit {
 
   void print_console_summary(std::ostream& out_stream,
                              std::ostream& err_stream) {
-
-    for (const auto& [suite_name, suite_result] : results_) {
-      if (suite_result.fails) {
+    for (const auto& suite_result : suites_results_) {
+      if (suite_result->fails) {
         err_stream
             << "\n========================================================"
                "=======================\n"
-            << "Suite " << suite_name << '\n'
-            << "tests:   " << (suite_result.n_tests) << " | "
-            << (suite_result.fail_tests > 0 ? color_.fail : color_.none)
-            << suite_result.fail_tests << " failed" << color_.none << '\n'
-            << "asserts: " << (suite_result.assertions) << " | "
-            << (suite_result.assertions - suite_result.fails) << " passed"
-            << " | " << color_.fail << suite_result.fails << " failed"
+            << "Suite " << suite_result->test_name << '\n'
+            << "tests:   " << (suite_result->n_tests) << " | "
+            << (suite_result->fail_tests > 0 ? color_.fail : color_.none)
+            << suite_result->fail_tests << " failed" << color_.none << '\n'
+            << "asserts: " << (suite_result->assertions) << " | "
+            << (suite_result->assertions - suite_result->fails) << " passed"
+            << " | " << color_.fail << suite_result->fails << " failed"
             << color_.none;
-        //std::cerr << std::endl;
-      } else if (suite_result.assertions || suite_result.n_tests || suite_result.skipped) {
-        out_stream << color_.pass << "\nSuite '" << suite_name
+      } else if (suite_result->assertions || suite_result->n_tests ||
+                 suite_result->skipped) {
+        out_stream << color_.pass << "\nSuite '" << suite_result->test_name
                    << "': all tests passed" << color_.none << " ("
-                   << suite_result.assertions << " asserts in "
-                   << suite_result.n_tests << " tests)";
-        if (suite_result.skipped) {
-          std::cout << "; " << suite_result.skipped << " tests skipped";
+                   << suite_result->assertions << " asserts in "
+                   << suite_result->n_tests << " tests)";
+        if (suite_result->skipped) {
+          std::cout << "; " << suite_result->skipped << " tests skipped";
         }
         std::cout.flush();
       }
@@ -1925,13 +1896,13 @@ class reporter_junit {
     auto suite_time = [](auto const& suite_result) {
       std::int64_t time_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
-              suite_result.run_stop - suite_result.run_start)
+              suite_result->run_stop - suite_result->run_start)
               .count();
       return static_cast<double>(time_ms) / 1000.0;
     };
-    for (const auto& [suite_name, suite_result] : results_) {
-      n_tests += suite_result.assertions;
-      n_fails += suite_result.fails;
+    for (const auto& suite_result : suites_results_) {
+      n_tests += suite_result->assertions;
+      n_fails += suite_result->fails;
       total_time += suite_time(suite_result);
     }
 
@@ -1944,48 +1915,50 @@ class reporter_junit {
     stream << " time=\"" << total_time << '\"';
     stream << ">\n";
 
-    for (const auto& [suite_name, suite_result] : results_) {
+    for (const auto& suite_result : suites_results_) {
       stream << "<testsuite";
       stream << " classname=\"" << detail::cfg::executable_name << '\"';
-      stream << " name=\"" << suite_name << '\"';
-      stream << " tests=\"" << suite_result.assertions << '\"';
-      stream << " errors=\"" << suite_result.fails << '\"';
-      stream << " failures=\"" << suite_result.fails << '\"';
-      stream << " skipped=\"" << suite_result.skipped << '\"';
+      stream << " name=\"" << suite_result->test_name << '\"';
+      stream << " tests=\"" << suite_result->assertions << '\"';
+      stream << " errors=\"" << suite_result->fails << '\"';
+      stream << " failures=\"" << suite_result->fails << '\"';
+      stream << " skipped=\"" << suite_result->skipped << '\"';
       stream << " time=\"" << suite_time(suite_result) << '\"';
       stream << " version=\"" << BOOST_UT_VERSION << "\">\n";
-      print_result(stream, suite_name, " ", suite_result);
+      print_result(stream, suite_result->test_name, " ", *suite_result);
       stream << "</testsuite>\n";
       stream.flush();
     }
     stream << "</testsuites>";
   }
   void print_result(std::ostream& stream, const std::string& suite_name,
-                    const std::string& indent, const test_result& parent) {
-    for (const auto& [name, result] : *parent.nested_tests) {
+                    const std::string& indent, const test_result& test_node) {
+    for (const auto& child_result : test_node.children) {
       stream << indent;
       stream << "<testcase classname=\"" << suite_name << '\"';
-      stream << " name=\"" << name << '\"';
-      stream << " tests=\"" << result.assertions << '\"';
-      stream << " errors=\"" << result.fails << '\"';
-      stream << " failures=\"" << result.fails << '\"';
-      stream << " skipped=\"" << result.skipped << '\"';
+      stream << " name=\"" << child_result->test_name << '\"';
+      stream << " tests=\"" << child_result->assertions << '\"';
+      stream << " errors=\"" << child_result->fails << '\"';
+      stream << " failures=\"" << child_result->fails << '\"';
+      stream << " skipped=\"" << child_result->skipped << '\"';
       std::int64_t time_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
-              result.run_stop - result.run_start)
+              child_result->run_stop - child_result->run_start)
               .count();
       stream << " time=\"" << (static_cast<double>(time_ms) / 1000.0) << "\"";
-      stream << " status=\"" << statusStrings[(int)result.status] << '\"';
-      if (result.report_string.empty() && result.nested_tests->empty()) {
+      stream << " status=\"" << statusStrings[(int)child_result->status]
+             << '\"';
+      if (child_result->report_string.empty() &&
+          child_result->children.empty()) {
         stream << " />\n";
-      } else if (!result.nested_tests->empty()) {
+      } else if (!child_result->children.empty()) {
         stream << " />\n";
-        print_result(stream, suite_name, indent + "  ", result);
+        print_result(stream, suite_name, indent + "  ", *child_result);
         stream << indent << "</testcase>\n";
-      } else if (!result.report_string.empty()) {
+      } else if (!child_result->report_string.empty()) {
         stream << ">\n";
         stream << indent << indent << "<system-out>\n";
-        stream << result.report_string << "\n";
+        stream << child_result->report_string << "\n";
         stream << indent << indent << "</system-out>\n";
         stream << indent << "</testcase>\n";
       }
