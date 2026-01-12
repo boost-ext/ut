@@ -1729,7 +1729,7 @@ class reporter_junit {
           ss_out_ << getLeadingSpace();
           ss_out_ << "Running test \"" << test_event.name << "\" ... ";
         }
-        ss_out_ << color_.pass << "PASSED" << color_.none;
+        ss_out_ << color_.pass << "PASSED " << color_.none;
         print_duration(ss_out_);
         lcout_ << ss_out_.str();
       }
@@ -1778,7 +1778,7 @@ class reporter_junit {
     if (report_type_ == CONSOLE) {
       lcout_ << getLeadingSpace();
       lcout_ << "Running test \"" << current_node_->test_name << "\"... ";
-      lcout_ << color_.fail << "FAILED" << color_.none;
+      lcout_ << color_.fail << "FAILED " << color_.none;
       print_duration(lcout_);
       lcout_ << '\n';
       lcout_ << current_node_->report_string << '\n';
@@ -1847,15 +1847,17 @@ class reporter_junit {
   }
 
  protected:
-  void print_duration(auto& printer) const noexcept {
+  inline double get_duration(test_result* test_node) const {
+    std::int64_t time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            test_node->run_stop - test_node->run_start)
+            .count();
+    return static_cast<double>(time_ms) / 1000.0;
+  }
+
+  inline void print_duration(auto& printer) const noexcept {
     if (detail::cfg::show_duration) {
-      std::int64_t time_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              current_node_->run_stop - current_node_->run_start)
-              .count();
-      // rounded to nearest ms
-      double time_s = static_cast<double>(time_ms) / 1000.0;
-      printer << " after " << time_s << " seconds";
+      printer << "after " << get_duration(current_node_) << " seconds ";
     }
   }
 
@@ -1893,17 +1895,10 @@ class reporter_junit {
     size_t n_tests = 0;
     size_t n_fails = 0;
     double total_time = 0.0;
-    auto suite_time = [](auto const& suite_result) {
-      std::int64_t time_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              suite_result->run_stop - suite_result->run_start)
-              .count();
-      return static_cast<double>(time_ms) / 1000.0;
-    };
     for (const auto& suite_result : suites_results_) {
       n_tests += suite_result->assertions;
       n_fails += suite_result->fails;
-      total_time += suite_time(suite_result);
+      total_time += get_duration(suite_result.get());
     }
 
     // mock junit output:
@@ -1923,7 +1918,7 @@ class reporter_junit {
       stream << " errors=\"" << suite_result->fails << '\"';
       stream << " failures=\"" << suite_result->fails << '\"';
       stream << " skipped=\"" << suite_result->skipped << '\"';
-      stream << " time=\"" << suite_time(suite_result) << '\"';
+      stream << " time=\"" << get_duration(suite_result.get()) << '\"';
       stream << " version=\"" << BOOST_UT_VERSION << "\">\n";
       print_result(stream, suite_result->test_name, " ", *suite_result);
       stream << "</testsuite>\n";
@@ -1941,11 +1936,7 @@ class reporter_junit {
       stream << " errors=\"" << child_result->fails << '\"';
       stream << " failures=\"" << child_result->fails << '\"';
       stream << " skipped=\"" << child_result->skipped << '\"';
-      std::int64_t time_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              child_result->run_stop - child_result->run_start)
-              .count();
-      stream << " time=\"" << (static_cast<double>(time_ms) / 1000.0) << "\"";
+      stream << " time=\"" << get_duration(child_result.get()) << "\"";
       stream << " status=\"" << statusStrings[(int)child_result->status]
              << '\"';
       if (child_result->report_string.empty() &&
