@@ -1591,12 +1591,12 @@ class reporter_junit {
   enum class ReportType : std::uint8_t { CONSOLE, JUNIT } report_type_;
   static constexpr ReportType CONSOLE = ReportType::CONSOLE;
   static constexpr ReportType JUNIT = ReportType::JUNIT;
-  enum class StatusType : std::uint8_t { PASSED, FAILED, SKIPPED, UNDEFINED };
+  enum class StatusType : std::uint8_t { UNDEFINED, PASSED, FAILED, SKIPPED };
+  static constexpr StatusType UNDEFINED = StatusType::UNDEFINED;
   static constexpr StatusType PASSED = StatusType::PASSED;
   static constexpr StatusType FAILED = StatusType::FAILED;
   static constexpr StatusType SKIPPED = StatusType::SKIPPED;
-  static constexpr StatusType UNDEFINED = StatusType::UNDEFINED;
-  inline static const std::string statusStrings[] = { "PASSED", "FAILED", "SKIPPED", "UNDEFINED" };
+  inline static const std::string statusStrings[] = { "UNDEFINED", "FAILED", "SKIPPED", "PASSED" };
 
   struct test_result {
     std::string test_name;
