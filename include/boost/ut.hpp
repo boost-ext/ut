@@ -1664,7 +1664,7 @@ class reporter_junit {
   }
 
   inline std::string getLeadingSpace() {
-    return layer_ > 0 ? std::format("\n{}", std::string(2 * (layer_ - 1), ' '))
+    return layer_ > 0 ? "\n" + std::string(2 * (layer_ - 1), ' ')
                       : "\n";
   }
 
