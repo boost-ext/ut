@@ -1649,8 +1649,8 @@ class reporter_junit {
   void count_result() {
     current_node_->run_stop = clock_ref::now();
     current_node_->status =
-        current_node_->skipped
-        ? SKIPPED : (current_node_->fails > 0 ? FAILED : PASSED);
+        current_node_->fails > 0
+        ? FAILED : (current_node_->skipped ? SKIPPED : PASSED);
     auto parent = current_node_->parent;
     if (parent != nullptr) {
       parent->n_tests += current_node_->n_tests;
