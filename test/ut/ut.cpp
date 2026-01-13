@@ -377,6 +377,25 @@ template <class... Ts>
 static auto ut::cfg<ut::override, Ts...> = fake_cfg{};
 // NOLINTEND(misc-use-anonymous-namespace)
 
+// used for type_list check
+#define DEFINE_NON_INSTANTIABLE_TYPE(Name, Value) \
+  struct Name {                                   \
+    Name() = delete;                              \
+    Name(Name&&) = delete;                        \
+    Name(const Name&) = delete;                   \
+    Name& operator=(Name&&) = delete;             \
+    Name& operator=(const Name&) = delete;        \
+                                                  \
+    static bool value() { return Value; }         \
+  }
+
+DEFINE_NON_INSTANTIABLE_TYPE(non_instantiable_A, true);
+DEFINE_NON_INSTANTIABLE_TYPE(non_instantiable_B, true);
+DEFINE_NON_INSTANTIABLE_TYPE(non_instantiable_C, false);
+DEFINE_NON_INSTANTIABLE_TYPE(non_instantiable_D, true);
+
+#undef DEFINE_NON_INSTANTIABLE_TYPE
+
 int main() {  // NOLINT(readability-function-size)
   {
     using namespace ut;
@@ -1654,6 +1673,45 @@ int main() {  // NOLINT(readability-function-size)
       test_assert("(false or void == void)" ==
                   test_cfg.assertion_calls[2].expr);
       test_assert(test_cfg.assertion_calls[2].result);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+
+      using types = type_list<non_instantiable_A, non_instantiable_B,
+                              non_instantiable_C, non_instantiable_D>;
+
+      "uninstantiated types"_test = []<class T>() {
+        expect(T::value()) << "all static member function should return true";
+      } | types{};
+
+      test_assert(4 == std::size(test_cfg.run_calls));
+      test_assert("uninstantiated types (non_instantiable_A)"sv ==
+                  test_cfg.run_calls[0].name);
+      void(std::any_cast<detail::wrapped_type<non_instantiable_A>>(
+          test_cfg.run_calls[0].arg));
+      test_assert("uninstantiated types (non_instantiable_B)"sv ==
+                  test_cfg.run_calls[1].name);
+      void(std::any_cast<detail::wrapped_type<non_instantiable_B>>(
+          test_cfg.run_calls[1].arg));
+      test_assert("uninstantiated types (non_instantiable_C)"sv ==
+                  test_cfg.run_calls[2].name);
+      void(std::any_cast<detail::wrapped_type<non_instantiable_C>>(
+          test_cfg.run_calls[2].arg));
+      test_assert("uninstantiated types (non_instantiable_D)"sv ==
+                  test_cfg.run_calls[3].name);
+      void(std::any_cast<detail::wrapped_type<non_instantiable_D>>(
+          test_cfg.run_calls[3].arg));
+
+      test_assert(4 == std::size(test_cfg.assertion_calls));
+      test_assert("true"sv == test_cfg.assertion_calls[0].expr);
+      test_assert(test_cfg.assertion_calls[0].result);
+      test_assert("true"sv == test_cfg.assertion_calls[1].expr);
+      test_assert(test_cfg.assertion_calls[1].result);
+      test_assert("false"sv == test_cfg.assertion_calls[2].expr);
+      test_assert(not test_cfg.assertion_calls[2].result);
+      test_assert("true"sv == test_cfg.assertion_calls[3].expr);
+      test_assert(test_cfg.assertion_calls[3].result);
     }
 
     {
