@@ -1883,12 +1883,12 @@ class reporter_junit {
             << "': all tests passed" << color_.none << " ("
             << suite_result->assertions << " asserts in "
             << suite_result->n_tests << " tests)";
-        if (suite_result->skipped) {
-          std::cout << "; " << color_.skip << suite_result->skipped
-                    << " tests skipped" << color_.none;
-        }
-        std::cout.flush();
       }
+      if (suite_result->skipped) {
+        std::cout << "; " << color_.skip << suite_result->skipped
+                  << " tests skipped" << color_.none;
+      }
+      std::cout.flush();
     }
   }
 
