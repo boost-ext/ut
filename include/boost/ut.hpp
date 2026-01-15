@@ -2601,7 +2601,7 @@ constexpr auto operator""_b(const char* name, decltype(sizeof("")) size) {
     return "rd";
   }
   return "th";
-};
+}
 
 template <class TArg>
 inline std::string format_test_parameter([[maybe_unused]] const TArg& arg,
