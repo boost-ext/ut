@@ -672,8 +672,8 @@ struct fatal_;
 
 struct fatal {
   template <class T>
-  [[nodiscard]] auto operator()(const T& t) const {
-    return detail::fatal_{t};
+  [[nodiscard]] auto operator()(const T& t, const reflection::source_location& sl = reflection::source_location::current()) const {
+    return detail::fatal_{t, sl};
   }
 };
 struct cfg {
@@ -2398,14 +2398,15 @@ template <class TExpr>
 struct fatal_ : op {
   using type = fatal_;
 
-  constexpr explicit fatal_(const TExpr& expr) : expr_{expr} {}
+  constexpr explicit fatal_(const TExpr& expr,
+                            const reflection::source_location& sl)
+      : expr_{expr}, location{sl} {}
 
   [[nodiscard]] constexpr operator bool() const {
     if (static_cast<bool>(expr_)) {
     } else {
       cfg::wip = true;
-      void(on<TExpr>(
-          events::assertion<TExpr>{.expr = expr_, .location = cfg::location}));
+      void(on<TExpr>(events::assertion<TExpr>{.expr = expr_, .location = location}));
       on<TExpr>(events::fatal_assertion{});
     }
     return static_cast<bool>(expr_);
@@ -2414,6 +2415,7 @@ struct fatal_ : op {
   [[nodiscard]] constexpr decltype(auto) get() const { return expr_; }
 
   TExpr expr_{};
+  reflection::source_location location{};
 };
 
 template <class T>
