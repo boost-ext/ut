@@ -2398,6 +2398,7 @@ template <class TExpr>
 struct fatal_ : op {
   using type = fatal_;
 
+  constexpr explicit fatal_(const TExpr& expr) : expr_{expr} {}
   constexpr explicit fatal_(const TExpr& expr,
                             const reflection::source_location& sl)
       : expr_{expr}, location{sl} {}
