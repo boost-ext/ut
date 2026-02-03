@@ -403,24 +403,6 @@ Completed =====================================================================
 
 > https://godbolt.org/z/9G61xr4Ed
 
-> That's nice, can I use custom messages and fatal assertions?
-> Yes, stream the `fatal`!
-
-```cpp
-#include <boost/ut.hpp>
-
-int main() {
-    using namespace boost::ut;
-
-    expect(fatal(1 == 2_i)) << "fatal assertion";
-    expect(1_i == 2);
-}
-```
-
-```
-// results to be updated
-```
-
 > I use `std::expected`, can I stream its `error()` upon failure?
 > Yes, since `std::expected`'s `error()` can only be called when there is no
 > value it requires lazy evaluation.
