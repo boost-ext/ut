@@ -339,21 +339,23 @@ Completed =====================================================================
 int main() {
     using namespace boost::ut;
 
-    expect((1 == 2_i) >> fatal); // fatal assertion
-    expect(1_i == 2);            // not executed
+    expect(fatal(1 == 2_i)); // fatal assertion
+    expect(1_i == 2);        // not executed
 }
 ```
 
 ```
 UT starts =====================================================================
 FAILED in: ...\example.cpp:6 - test condition: [1 == 2]
+=> terminated for the fatal issue
 ===============================================================================
 Suite global
 tests:   0 | 0 failed
 asserts: 1 | 0 passed | 1 failed
+Completed =====================================================================
 ```
 
-> https://godbolt.org/z/6Mvex8TaT
+> https://godbolt.org/z/xohGacdWc
 
 > But my expression is more complex than just simple comparisons.
 > Not a problem, logic operators are also supported in the `expect` 👍.
