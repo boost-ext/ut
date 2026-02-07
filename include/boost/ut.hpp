@@ -1653,8 +1653,10 @@ class reporter_junit {
         ? FAILED : (current_node_->skipped ? SKIPPED : PASSED);
     auto parent = current_node_->parent;
     if (parent != nullptr) {
-      parent->n_tests += current_node_->n_tests;
-      parent->fail_tests += current_node_->fail_tests;
+      parent->n_tests += 1LU;
+      if ((current_node_->fails > 0 || current_node_->fail_tests > 0)) {
+        parent->fail_tests++;
+      }
       parent->assertions += current_node_->assertions;
       parent->skipped += current_node_->skipped;
       parent->fails += current_node_->fails;
@@ -1735,10 +1737,6 @@ class reporter_junit {
       }
     }
     reset_printer();
-    current_node_->n_tests = 1LU;
-    if (current_node_->fails > 0 || current_node_->fail_tests > 0) {
-      current_node_->fail_tests = 1LU;
-    }
     count_result();
   }
 
@@ -1825,7 +1823,12 @@ class reporter_junit {
     }
   }
 
-  auto on(const events::fatal_assertion&) -> void {}
+  auto on(const events::fatal_assertion&) -> void {
+    std::cerr<< "\n=> " << color_.fail << "terminated for the fatal issue" << color_.none;
+    while (current_node_->parent != nullptr) {
+      count_result();
+    }
+  }
 
   auto on(events::summary) -> void {
     std::cout.flush();
@@ -2102,10 +2105,7 @@ class runner {
 
 #if defined(__cpp_exceptions)
       try {
-#endif
         test();
-#if defined(__cpp_exceptions)
-      } catch (const events::fatal_assertion&) {
       } catch (const std::exception& exception) {
         ++fails_;
         reporter_.on(events::exception{exception.what()});
@@ -2154,19 +2154,7 @@ class runner {
 
   auto on(events::fatal_assertion fatal_assertion) {
     reporter_.on(fatal_assertion);
-
-#if defined(__cpp_exceptions)
-    if (not level_) {
-      report_summary();
-    }
-    throw fatal_assertion;
-#else
-    if (level_) {
-      reporter_.on(events::test_end{});
-    }
-    report_summary();
-    std::abort();
-#endif
+    std::exit(-1);
   }
 
   template <class TMsg>
