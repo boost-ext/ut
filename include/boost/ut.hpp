@@ -1824,7 +1824,13 @@ class reporter_junit {
   }
 
   auto on(const events::fatal_assertion&) -> void {
-    std::cerr<< "\n=> " << color_.fail << "terminated for the fatal issue" << color_.none;
+    TPrinter ss{};
+    ss << ss_out_.str() << "\n=> " << color_.fail << "terminated for the fatal issue" << color_.none;
+    current_node_->report_string += ss.str();
+    reset_printer();
+    if (report_type_ == CONSOLE) {
+      lcout_ << ss.str();
+    }
     while (current_node_->parent != nullptr) {
       count_result();
     }
