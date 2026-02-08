@@ -427,6 +427,7 @@ int main() {
 UT starts =====================================================================
 Running test "lazy log"...
 FAILED in: ...\example.cpp:8 - test condition: [false] lazy evaluated
+=> terminated for the fatal issue
 ===============================================================================
 Suite global
 tests:   1 | 1 failed
@@ -552,7 +553,7 @@ int main() {
     "vector"_test = [] {
         given("I have a vector") = [] {
             std::vector<int> v(5);
-            expect((5_ul == std::size(v)) >> fatal);
+            expect(fatal(5_ul == std::size(v)));
 
             when("I resize bigger") = [=] {
                 mut(v).resize(10);
@@ -572,7 +573,7 @@ Suite 'global': all tests passed (2 asserts in 1 tests)
 Completed =====================================================================
 ```
 
-> https://godbolt.org/z/4YY7KzG64
+> https://godbolt.org/z/e73b7WTGE
 
 > On top of that, `feature/scenario` aliases can be leveraged.
 
@@ -588,7 +589,7 @@ int main() {
         scenario("size") = [] {
             given("I have a vector") = [] {
                 std::vector<int> v(5);
-                expect((5_ul == std::size(v)) >> fatal);
+                expect(fatal(5_ul == std::size(v)));
 
                 when("I resize bigger") = [=] {
                     mut(v).resize(10);
@@ -609,7 +610,7 @@ Suite 'global': all tests passed (2 asserts in 1 tests)
 Completed =====================================================================
 ```
 
-> https://godbolt.org/z/qxdrKxxqn
+> https://godbolt.org/z/nPcGqcn8f
 
 > Can I use `Gherkin`?
 > Yeah, let's rewrite the example using `Gherkin` specification
@@ -625,7 +626,7 @@ int main() {
             steps.scenario("*") = [&] {
                 steps.given("I have a vector") = [&] {
                     std::vector<int> v(5);
-                    expect((5_ul == std::size(v)) >> fatal);
+                    expect(fatal(5_ul == std::size(v)));
                     steps.when("I resize bigger") = [&] { v.resize(10); };
                     steps.then("The size should increase") = [&] { expect(10_ul == std::size(v)); };
                 };
@@ -650,7 +651,7 @@ Suite 'global': all tests passed (2 asserts in 1 tests)
 Completed =====================================================================
 ```
 
-> https://godbolt.org/z/nxW6dsPvj
+> https://godbolt.org/z/K69ha16rE
 
 > Nice, is `Spec` notation supported as well?
 
@@ -664,7 +665,7 @@ int main() {
 
     describe("vector") = [] {
         std::vector<int> v(5);
-        expect((5_ul == std::size(v)) >> fatal);
+        expect(fatal(5_ul == std::size(v)));
 
         it("should resize bigger") = [v] {
             mut(v).resize(10);
@@ -680,7 +681,7 @@ Suite 'global': all tests passed (2 asserts in 1 tests)
 Completed =====================================================================
 ```
 
-> https://godbolt.org/z/Y76sKKs4e
+> https://godbolt.org/z/5vbTs77ff
 
 > That's great, but how can call the same tests with different arguments/types to be DRY (Don't Repeat Yourself)?
 > Parameterized tests to the rescue!
@@ -937,14 +938,14 @@ int main() {
     "[vector]"_test = [] {
         std::vector<int> v(5);
 
-        expect((5_ul == std::size(v)) >> fatal);
+        expect(fatal(5_ul == std::size(v)));
 
         should("resize bigger") = [=]() mutable { // or "resize bigger"_test
             v.resize(10);
             expect(10_ul == std::size(v));
         };
 
-        expect((5_ul == std::size(v)) >> fatal);
+        expect(fatal(5_ul == std::size(v)));
 
         should("resize smaller") = [=]() mutable { // or "resize smaller"_test
             v.resize(0);
@@ -960,7 +961,7 @@ Suite 'global': all tests passed (4 asserts in 1 tests)
 Completed =====================================================================
 ```
 
-> https://godbolt.org/z/rez4qMhxE
+> https://godbolt.org/z/EjTEqMvzv
 
 </p>
 </details>
