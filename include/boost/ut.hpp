@@ -3078,11 +3078,11 @@ struct suite {
 
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};
-[[maybe_unused]] constexpr auto test = [](const auto name) {
+[[maybe_unused]] constexpr auto test = [](const auto& name) {
   return detail::test{"test", name};
 };
 [[maybe_unused]] constexpr auto should = test;
-[[maybe_unused]] inline auto tag = [](const auto name) {
+[[maybe_unused]] inline auto tag = [](const auto& name) {
   return detail::tag{{name}};
 };
 [[maybe_unused]] inline auto skip = tag("skip");
@@ -3139,19 +3139,19 @@ template <class T>
 }
 
 namespace bdd {
-[[maybe_unused]] constexpr auto feature = [](const auto name) {
+[[maybe_unused]] constexpr auto feature = [](const auto& name) {
   return detail::test{"feature", name};
 };
-[[maybe_unused]] constexpr auto scenario = [](const auto name) {
+[[maybe_unused]] constexpr auto scenario = [](const auto& name) {
   return detail::test{"scenario", name};
 };
-[[maybe_unused]] constexpr auto given = [](const auto name) {
+[[maybe_unused]] constexpr auto given = [](const auto& name) {
   return detail::test{"given", name};
 };
-[[maybe_unused]] constexpr auto when = [](const auto name) {
+[[maybe_unused]] constexpr auto when = [](const auto& name) {
   return detail::test{"when", name};
 };
-[[maybe_unused]] constexpr auto then = [](const auto name) {
+[[maybe_unused]] constexpr auto then = [](const auto& name) {
   return detail::test{"then", name};
 };
 
@@ -3283,10 +3283,10 @@ class steps {
 }  // namespace bdd
 
 namespace spec {
-[[maybe_unused]] constexpr auto describe = [](const auto name) {
+[[maybe_unused]] constexpr auto describe = [](const auto& name) {
   return detail::test{"describe", name};
 };
-[[maybe_unused]] constexpr auto it = [](const auto name) {
+[[maybe_unused]] constexpr auto it = [](const auto& name) {
   return detail::test{"it", name};
 };
 }  // namespace spec
