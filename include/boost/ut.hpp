@@ -2240,8 +2240,16 @@ struct test_location {
 
 struct test {
   std::string_view type{};
+  std::optional<std::string> backingName;
   std::string_view name{};
   std::vector<std::string_view> tag{};
+
+  test(std::string_view t, std::string_view sv) : type(t), name(sv) {}
+  test(std::string_view t, const std::string& s) : type(t), name(s) {}
+  test(std::string_view t, const char* s) : type(t), name(s) {}
+  template <std::size_t N>
+  test(std::string_view t, const char (&s)[N]) : type(t), name(s) {}
+  test(std::string_view t, std::string&& s) : type(t), backingName(std::move(s)), name(*backingName) {}
 
   template <class... Ts>
   constexpr auto operator=(test_location<void (*)()> _test) {
@@ -3078,8 +3086,8 @@ struct suite {
 
 [[maybe_unused]] inline auto log = detail::log{};
 [[maybe_unused]] inline auto that = detail::that_{};
-[[maybe_unused]] constexpr auto test = [](const auto& name) {
-  return detail::test{"test", name};
+[[maybe_unused]] constexpr auto test = [](auto&& name) {
+  return detail::test{"test", std::forward<decltype(name)>(name)};
 };
 [[maybe_unused]] constexpr auto should = test;
 [[maybe_unused]] inline auto tag = [](const auto& name) {
@@ -3139,20 +3147,20 @@ template <class T>
 }
 
 namespace bdd {
-[[maybe_unused]] constexpr auto feature = [](const auto& name) {
-  return detail::test{"feature", name};
+[[maybe_unused]] constexpr auto feature = [](auto&& name) {
+  return detail::test{"feature", std::forward<decltype(name)>(name)};
 };
-[[maybe_unused]] constexpr auto scenario = [](const auto& name) {
-  return detail::test{"scenario", name};
+[[maybe_unused]] constexpr auto scenario = [](auto&& name) {
+  return detail::test{"scenario", std::forward<decltype(name)>(name)};
 };
-[[maybe_unused]] constexpr auto given = [](const auto& name) {
-  return detail::test{"given", name};
+[[maybe_unused]] constexpr auto given = [](auto&& name) {
+  return detail::test{"given", std::forward<decltype(name)>(name)};
 };
-[[maybe_unused]] constexpr auto when = [](const auto& name) {
-  return detail::test{"when", name};
+[[maybe_unused]] constexpr auto when = [](auto&& name) {
+  return detail::test{"when", std::forward<decltype(name)>(name)};
 };
-[[maybe_unused]] constexpr auto then = [](const auto& name) {
-  return detail::test{"then", name};
+[[maybe_unused]] constexpr auto then = [](auto&& name) {
+  return detail::test{"then", std::forward<decltype(name)>(name)};
 };
 
 namespace gherkin {
@@ -3283,11 +3291,11 @@ class steps {
 }  // namespace bdd
 
 namespace spec {
-[[maybe_unused]] constexpr auto describe = [](const auto& name) {
-  return detail::test{"describe", name};
+[[maybe_unused]] constexpr auto describe = [](auto&& name) {
+  return detail::test{"describe", std::forward<decltype(name)>(name)};
 };
-[[maybe_unused]] constexpr auto it = [](const auto& name) {
-  return detail::test{"it", name};
+[[maybe_unused]] constexpr auto it = [](auto&& name) {
+  return detail::test{"it", std::forward<decltype(name)>(name)};
 };
 }  // namespace spec
 
