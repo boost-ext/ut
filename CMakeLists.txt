@@ -33,7 +33,7 @@ option(BOOST_UT_BUILD_BENCHMARKS "Build the benchmarks" OFF)
 option(BOOST_UT_BUILD_EXAMPLES "Build the examples" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_BUILD_TESTS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_ENABLE_INSTALL "Enable install targets" ${PROJECT_IS_TOP_LEVEL})
-option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
+option(BOOST_UT_USE_WARNINGS_AS_ERRORS "Treat compile warnings as errors" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(ut INTERFACE)
 if(NOT BOOST_UT_DISABLE_MODULE)
@@ -45,7 +45,7 @@ endif()
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
 
-if(BOOST_UT_USE_WARNINGS_AS_ERORS)
+if(BOOST_UT_USE_WARNINGS_AS_ERRORS)
   include(cmake/WarningsAsErrors.cmake)
 endif()
 
