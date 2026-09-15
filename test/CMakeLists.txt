@@ -28,3 +28,6 @@ endif()
 
 add_subdirectory(ut)
 add_subdirectory(ft)
+if(TARGET Boost::ut_module)
+  add_subdirectory(ut-module)
+endif()
