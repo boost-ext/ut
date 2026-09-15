@@ -9,7 +9,7 @@ export module boost.ut;
 import std;
 
 #define BOOST_UT_CXX_MODULES 1
-#include "ut.hpp"
+#include <boost/ut.hpp>
 
 template class boost::ut::reporter_junit<boost::ut::printer>;
 template void boost::ut::reporter_junit<boost::ut::printer>::on<bool>(boost::ut::events::log<bool>);
