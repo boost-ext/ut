@@ -38,6 +38,8 @@ option(BOOST_UT_USE_WARNINGS_AS_ERORS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 add_library(ut INTERFACE)
 if(NOT BOOST_UT_DISABLE_MODULE)
 add_library(ut_module)
+target_compile_features(ut_module PUBLIC cxx_std_23)
+set_target_properties(ut_module PROPERTIES CXX_MODULE_STD ON)
 endif()
 target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_compile_features(ut INTERFACE cxx_std_20)
@@ -71,7 +73,7 @@ if(BOOST_UT_DISABLE_MODULE)
 endif()
 
 if(NOT BOOST_UT_DISABLE_MODULE)
-target_sources(ut_module PUBLIC FILE_SET CXX_MODULES FILES include/boost/ut.cppm)
+target_sources(ut_module PUBLIC FILE_SET CXX_MODULES BASE_DIRS include FILES include/boost/ut.cppm)
 endif()
 
 if(NOT TARGET Boost::ut)
@@ -95,11 +97,22 @@ install(
   EXPORT ut_Targets
   INCLUDES DESTINATION include
 )
+
+if(NOT BOOST_UT_DISABLE_MODULE)
+  install(
+    TARGETS ut_module
+    EXPORT ut_Targets
+    FILE_SET CXX_MODULES
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  )
+endif()
+
 install(
   EXPORT ut_Targets
   FILE utConfig.cmake
   NAMESPACE Boost::
   DESTINATION lib/cmake/ut
+  CXX_MODULES_DIRECTORY "."
 )
 
 write_basic_package_version_file(
