@@ -7,9 +7,9 @@
 option(BOOST_UT_DISABLE_MODULE "Disable ut module" ON)
 
 if(NOT BOOST_UT_DISABLE_MODULE)
-cmake_minimum_required(VERSION 4.0.0)
+  cmake_minimum_required(VERSION 4.0.0)
 else()
-cmake_minimum_required(VERSION 3.21...3.25)
+  cmake_minimum_required(VERSION 3.21...3.25)
 endif()
 project(
   ut
@@ -35,16 +35,6 @@ option(BOOST_UT_BUILD_TESTS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_ENABLE_INSTALL "Enable install targets" ${PROJECT_IS_TOP_LEVEL})
 option(BOOST_UT_USE_WARNINGS_AS_ERRORS "Treat compile warnings as errors" ${PROJECT_IS_TOP_LEVEL})
 
-add_library(ut INTERFACE)
-if(NOT BOOST_UT_DISABLE_MODULE)
-add_library(ut_module)
-target_compile_features(ut_module PUBLIC cxx_std_23)
-set_target_properties(ut_module PROPERTIES CXX_MODULE_STD ON)
-target_link_libraries(ut_module PUBLIC ut)
-endif()
-target_include_directories(ut INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
-target_compile_features(ut INTERFACE cxx_std_20)
-
 if(BOOST_UT_USE_WARNINGS_AS_ERRORS)
   include(cmake/WarningsAsErrors.cmake)
 endif()
@@ -69,37 +59,30 @@ if(BOOST_UT_ENABLE_SANITIZERS)
   )
 endif()
 
-if(BOOST_UT_DISABLE_MODULE)
-  target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
-endif()
-
-if(NOT BOOST_UT_DISABLE_MODULE)
-target_sources(ut_module PUBLIC FILE_SET CXX_MODULES BASE_DIRS include FILES include/boost/ut.cppm)
-endif()
-
+add_library(ut INTERFACE)
 if(NOT TARGET Boost::ut)
   add_library(Boost::ut ALIAS ut)
 endif()
-
-if(NOT BOOST_UT_DISABLE_MODULE)
-add_library(Boost::ut_module ALIAS ut_module)
-endif()
-
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
-install(
-  FILES include/boost/ut.hpp include/boost/ut.cppm
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boost
-)
-
+target_compile_features(ut INTERFACE cxx_std_20)
+target_sources(ut INTERFACE FILE_SET HEADERS BASE_DIRS include FILES include/boost/ut.hpp)
 install(
   TARGETS ut
   EXPORT ut_Targets
-  INCLUDES DESTINATION include
+  FILE_SET HEADERS
 )
 
-if(NOT BOOST_UT_DISABLE_MODULE)
+if(BOOST_UT_DISABLE_MODULE)
+  target_compile_definitions(ut INTERFACE BOOST_UT_DISABLE_MODULE)
+else()
+  include(GNUInstallDirs)
+
+  add_library(ut_module)
+  add_library(Boost::ut_module ALIAS ut_module)
+  target_link_libraries(ut_module PUBLIC ut)
+  target_compile_features(ut_module PUBLIC cxx_std_23)
+  set_target_properties(ut_module PROPERTIES CXX_MODULE_STD ON)
+  target_sources(ut_module PUBLIC FILE_SET CXX_MODULES BASE_DIRS include FILES include/boost/ut.cppm)
+  target_link_libraries(ut_module PUBLIC Boost::ut)
   install(
     TARGETS ut_module
     EXPORT ut_Targets
@@ -116,16 +99,13 @@ install(
   CXX_MODULES_DIRECTORY "."
 )
 
+include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "utConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion
-  ARCH_INDEPENDENT
+  COMPATIBILITY SameMajorVersion ARCH_INDEPENDENT
 )
-install(
-  FILES "${PROJECT_BINARY_DIR}/utConfigVersion.cmake"
-  DESTINATION lib/cmake/ut
-)
+install(FILES "${PROJECT_BINARY_DIR}/utConfigVersion.cmake" DESTINATION lib/cmake/ut)
 
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
