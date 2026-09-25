@@ -78,7 +78,6 @@ else()
 
   add_library(ut_module)
   add_library(Boost::ut_module ALIAS ut_module)
-  target_link_libraries(ut_module PUBLIC ut)
   target_compile_features(ut_module PUBLIC cxx_std_23)
   set_target_properties(ut_module PROPERTIES CXX_MODULE_STD ON)
   target_sources(ut_module PUBLIC FILE_SET CXX_MODULES BASE_DIRS include FILES include/boost/ut.cppm)
