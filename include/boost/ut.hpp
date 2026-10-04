@@ -2284,7 +2284,11 @@ struct test {
              (!std::convertible_to<Test, void (*)(std::string_view,
                                                   std::string_view)>)
   constexpr auto operator=(Test _test) {
-    return _test(type, name);
+    if constexpr (requires { _test(type, name, tag); }) {
+      return _test(type, name, tag);
+    } else {
+      return _test(type, name);
+    }
   }
 };
 
@@ -2734,13 +2738,14 @@ template <class Test>
 template <class F, class T>
   requires std::ranges::range<T>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
-  return [f, t](std::string_view type, std::string_view name) {
+  return [f, t](std::string_view type, std::string_view name,
+                const std::vector<std::string_view>& tag = {}) {
     for (int counter = 1; const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
           .type = type,
           .name = std::string{name} + " (" +
                   format_test_parameter(arg, counter) + ")",
-          .tag = {},
+          .tag = tag,
           .location = {},
           .arg = arg,
           .run = f});
@@ -2763,14 +2768,15 @@ template <class F, template <class...> class T, class... Ts>
     return ret;
   };
 
-  return [f, t, unique_name](std::string_view type, std::string_view name) {
+  return [f, t, unique_name](std::string_view type, std::string_view name,
+                             const std::vector<std::string_view>& tag = {}) {
     int counter = 1;
     apply(
         [=, &counter](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{
                .type = type,
                .name = unique_name.template operator()<Ts>(name, args, counter),
-               .tag = {},
+               .tag = tag,
                .location = {},
                .arg = args,
                .run = f}),

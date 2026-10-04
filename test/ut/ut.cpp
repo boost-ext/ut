@@ -104,6 +104,7 @@ struct fake_cfg {
   struct test_call {
     std::string_view type{};
     std::string name{};
+    std::vector<std::string_view> tag{};
     ut::reflection::source_location location{};
     std::any arg{};
   };
@@ -120,6 +121,7 @@ struct fake_cfg {
     if (std::empty(test_filter) or std::string_view{test.name} == test_filter) {
       run_calls.push_back({.type = test.type,
                            .name = test.name,
+                           .tag = test.tag,
                            .location = test.location,
                            .arg = test.arg});
       try {
@@ -904,6 +906,76 @@ int main() {  // NOLINT(readability-function-size)
       test_assert(std::empty(test_cfg.skip_calls));
       test_assert(std::empty(test_cfg.log_calls));
       test_assert(0 == test_cfg.fatal_assertion_calls);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+      int run_count{};
+
+      skip / "skipped range"_test = [&](auto) { ++run_count; } |
+                                   std::vector{1, 2};
+      skip / "skipped tuple"_test = [&](auto) { ++run_count; } |
+                                   std::tuple{42, 'x'};
+      skip / "skipped types"_test = [&]<class T>() { ++run_count; } |
+                                   std::tuple<int, char>{};
+
+      test_assert(0 == run_count);
+      test_assert(std::empty(test_cfg.run_calls));
+      test_assert(6 == std::size(test_cfg.skip_calls));
+      test_assert("skipped range (1)"sv == test_cfg.skip_calls[0].name);
+      test_assert("skipped range (2)"sv == test_cfg.skip_calls[1].name);
+      test_assert("skipped tuple (42, int)"sv == test_cfg.skip_calls[2].name);
+      test_assert("skipped tuple (x, char)"sv == test_cfg.skip_calls[3].name);
+      test_assert("skipped types (int)"sv == test_cfg.skip_calls[4].name);
+      test_assert("skipped types (char)"sv == test_cfg.skip_calls[5].name);
+    }
+
+    {
+      test_cfg = fake_cfg{};
+      int run_count{};
+
+      tag("tag1") / tag("tag2") / "tagged range"_test = [&](auto) {
+        ++run_count;
+      } | std::array{1, 2};
+      tag("tag1") / tag("tag2") / "tagged tuple"_test = [&](auto) {
+        ++run_count;
+      } | std::tuple{42, 'x'};
+      tag("tag1") / "empty range"_test = [&](auto) { ++run_count; } |
+                                       std::vector<int>{};
+      tag("tag1") / "empty tuple"_test = [&]<class T>() { ++run_count; } |
+                                       std::tuple<>{};
+
+      test_assert(4 == run_count);
+      test_assert(4 == std::size(test_cfg.run_calls));
+      for (const auto& call : test_cfg.run_calls) {
+        test_assert((std::vector<std::string_view>{"tag1", "tag2"} == call.tag));
+      }
+      test_assert(std::empty(test_cfg.skip_calls));
+    }
+
+    {
+      test_cfg = fake_cfg{};
+      std::string_view callback_type;
+      std::string_view callback_name;
+
+      "callback"_test = [&](std::string_view type, std::string_view name) {
+        callback_type = type;
+        callback_name = name;
+      };
+
+      test_assert("test"sv == callback_type);
+      test_assert("callback"sv == callback_name);
+
+      struct ref_qualified_callback {
+        int& calls;
+
+        void operator()(std::string_view, std::string_view) const { ++calls; }
+        void operator()(std::string_view, std::string_view,
+                        const std::vector<std::string_view>&) && {}
+      };
+      int callback_calls{};
+      "ref-qualified callback"_test = ref_qualified_callback{callback_calls};
+      test_assert(1 == callback_calls);
     }
 
     {
