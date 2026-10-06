@@ -26,19 +26,12 @@ endfunction()
 
 example(cfg/printer printer)
 example(cfg/runner runner)
+example(cfg/parallel_runner parallel_runner)
 
-if(APPLE OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  example(cfg/parallel_runner parallel_runner)
+if(CMAKE_CXX_STANDARD_LIBRARY STREQUAL libstdc++)
+  find_package(TBB REQUIRED)
+  target_link_libraries(boost_ut_parallel_runner PRIVATE TBB::tbb)
 endif()
-
-# if(DEFINED ENV{TBB_ROOT})
-#   set(TBB_ROOT $ENV{TBB_ROOT})
-#   # FIXME: include could not find load file:
-#   include(${TBB_ROOT}/cmake/TBBBuild.cmake)
-#   tbb_build(TBB_ROOT ${TBB_ROOT} CONFIG_DIR TBB_DIR MAKE_ARGS stdver="c++17")
-#   find_package(TBB)
-#   target_link_libraries(boost_ut_parallel_runner ${TBB_IMPORTED_TARGETS})
-# endif()
 
 example(cfg/reporter reporter)
 
