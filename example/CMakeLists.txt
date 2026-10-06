@@ -39,13 +39,23 @@ check_cxx_source_compiles([[
 
 example(cfg/printer printer)
 example(cfg/runner runner)
-example(cfg/parallel_runner parallel_runner)
 example(cfg/reporter reporter)
 
 if(using_glibcxx)
-  find_package(TBB REQUIRED)
-  target_link_libraries(boost_ut_parallel_runner PRIVATE TBB::tbb)
+  # parallel_runner uses <execution>, for which libstdc++ requires TBB
+  find_package(TBB)
+  if(TBB_FOUND)
+    example(cfg/parallel_runner parallel_runner)
+    target_link_libraries(boost_ut_parallel_runner PRIVATE TBB::tbb)
+  else()
+    message(AUTHOR_WARNING 
+      "Disabling example/parallel_runner, as it requires TBB when using libstdc++, "
+      "but TBB could not be found")
+  endif()
+else()
+    example(cfg/parallel_runner parallel_runner)
 endif()
+
 
 if(NOT WIN32)
   example(abort abort)
