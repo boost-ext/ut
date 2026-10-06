@@ -24,20 +24,28 @@ function(example file target)
   endif()
 endfunction()
 
+# Define a test program to detect libstdc++.
+# When https://gitlab.kitware.com/cmake/cmake/-/work_items/20851 is complete,
+# simply read CMAKE_CXX_STANDARD_LIBRARY variable
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles([[
+  #include <version>
+  #ifndef __GLIBCXX__
+    #error "not libstdc++"
+  #endif
+  int main(){}
+  ]]
+ using_glibcxx)
+
 example(cfg/printer printer)
 example(cfg/runner runner)
 example(cfg/parallel_runner parallel_runner)
-
-if(CMAKE_CXX_STANDARD_LIBRARY STREQUAL libstdc++)
-  find_package(TBB)
-  message(STATUS "TBB_FOUND: ${TBB_FOUND}")
-  if(TBB_FOUND)
-    target_link_libraries(boost_ut_parallel_runner PRIVATE TBB::tbb)
-  endif()
-else()
-endif()
-
 example(cfg/reporter reporter)
+
+if(using_glibcxx)
+  find_package(TBB REQUIRED)
+  target_link_libraries(boost_ut_parallel_runner PRIVATE TBB::tbb)
+endif()
 
 if(NOT WIN32)
   example(abort abort)
