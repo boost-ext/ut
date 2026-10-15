@@ -2739,13 +2739,13 @@ template <class F, class T>
   requires std::ranges::range<T>
 [[nodiscard]] constexpr auto operator|(const F& f, const T& t) {
   return [f, t](std::string_view type, std::string_view name,
-                const std::vector<std::string_view>& tag = {}) {
+                const std::vector<std::string_view>& tags = {}) {
     for (int counter = 1; const auto& arg : t) {
       detail::on<F>(events::test<F, decltype(arg)>{
           .type = type,
           .name = std::string{name} + " (" +
                   format_test_parameter(arg, counter) + ")",
-          .tag = tag,
+          .tag = tags,
           .location = {},
           .arg = arg,
           .run = f});
@@ -2769,14 +2769,14 @@ template <class F, template <class...> class T, class... Ts>
   };
 
   return [f, t, unique_name](std::string_view type, std::string_view name,
-                             const std::vector<std::string_view>& tag = {}) {
+                             const std::vector<std::string_view>& tags = {}) {
     int counter = 1;
     apply(
         [=, &counter](const auto&... args) {
           (detail::on<F>(events::test<F, Ts>{
                .type = type,
                .name = unique_name.template operator()<Ts>(name, args, counter),
-               .tag = tag,
+               .tag = tags,
                .location = {},
                .arg = args,
                .run = f}),
