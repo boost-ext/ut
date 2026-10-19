@@ -421,8 +421,14 @@ template <class T, class TValue>
   TValue tmp{};
   do {
     value *= 10;
-    tmp = value - T(value);
     ++result;
+    // Converting a value that does not fit in T is undefined (and in practice
+    // never yields a zero remainder, so the loop would not terminate). Values
+    // this large have no fractional digits left anyway.
+    if (not(value < TValue(std::numeric_limits<T>::max() / 2 + 1))) {
+      break;
+    }
+    tmp = value - T(value);
   } while (tmp > precision);
 
   return result;
