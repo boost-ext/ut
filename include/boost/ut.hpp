@@ -1909,8 +1909,8 @@ class reporter_junit {
 
   void print_junit_summary(std::ostream& stream) {
     // aggregate results
-    size_t n_tests = 0;
-    size_t n_fails = 0;
+    std::size_t n_tests = 0;
+    std::size_t n_fails = 0;
     double total_time = 0.0;
     for (const auto& suite_result : suites_results_) {
       n_tests += suite_result->assertions;
