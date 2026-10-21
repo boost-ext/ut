@@ -583,6 +583,10 @@ int main() {  // NOLINT(readability-function-size)
       test_assert(12345678.9f == 12345678.9_f);
       test_assert(111111.42f == 111111.42_f);
       test_assert(1111111111.42 == 1111111111.42_d);
+      test_assert(_d(1.e19) == 1.e19);
+      test_assert(1.e19 == _d(1.e19));
+      test_assert(_d(1.e300) == 1.e300);
+      test_assert(_f(1.e20f) == 1.e20f);
       test_assert(42_i == 42);
       test_assert(43 == 43_i);
       test_assert(not(1_i == 2));
