@@ -77,7 +77,7 @@ example(filter filter)
 
 if(NOT WIN32 AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   example(gherkin gherkin)
-  example(gherkin gherkin_feature "../../example/gherkin.feature")
+  example(gherkin gherkin_feature --feature "${CMAKE_CURRENT_SOURCE_DIR}/gherkin.feature")
 endif()
 
 example(hello_world hello_world)
