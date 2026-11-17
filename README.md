@@ -1038,6 +1038,100 @@ Completed =====================================================================
 
 > https://godbolt.org/z/YnaeTrboG
 
+> Background, `And`/`But`/`*` steps, `Scenario Outline` with `Examples`, Doc String and Data Table arguments, `Rule`, tags (`@skip`) and comments are supported as well
+
+```cpp
+int main() {
+  bdd::gherkin::steps steps = [](auto& steps) {
+    steps.feature("Number") = [&] {
+      steps.scenario("*") = [&] {
+        steps.given("I have a number {value}") = [&](int initial) {
+          auto number = initial;
+          steps.when("I add {value} to it") = [&](int value) { number += value; };
+          steps.when("I add the numbers from the table") =
+              [&](const bdd::gherkin::table& table) {
+                for (const auto& row : table) {
+                  for (const auto& cell : row) {
+                    number += std::stoi(cell);
+                  }
+                }
+              };
+          steps.when("I add the number from the doc string") =
+              [&](const bdd::gherkin::doc_string& doc) {
+                number += std::stoi(doc.content);
+              };
+          steps.then("I expect number to be {value}") = [&](int expected) {
+            expect(that % number == expected);
+          };
+        };
+      };
+    };
+  };
+
+  "Gherkin"_test = steps |
+    R"(
+      # Comments start with # at the beginning of a line
+      @numbers
+      Feature: Number
+
+        Background:
+          Given I have a number 40
+
+        Scenario: Addition
+          When I add 2 to it
+          And I add the numbers from the table
+            | 1 | 1 |
+          Then I expect number to be 44
+
+        Scenario Outline: Addition of <value>
+          When I add <value> to it
+          Then I expect number to be <result>
+
+          Examples:
+            | value | result |
+            | 2     | 42     |
+            | 10    | 50     |
+
+        Rule: Doc strings
+
+          Scenario: Doc string
+            When I add the number from the doc string
+              """
+              2
+              """
+            Then I expect number to be 42
+
+          @skip
+          Scenario: Not implemented yet
+            When I add 1 to it
+            Then I expect number to be 0
+    )";
+}
+```
+
+> A feature file can be given on the command line with `--feature <filename>`.
+> The command line is parsed when the test suites are run, so the file name is
+> available inside a suite
+
+```cpp
+ut::suite _ = [] {
+  bdd::gherkin::steps steps = [](auto& steps) { /* ... */ };
+
+  if (const auto& path = bdd::gherkin::feature_file(); not std::empty(path)) {
+    std::ifstream file{path};
+    expect(file.is_open()) << "cannot open" << path;
+
+    "Gherkin"_test =
+        steps | std::string{(std::istreambuf_iterator<char>(file)),
+                            std::istreambuf_iterator<char>()};
+  }
+};
+
+int main(int argc, const char** argv) {
+  return ut::cfg<>.run({.argc = argc, .argv = argv});
+}
+```
+
 </p>
 </details>
 
