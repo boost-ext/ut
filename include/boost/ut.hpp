@@ -3885,7 +3885,7 @@ class steps {
       current.defined = true;
       if (current.present and matches(pattern_, current.value.text)) {
         current.entered = true;
-        const scope _{steps_};
+        const scope guard{steps_};
         call(expr, pattern_, current.value, args_t{});
       }
     }
@@ -4111,7 +4111,7 @@ class steps {
         break;
       }
       ++position_;
-      const scope _{*this};
+      const scope guard{*this};
       definitions_[index].call(current);
     }
   }
