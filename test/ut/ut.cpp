@@ -176,7 +176,7 @@ class fake_calculator {
   auto enter(const T& value) -> void { values_.push_back(value); }
   auto name(std::string value) -> void { name_ = std::move(value); }
   auto add() -> void {
-    result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
+    result_ = std::accumulate(std::cbegin(values_), std::cend(values_), T{});
   }
   auto sub() -> void {
     result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
@@ -2032,7 +2032,6 @@ int main() {  // NOLINT(readability-function-size)
     test_assert("fatal"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
   }
 
-#if not defined(_MSC_VER)
   {
     using namespace ut;
     auto& test_cfg = ut::cfg<ut::override>;
@@ -3644,8 +3643,9 @@ Feature: F
     }
 
     {  // table accessors
-      test_assert(gk::table{}.empty());
-      test_assert(gk::table{}.begin() == gk::table{}.end());
+      const gk::table none{};
+      test_assert(none.empty());
+      test_assert(none.begin() == none.end());
 
       const auto doc =
           gk::parse("Feature: F\nScenario: S\nGiven x\n| a | b |\n| c | d |\n");
@@ -3662,7 +3662,6 @@ Feature: F
       test_assert(2 == data.end() - data.begin());
     }
   }
-#endif
 
   {
     using namespace ut;
