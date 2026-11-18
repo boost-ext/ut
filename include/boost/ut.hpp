@@ -3476,14 +3476,14 @@ class parser {
          first = line.find_first_not_of(whitespace, first)) {
       const auto last = math::min_value(line.find_first_of(whitespace, first),
                                         std::size(line));
-      const auto tag = line.substr(first, last - first);
-      if (tag.front() == '#') {
+      const auto word = line.substr(first, last - first);
+      if (word.front() == '#') {
         break;
       }
-      if (tag.front() != '@' or std::size(tag) == 1) {
-        error(line_, "invalid tag '" + std::string{tag} + "'");
+      if (word.front() != '@' or std::size(word) == 1) {
+        error(line_, "invalid tag '" + std::string{word} + "'");
       } else {
-        tags_.emplace_back(tag.substr(1));
+        tags_.emplace_back(word.substr(1));
       }
       first = last;
     }
@@ -3494,11 +3494,11 @@ class parser {
       tags_.clear();
       return error(line_, "only one Feature is allowed per document");
     }
-    auto& feature = document_.feature.emplace();
-    feature.line = line_;
-    feature.tags = take_tags();
-    feature.name = name;
-    describe(&feature.description);
+    auto& added = document_.feature.emplace();
+    added.line = line_;
+    added.tags = take_tags();
+    added.name = name;
+    describe(&added.description);
   }
 
   auto on_rule(std::string_view name) -> void {
@@ -3702,7 +3702,7 @@ class parser {
 }
 
 /// Compiles a feature into runnable scenarios
-[[nodiscard]] inline auto compile(const ast::feature& feature)
+[[nodiscard]] inline auto compile(const ast::feature& source)
     -> std::vector<pickle> {
   using row_t = table::row_t;
 
@@ -3735,41 +3735,41 @@ class parser {
 
   std::vector<pickle> pickles{};
 
-  const auto add = [&](const ast::rule* rule, const ast::scenario& scenario) {
+  const auto add = [&](const ast::rule* rule, const ast::scenario& item) {
     pickle base{};
-    base.line = scenario.line;
-    base.feature = feature.name;
-    base.keyword = scenario.keyword;
-    base.name = scenario.name;
-    append(base.tags, feature.tags);
+    base.line = item.line;
+    base.feature = source.name;
+    base.keyword = item.keyword;
+    base.name = item.name;
+    append(base.tags, source.tags);
     if (rule) {
       base.rule = rule->name;
       append(base.tags, rule->tags);
     }
-    append(base.tags, scenario.tags);
-    if (not std::empty(scenario.steps)) {
-      if (feature.background) {
-        append(base.steps, feature.background->steps);
+    append(base.tags, item.tags);
+    if (not std::empty(item.steps)) {
+      if (source.background) {
+        append(base.steps, source.background->steps);
       }
       if (rule and rule->background) {
         append(base.steps, rule->background->steps);
       }
     }
 
-    if (std::empty(scenario.examples)) {
-      append(base.steps, scenario.steps);
+    if (std::empty(item.examples)) {
+      append(base.steps, item.steps);
       pickles.push_back(std::move(base));
       return;
     }
 
-    for (const auto& block : scenario.examples) {
+    for (const auto& block : item.examples) {
       for (std::size_t row{1}; row < std::size(block.data.rows); ++row) {
         const auto& header = block.data.rows.front();
         const auto& values = block.data.rows[row];
         auto current = base;
-        current.name = substitute(scenario.name, header, values);
+        current.name = substitute(item.name, header, values);
         append(current.tags, block.tags);
-        for (auto step : scenario.steps) {
+        for (auto step : item.steps) {
           step.text = substitute(step.text, header, values);
           if (step.doc) {
             step.doc->content = substitute(step.doc->content, header, values);
@@ -3790,12 +3790,12 @@ class parser {
     }
   };
 
-  for (const auto& scenario : feature.scenarios) {
-    add(nullptr, scenario);
+  for (const auto& item : source.scenarios) {
+    add(nullptr, item);
   }
-  for (const auto& rule : feature.rules) {
-    for (const auto& scenario : rule.scenarios) {
-      add(&rule, scenario);
+  for (const auto& rule : source.rules) {
+    for (const auto& item : rule.scenarios) {
+      add(&rule, item);
     }
   }
 
