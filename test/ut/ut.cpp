@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <new>
 #include <numeric>
 #include <sstream>
 #include <string>
@@ -844,6 +845,28 @@ int main() {  // NOLINT(readability-function-size)
       test_assert(1 == reporter.tests_.skip);*/
 
       reporter = printer{};
+    }
+
+    {
+      // The initialization order of a runner and of the suites registered
+      // with it is unspecified when they have static storage duration. A
+      // suite which is initialized first is given zero-initialized storage.
+      static int calls{};
+      alignas(test_runner) static unsigned char storage[sizeof(test_runner)]{};
+      auto* const early = reinterpret_cast<test_runner*>(storage);  // NOLINT
+
+      early->on(events::suite<void (*)()>{.run = +[] { ++calls; },
+                                          .name = "before the constructor"});
+
+      auto* const run = new (storage) test_runner{};
+      run->on(events::suite<void (*)()>{.run = +[] { calls += 10; },
+                                        .name = "after the constructor"});
+      test_assert(0 == calls);
+
+      test_assert(not run->run());
+      test_assert(11 == calls);
+
+      run->~test_runner();
     }
 
     {

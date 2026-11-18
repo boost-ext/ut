@@ -2044,6 +2044,11 @@ class runner {
 
   template <class TSuite>
   auto on(events::suite<TSuite> suite) {
+    if (not constructed_) {
+      early_suites().emplace_back(
+          this, std::pair<void (*)(), std::string_view>{suite.run, suite.name});
+      return;
+    }
     suites_.emplace_back(suite.run, suite.name);
   }
 
@@ -2203,9 +2208,36 @@ class runner {
     }
   }
 
+ private:
+  /// The initialization order of a runner and of the test suites is
+  /// unspecified when they are variables with static storage duration (cfg<>
+  /// is a variable template), so a suite may be registered with a runner
+  /// whose constructor has not been called yet. Such suites are kept here
+  /// until the runner is constructed.
+  [[nodiscard]] static auto early_suites() -> auto& {
+    static std::vector<
+        std::pair<const runner*, std::pair<void (*)(), std::string_view>>>
+        suites{};
+    return suites;
+  }
+
+  [[nodiscard]] auto adopt_early_suites() const {
+    std::vector<std::pair<void (*)(), std::string_view>> suites{};
+    auto& early = early_suites();
+    for (const auto& [owner, suite] : early) {
+      if (owner == this) {
+        suites.push_back(suite);
+      }
+    }
+    std::erase_if(early,
+                  [this](const auto& entry) { return entry.first == this; });
+    return suites;
+  }
+
  protected:
   TReporter reporter_{};
-  std::vector<std::pair<void (*)(), std::string_view>> suites_{};
+  std::vector<std::pair<void (*)(), std::string_view>> suites_ =
+      adopt_early_suites();
   std::size_t level_{};
   bool run_{};
   std::size_t fails_{};
@@ -2213,6 +2245,9 @@ class runner {
   filter filter_{};
   std::vector<std::string_view> tag_{};
   bool dry_run_{};
+  /// false before the constructor is called, because variables with static
+  /// storage duration are zero-initialized first
+  bool constructed_{true};
 };
 
 struct override {};
