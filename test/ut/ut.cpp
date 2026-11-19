@@ -177,7 +177,7 @@ class fake_calculator {
   auto enter(const T& value) -> void { values_.push_back(value); }
   auto name(std::string value) -> void { name_ = std::move(value); }
   auto add() -> void {
-    result_ = std::accumulate(std::cbegin(values_), std::cend(values_), 0);
+    result_ = std::accumulate(std::cbegin(values_), std::cend(values_), T{});
   }
   auto sub() -> void {
     result_ = std::accumulate(std::cbegin(values_) + 1, std::cend(values_),
@@ -482,6 +482,20 @@ int main() {  // NOLINT(readability-function-size)
                   utility::split<std::string_view>("a.b", "."));
       test_assert(std::vector<std::string_view>{"a", "b", "cde"} ==
                   utility::split<std::string_view>("a.b.cde", "."));
+    }
+
+    {
+      test_assert(std::vector<std::string>{"Greg Smith"} ==
+                  utility::match(std::string{R"(named "{name}")"},
+                                 std::string{R"(named "Greg Smith")"}));
+      test_assert(std::vector<std::string>{"Greg Smith"} ==
+                  utility::match(std::string{"named '{name}'"},
+                                 std::string{"named 'Greg Smith'"}));
+      test_assert(std::vector<std::string>{"4", "x y"} ==
+                  utility::match(std::string{R"({n} and "{s}")"},
+                                 std::string{R"(4 and "x y")"}));
+      test_assert(std::empty(utility::match(std::string{R"(named "{name}")"},
+                                            std::string{"other"})));
     }
 
     {
@@ -2041,7 +2055,6 @@ int main() {  // NOLINT(readability-function-size)
     test_assert("fatal"sv == std::any_cast<const char*>(test_cfg.log_calls[1]));
   }
 
-#if not defined(_MSC_VER)
   {
     using namespace ut;
     auto& test_cfg = ut::cfg<ut::override>;
@@ -2160,5 +2173,1535 @@ int main() {  // NOLINT(readability-function-size)
     test_assert("2 == 2" == test_cfg.assertion_calls[1].expr);
     test_assert(test_cfg.assertion_calls[1].result);
   }
-#endif
+  {
+    using namespace ut;
+    namespace gk = bdd::gherkin;
+    using gk::ast::step_type;
+    using namespace std::literals::string_literals;
+
+    // ---- parser ----
+
+    {  // 1. Feature, description, tags
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+@a @b
+Feature: Calc
+  first line
+
+  second line # not a comment
+  # a comment
+  third line
+
+Scenario: S
+  Given x
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      test_assert(doc.feature.has_value());
+      const auto& feature = *doc.feature;
+      test_assert(3 == feature.line);
+      test_assert("Calc" == feature.name);
+      test_assert((std::vector<std::string>{"a", "b"}) == feature.tags);
+      test_assert("first line\n\nsecond line # not a comment\nthird line" ==
+                  feature.description);
+      test_assert(1 == std::size(feature.scenarios));
+      test_assert(std::empty(feature.rules));
+      test_assert(not feature.background);
+    }
+
+    {  // 1. description stops at Background/Rule/Example/Scenario/Outline
+      for (const auto* header : {"Background:", "Rule: R", "Example: E",
+                                 "Scenario: S", "Scenario Outline: O"}) {
+        const auto doc =
+            gk::parse("Feature: F\n  desc\n"s + header + "\n  Given x\n");
+        test_assert(doc.feature.has_value());
+        test_assert("desc" == doc.feature->description);
+      }
+    }
+
+    {  // 2. errors
+      auto doc = gk::parse("\nGiven x\nFeature: F\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(2 == doc.errors[0].line);
+      test_assert("expected 'Feature:'" == doc.errors[0].message);
+      test_assert(doc.feature.has_value());
+      test_assert("F" == doc.feature->name);
+
+      doc = gk::parse("Feature: A\nScenario: S\nFeature: B\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(3 == doc.errors[0].line);
+      test_assert(doc.feature.has_value());
+      test_assert("A" == doc.feature->name);
+
+      doc = gk::parse("");
+      test_assert(not doc.feature);
+      test_assert(std::empty(doc.errors));
+
+      doc = gk::parse("\n  \n# language: en\n\n");
+      test_assert(not doc.feature);
+      test_assert(std::empty(doc.errors));
+
+      doc = gk::parse("Scenario: S\n");
+      test_assert(not doc.feature);
+      test_assert(1 == std::size(doc.errors));
+      test_assert(1 == doc.errors[0].line);
+    }
+
+    {  // 3. synonyms
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario: A
+  Example: B
+  Scenario Outline: C
+    Examples: X
+      | a |
+      | 1 |
+  Scenario Template: D
+    Scenarios: Y
+      | a |
+      | 1 |
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& scenarios = doc.feature->scenarios;
+      test_assert(4 == std::size(scenarios));
+      test_assert("Scenario" == scenarios[0].keyword);
+      test_assert("A" == scenarios[0].name);
+      test_assert("Example" == scenarios[1].keyword);
+      test_assert("Scenario Outline" == scenarios[2].keyword);
+      test_assert("Scenario Template" == scenarios[3].keyword);
+      test_assert("Examples" == scenarios[2].examples[0].keyword);
+      test_assert("Scenarios" == scenarios[3].examples[0].keyword);
+    }
+
+    {  // 4. steps
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    * star first
+    Given g
+    And a1
+    When w
+    But b1
+    Then t
+    * star last
+    And   spaced text
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& steps = doc.feature->scenarios[0].steps;
+      test_assert(8 == std::size(steps));
+      const std::vector<std::pair<std::string, step_type>> expected{
+          {"*", step_type::unknown}, {"Given", step_type::given},
+          {"And", step_type::given}, {"When", step_type::when},
+          {"But", step_type::when},  {"Then", step_type::then},
+          {"*", step_type::then},    {"And", step_type::then}};
+      for (std::size_t i{}; i < std::size(steps); ++i) {
+        test_assert(expected[i].first == steps[i].keyword);
+        test_assert(expected[i].second == steps[i].type);
+      }
+      test_assert("star first" == steps[0].text);
+      test_assert("g" == steps[1].text);
+      test_assert("spaced text" == steps[7].text);
+      test_assert(4 == steps[0].line);
+      test_assert(5 == steps[1].line);
+    }
+
+    {  // 4. keyword with colon is not a step
+      const auto doc =
+          gk::parse("Feature: F\nScenario: S\nGiven: x\nGiven y\n");
+      test_assert(std::empty(doc.errors));
+      const auto& scenario = doc.feature->scenarios[0];
+      test_assert("Given: x" == scenario.description);
+      test_assert(1 == std::size(scenario.steps));
+      test_assert("y" == scenario.steps[0].text);
+    }
+
+    {  // 5. descriptions
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+Rule: R
+  rule desc
+  Background: B
+    background desc
+    Given a
+  Scenario: S
+    scenario desc
+
+    more scenario desc
+    Given b
+  Scenario Outline: O
+    outline desc
+    Given c <x>
+    Examples: E
+      examples desc
+      | x |
+      | 1 |
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& rule = doc.feature->rules[0];
+      test_assert("rule desc" == rule.description);
+      test_assert("B" == rule.background->name);
+      test_assert("background desc" == rule.background->description);
+      test_assert(1 == std::size(rule.background->steps));
+      test_assert("scenario desc\n\nmore scenario desc" ==
+                  rule.scenarios[0].description);
+      test_assert(1 == std::size(rule.scenarios[0].steps));
+      test_assert("outline desc" == rule.scenarios[1].description);
+      test_assert("examples desc" == rule.scenarios[1].examples[0].description);
+      test_assert(2 == std::size(rule.scenarios[1].examples[0].data));
+    }
+
+    {  // 6. Background
+      // clang-format off
+      auto doc = gk::parse(R"gk(
+Feature: F
+  Background: B
+    Given a
+  Scenario: S
+    Given b
+)gk");
+      test_assert(std::empty(doc.errors));
+      test_assert(doc.feature->background.has_value());
+      test_assert(3 == doc.feature->background->line);
+      test_assert("B" == doc.feature->background->name);
+      test_assert(1 == std::size(doc.feature->background->steps));
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Background:
+    Given a
+  Background:
+    Given b
+)gk");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(5 == doc.errors[0].line);
+      test_assert(1 == std::size(doc.feature->background->steps));
+      test_assert("a" == doc.feature->background->steps[0].text);
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a
+  Background:
+    Given b
+)gk");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(5 == doc.errors[0].line);
+      test_assert(not doc.feature->background);
+      test_assert(1 == std::size(doc.feature->scenarios[0].steps));
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Background:
+    Given f
+  Rule: R
+    Background:
+      Given r
+    Scenario: S
+      Given s
+)gk");
+      test_assert(std::empty(doc.errors));
+      test_assert("f" == doc.feature->background->steps[0].text);
+      test_assert("r" == doc.feature->rules[0].background->steps[0].text);
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Rule: R
+    Background:
+      Given r1
+    Background:
+      Given r2
+)gk");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(6 == doc.errors[0].line);
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Rule: R
+    Scenario: S
+    Background:
+      Given r
+)gk");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(5 == doc.errors[0].line);
+      // clang-format on
+    }
+
+    {  // 7. Rules
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S0
+    Given a
+  @r1 @r2
+  Rule: R1
+    Scenario: S1
+  Rule: R2
+    Scenario: S2
+    Scenario: S3
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& feature = *doc.feature;
+      test_assert(1 == std::size(feature.scenarios));
+      test_assert("S0" == feature.scenarios[0].name);
+      test_assert(2 == std::size(feature.rules));
+      test_assert("R1" == feature.rules[0].name);
+      test_assert((std::vector<std::string>{"r1", "r2"}) ==
+                  feature.rules[0].tags);
+      test_assert(1 == std::size(feature.rules[0].scenarios));
+      test_assert("R2" == feature.rules[1].name);
+      test_assert(std::empty(feature.rules[1].tags));
+      test_assert(2 == std::size(feature.rules[1].scenarios));
+      test_assert("S3" == feature.rules[1].scenarios[1].name);
+    }
+
+    {  // 8. Scenario Outline and Examples
+      // clang-format off
+      auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario Outline: O
+    Given <a> and <b>
+    @t1
+    Examples: first
+      | a | b |
+      | 1 | 2 |
+      | 3 | 4 |
+    @t2 @t3
+    Examples: second
+      | a | b |
+      | 5 | 6 |
+)gk");
+      test_assert(std::empty(doc.errors));
+      const auto& outline = doc.feature->scenarios[0];
+      test_assert(2 == std::size(outline.examples));
+      test_assert("first" == outline.examples[0].name);
+      test_assert((std::vector<std::string>{"t1"}) == outline.examples[0].tags);
+      test_assert(3 == std::size(outline.examples[0].data));
+      test_assert((std::vector<std::string>{"a", "b"}) ==
+                  outline.examples[0].data[0]);
+      test_assert((std::vector<std::string>{"3", "4"}) ==
+                  outline.examples[0].data[2]);
+      test_assert("second" == outline.examples[1].name);
+      test_assert((std::vector<std::string>{"t2", "t3"}) ==
+                  outline.examples[1].tags);
+      test_assert(2 == std::size(outline.examples[1].data));
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario Outline: O
+    Given <a>
+)gk");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(3 == doc.errors[0].line);
+      test_assert("Scenario Outline must contain one or more Examples" ==
+                  doc.errors[0].message);
+
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario Outline: O
+    Given <a>
+  Scenario: S
+    Given b
+)gk");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(3 == doc.errors[0].line);
+      // clang-format on
+    }
+
+    {  // 9. Doc Strings
+      // clang-format off
+      auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a doc
+      """json
+      {
+        "a": 1,
+
+        "b": \"\"\"
+      }
+      """
+    Then done
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& steps = doc.feature->scenarios[0].steps;
+      test_assert(2 == std::size(steps));
+      test_assert(steps[0].doc.has_value());
+      test_assert("json" == steps[0].doc->content_type);
+      test_assert("{\n  \"a\": 1,\n\n  \"b\": \"\"\"\n}" ==
+                  steps[0].doc->content);
+      test_assert(not steps[1].doc);
+
+      // clang-format off
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a doc
+      ```
+      first
+      """
+      \`\`\`
+      ```
+    Given another
+      """
+      ```
+      """
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& s = doc.feature->scenarios[0].steps;
+      test_assert(2 == std::size(s));
+      test_assert("first\n\"\"\"\n```" == s[0].doc->content);
+      test_assert(std::empty(s[0].doc->content_type));
+      test_assert("```" == s[1].doc->content);
+
+      // clang-format off
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a doc
+      """
+      Scenario: not a scenario
+      Given not a step
+      # not a comment
+      | not | table |
+      @not_a_tag
+    Then never closed
+)gk");
+      // clang-format on
+      test_assert(1 == std::size(doc.errors));
+      test_assert(5 == doc.errors[0].line);
+      test_assert("unterminated Doc String" == doc.errors[0].message);
+
+      // clang-format off
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a doc
+      """
+      Scenario: not a scenario
+      Given not a step
+      # not a comment
+      | not | table |
+      @not_a_tag
+  Scenario: Real
+)gk");
+      // clang-format on
+      test_assert(1 == std::size(doc.errors));
+      test_assert(1 == std::size(doc.feature->scenarios));
+
+      // clang-format off
+      doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a doc
+      """
+      Scenario: not a scenario
+      Given not a step
+      # not a comment
+      | not | table |
+      @not_a_tag
+      """
+  Scenario: Real
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      test_assert(2 == std::size(doc.feature->scenarios));
+      test_assert(
+          "Scenario: not a scenario\nGiven not a step\n# not a comment\n"
+          "| not | table |\n@not_a_tag" ==
+          doc.feature->scenarios[0].steps[0].doc->content);
+    }
+
+    {  // 9. Doc String dedent
+      const auto doc = gk::parse(
+          "Feature: F\nScenario: S\n  Given a doc\n    \"\"\"\n"
+          "  less\n    same\n        deeper\n    \"\"\"\n");
+      test_assert(std::empty(doc.errors));
+      test_assert("less\nsame\n    deeper" ==
+                  doc.feature->scenarios[0].steps[0].doc->content);
+    }
+
+    {  // 10. Data Tables
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given a table
+      |  a  | b |   c  |
+      | 1\|2 | x\ny | back\\slash |
+      |     | z |      |
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& data = doc.feature->scenarios[0].steps[0].data;
+      test_assert(data.has_value());
+      test_assert(3 == std::size(*data));
+      test_assert((gk::table::row_t{"a", "b", "c"}) == (*data)[0]);
+      test_assert((gk::table::row_t{"1|2", "x\ny", "back\\slash"}) ==
+                  (*data)[1]);
+      test_assert((gk::table::row_t{"", "z", ""}) == (*data)[2]);
+      test_assert(not doc.feature->scenarios[0].steps[0].doc);
+    }
+
+    {  // 10. Data Table errors
+      auto doc = gk::parse(
+          "Feature: F\nScenario: S\n  Given t\n    | a | b |\n    | c |\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(5 == doc.errors[0].line);
+      test_assert(1 == std::size(*doc.feature->scenarios[0].steps[0].data));
+
+      doc = gk::parse("Feature: F\nScenario: S\n  Given t\n    | a | b\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(4 == doc.errors[0].line);
+
+      doc = gk::parse(
+          "Feature: F\nScenario: S\n  Given t\n    | a |\n    \"\"\"\n    x\n"
+          "    \"\"\"\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(5 == doc.errors[0].line);
+
+      doc = gk::parse(
+          "Feature: F\nScenario: S\n  Given t\n    \"\"\"\n    x\n    \"\"\"\n"
+          "    | a |\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(7 == doc.errors[0].line);
+    }
+
+    {  // 11. Tags
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+@f1 @f2
+@f3 # comment
+Feature: F
+  @r
+  Rule: R
+    @s1
+    @s2 @s3 # trailing @comment
+    Scenario: S
+      Given a
+    @o
+    Scenario Outline: O
+      Given <x>
+      @e
+      Examples:
+        | x |
+        | 1 |
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& feature = *doc.feature;
+      test_assert((std::vector<std::string>{"f1", "f2", "f3"}) == feature.tags);
+      const auto& rule = feature.rules[0];
+      test_assert((std::vector<std::string>{"r"}) == rule.tags);
+      test_assert((std::vector<std::string>{"s1", "s2", "s3"}) ==
+                  rule.scenarios[0].tags);
+      test_assert((std::vector<std::string>{"o"}) == rule.scenarios[1].tags);
+      test_assert((std::vector<std::string>{"e"}) ==
+                  rule.scenarios[1].examples[0].tags);
+    }
+
+    {  // 11. Tag errors
+      auto doc = gk::parse("Feature: F\n@t\nBackground:\n  Given a\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(2 == doc.errors[0].line);
+
+      doc = gk::parse("Feature: F\nScenario: S\n@t\n  Given a\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(3 == doc.errors[0].line);
+      test_assert(1 == std::size(doc.feature->scenarios[0].steps));
+
+      doc = gk::parse("Feature: F\n@a bogus @b\nScenario: S\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(2 == doc.errors[0].line);
+      test_assert(doc.errors[0].message.find("bogus") != std::string::npos);
+      test_assert((std::vector<std::string>{"a", "b"}) ==
+                  doc.feature->scenarios[0].tags);
+
+      doc = gk::parse("Feature: F\nScenario: S\n@dangling\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(3 == doc.errors[0].line);
+    }
+
+    {  // 12. Comments
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+# language: en
+Feature: F
+# comment
+  Scenario: S
+  # comment
+    Given a
+    # comment
+      | a | b |
+      # comment
+      | 1 | 2 |
+        # comment
+    Then b
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto& steps = doc.feature->scenarios[0].steps;
+      test_assert(2 == std::size(steps));
+      test_assert(2 == std::size(*steps[0].data));
+      test_assert(std::empty(doc.feature->scenarios[0].description));
+    }
+
+    {  // 13. Whitespace
+      auto doc = gk::parse(
+          "\tFeature: F\n\tScenario: S\n\t\tGiven a\n"
+          "\t\t\t| a |\n\t\t\t| b |\n");
+      test_assert(std::empty(doc.errors));
+      test_assert("F" == doc.feature->name);
+      test_assert(1 == std::size(doc.feature->scenarios[0].steps));
+      test_assert(2 == std::size(*doc.feature->scenarios[0].steps[0].data));
+
+      doc = gk::parse(
+          "Feature: F\r\nScenario: S\r\nGiven a\r\n| a |\r\n| 1 |\r\n"
+          "Given b\r\n\"\"\"\r\nx\r\n  y\r\n\"\"\"\r\n");
+      test_assert(std::empty(doc.errors));
+      test_assert("F" == doc.feature->name);
+      test_assert("S" == doc.feature->scenarios[0].name);
+      const auto& steps = doc.feature->scenarios[0].steps;
+      test_assert(2 == std::size(steps));
+      test_assert("a" == steps[0].text);
+      test_assert((gk::table::row_t{"1"}) == (*steps[0].data)[1]);
+      test_assert("x\n  y" == steps[1].doc->content);
+    }
+
+    // ---- compiler ----
+
+    {  // 14. Background order
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+  Background:
+    Given fb
+  Scenario: Outside
+    When s0
+  Rule: R
+    Background:
+      Given rb
+    Scenario: Inside
+      When s1
+    Scenario: Empty
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto pickles = gk::compile(*doc.feature);
+      test_assert(3 == std::size(pickles));
+      test_assert("Outside" == pickles[0].name);
+      test_assert(2 == std::size(pickles[0].steps));
+      test_assert("fb" == pickles[0].steps[0].text);
+      test_assert("s0" == pickles[0].steps[1].text);
+      test_assert("Inside" == pickles[1].name);
+      test_assert(3 == std::size(pickles[1].steps));
+      test_assert("fb" == pickles[1].steps[0].text);
+      test_assert("rb" == pickles[1].steps[1].text);
+      test_assert("s1" == pickles[1].steps[2].text);
+      test_assert("Empty" == pickles[2].name);
+      test_assert(std::empty(pickles[2].steps));
+      test_assert("F" == pickles[2].feature);
+    }
+
+    {  // 15. Outline expansion
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+Feature: F
+  Scenario Outline: Add <a> and <b>
+    Given <a> plus <b> <unknown>
+    And a doc
+      """
+      doc <a>
+      """
+    And a table
+      | <a> | <b> |
+      | x   | <a> |
+    Examples:
+      | a   | b |
+      | 1   | 2 |
+      | <b> | 4 |
+    Examples: other
+      | a | b |
+      | 5 | 6 |
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto pickles = gk::compile(*doc.feature);
+      test_assert(3 == std::size(pickles));
+      test_assert("Add 1 and 2" == pickles[0].name);
+      test_assert("1 plus 2 <unknown>" == pickles[0].steps[0].text);
+      test_assert("doc 1" == pickles[0].steps[1].doc->content);
+      test_assert((gk::table::row_t{"1", "2"}) ==
+                  (*pickles[0].steps[2].data)[0]);
+      test_assert((gk::table::row_t{"x", "1"}) ==
+                  (*pickles[0].steps[2].data)[1]);
+      test_assert("Add <b> and 4" == pickles[1].name);
+      test_assert("<b> plus 4 <unknown>" == pickles[1].steps[0].text);
+      test_assert("doc <b>" == pickles[1].steps[1].doc->content);
+      test_assert("Add 5 and 6" == pickles[2].name);
+      test_assert(step_type::given == pickles[2].steps[1].type);
+      test_assert(3 == pickles[2].line);
+    }
+
+    {  // 16. Tag inheritance
+      // clang-format off
+      const auto doc = gk::parse(R"gk(
+@f
+Feature: F
+  @plain
+  Scenario: Outside
+    Given a
+  @r
+  Rule: R
+    @s
+    Scenario Outline: O
+      Given <x>
+      @e1
+      Examples:
+        | x |
+        | 1 |
+      @e2
+      Examples:
+        | x |
+        | 2 |
+)gk");
+      // clang-format on
+      test_assert(std::empty(doc.errors));
+      const auto pickles = gk::compile(*doc.feature);
+      test_assert(3 == std::size(pickles));
+      test_assert(not pickles[0].rule);
+      test_assert((std::vector<std::string>{"f", "plain"}) == pickles[0].tags);
+      test_assert(pickles[1].rule.has_value());
+      test_assert("R" == *pickles[1].rule);
+      test_assert((std::vector<std::string>{"f", "r", "s", "e1"}) ==
+                  pickles[1].tags);
+      test_assert((std::vector<std::string>{"f", "r", "s", "e2"}) ==
+                  pickles[2].tags);
+    }
+
+    // ---- execution ----
+
+    static std::vector<std::string> trace{};
+    const auto logged = [](const std::string_view text) {
+      auto& cfg = ut::cfg<ut::override>;
+      for (const auto& log : cfg.log_calls) {
+        if (const auto* msg = std::any_cast<std::string>(&log)) {
+          if (msg->find(text) != std::string::npos) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    {  // 17. scenarios are nested tests, @skip
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.feature("*") = [&] {
+          s.scenario("*") = [&] {
+            s.given("step") = [&] { trace.push_back("step"); };
+          };
+        };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: One
+    Given step
+  @skip
+  Scenario: Two
+    Given step
+  Scenario: Three
+    Given step
+)gk";
+      // clang-format on
+
+      test_assert(3 == std::size(test_cfg.run_calls));
+      test_assert("outer" == test_cfg.run_calls[0].name);
+      test_assert("scenario" == test_cfg.run_calls[1].type);
+      test_assert("One" == test_cfg.run_calls[1].name);
+      test_assert("scenario" == test_cfg.run_calls[2].type);
+      test_assert("Three" == test_cfg.run_calls[2].name);
+      test_assert(1 == std::size(test_cfg.skip_calls));
+      test_assert("scenario" == test_cfg.skip_calls[0].type);
+      test_assert("Two" == test_cfg.skip_calls[0].name);
+      test_assert(2 == std::size(trace));
+      test_assert(std::empty(test_cfg.assertion_calls));
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      // clang-format off
+      "outer"_test = defs | R"gk(
+@skip
+Feature: F
+  Scenario: One
+    Given step
+  Scenario: Two
+    Given step
+)gk";
+      // clang-format on
+      test_assert(1 == std::size(test_cfg.run_calls));
+      test_assert(2 == std::size(test_cfg.skip_calls));
+      test_assert(std::empty(trace));
+    }
+
+    {  // 18. Background and fresh state
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.feature("*") = [&] {
+          s.scenario("*") = [&] {
+            s.given("a counter") = [&] {
+              int count{};
+              trace.push_back("background");
+              s.when("increment") = [&] { ++count; };
+              s.then("count is {n}") = [&](int n) {
+                trace.push_back("check");
+                expect(that % count == n);
+              };
+            };
+          };
+        };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Background:
+    Given a counter
+  Scenario: One
+    When increment
+    Then count is 1
+  Scenario: Two
+    Then count is 0
+  Scenario: Three
+    When increment
+    And increment
+    Then count is 2
+)gk";
+      // clang-format on
+
+      test_assert(4 == std::size(test_cfg.run_calls));
+      test_assert(3 == std::size(test_cfg.assertion_calls));
+      for (const auto& call : test_cfg.assertion_calls) {
+        test_assert(call.result);
+      }
+      test_assert((std::vector<std::string>{"background", "check", "background",
+                                            "check", "background", "check"}) ==
+                  trace);
+    }
+
+    {  // 19. And/But/* and keyword matching
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.given("g1") = [&] { trace.push_back("g1"); };
+        s.given("g2") = [&] { trace.push_back("g2"); };
+        s.when("w1") = [&] { trace.push_back("w1"); };
+        s.when("w2") = [&] { trace.push_back("w2"); };
+        s.then("t1") = [&] { trace.push_back("t1"); };
+        s.then("t2") = [&] { trace.push_back("t2"); };
+        s.then("t3") = [&] { trace.push_back("t3"); };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given g1
+    And g2
+    When w1
+    But w2
+    Then t1
+    And t2
+    * t3
+)gk";
+      // clang-format on
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"g1", "g2", "w1", "w2", "t1", "t2",
+                                            "t3"}) == trace);
+    }
+
+    {  // 19. step() matches any keyword
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.step("any {value}") = [&](std::string value) {
+          trace.push_back(value);
+        };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    * any 0
+    Given any 1
+    When any 2
+    Then any 3
+    And any 4
+)gk";
+      // clang-format on
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"0", "1", "2", "3", "4"}) == trace);
+    }
+
+    {  // 19. same text, keyword type decides
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.then("same") = [&] { trace.push_back("then"); };
+        s.given("same") = [&] { trace.push_back("given"); };
+        s.given("barrier") = [&] { trace.push_back("barrier"); };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given barrier
+    And same
+    Then same
+    And same
+)gk";
+      // clang-format on
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"barrier", "given", "then",
+                                            "then"}) == trace);
+    }
+
+    {  // 20. table and doc string arguments, quoted captures
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.given("a table") = [&](const bdd::gherkin::table& data) {
+          trace.push_back("table " + std::to_string(std::size(data)) + " " +
+                          data[1][1]);
+        };
+        s.given("{n} rows") = [&](int n, const bdd::gherkin::table& data) {
+          trace.push_back("rows " + std::to_string(n) + " " +
+                          std::to_string(std::size(data)));
+        };
+        s.given("a doc") = [&](const bdd::gherkin::doc_string& doc) {
+          trace.push_back("doc " + doc.content_type + " " + doc.content);
+        };
+        s.given("{n} lines in {name}") =
+            [&](int n, std::string name, const bdd::gherkin::doc_string& doc) {
+              trace.push_back("lines " + std::to_string(n) + " " + name + " " +
+                              doc.content);
+            };
+        s.when("named \"{name}\"") = [&](std::string name) {
+          trace.push_back("dq " + name);
+        };
+        s.when("named '{name}'") = [&](std::string name) {
+          trace.push_back("sq " + name);
+        };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given a table
+      | a | b |
+      | c | d |
+    And 3 rows
+      | x |
+      | y |
+      | z |
+    And a doc
+      """txt
+      hello
+      """
+    And 2 lines in text
+      ```
+      l1
+      l2
+      ```
+    When named "Greg Smith"
+    And named 'Jane Q Public'
+)gk";
+      // clang-format on
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert(
+          (std::vector<std::string>{"table 2 d", "rows 3 3", "doc txt hello",
+                                    "lines 2 text l1\nl2", "dq Greg Smith",
+                                    "sq Jane Q Public"}) == trace);
+    }
+
+    {  // 21. Outline run
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps defs = [](auto& s) {
+        s.feature("*") = [&] {
+          s.scenario("*") = [&] {
+            s.given("{a} and {b}") = [&](int a, int b) {
+              trace.push_back(std::to_string(a) + "+" + std::to_string(b));
+            };
+          };
+        };
+      };
+
+      // clang-format off
+      "outer"_test = defs | R"gk(
+Feature: F
+  Scenario Outline: Sum <a> <b>
+    Given <a> and <b>
+    Examples:
+      | a | b |
+      | 1 | 2 |
+      | 3 | 4 |
+    Examples:
+      | a | b |
+      | 5 | 6 |
+)gk";
+      // clang-format on
+      test_assert(4 == std::size(test_cfg.run_calls));
+      test_assert("Sum 1 2" == test_cfg.run_calls[1].name);
+      test_assert("Sum 3 4" == test_cfg.run_calls[2].name);
+      test_assert("Sum 5 6" == test_cfg.run_calls[3].name);
+      test_assert((std::vector<std::string>{"1+2", "3+4", "5+6"}) == trace);
+    }
+
+    {  // 22. failures
+      auto& test_cfg = ut::cfg<ut::override>;
+      const auto failed_once = [&](const std::string_view message) {
+        test_assert(1 == std::size(test_cfg.assertion_calls));
+        test_assert(not test_cfg.assertion_calls[0].result);
+        test_assert(logged(message));
+      };
+
+      {  // undefined step
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps defs = [](auto& s) { s.given("a") = [&] {}; };
+        // clang-format off
+        "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given a
+    When nope
+)gk";
+        // clang-format on
+        failed_once("undefined step");
+      }
+
+      {  // scenario without a definition
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps defs = [](auto& s) {
+          s.feature("*") = [&] {
+            s.scenario("Other") = [&] { s.given("a") = [&] {}; };
+          };
+        };
+        // clang-format off
+        "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given a
+)gk";
+        // clang-format on
+        failed_once("no definition matches");
+      }
+
+      {  // table not accepted
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps defs = [](auto& s) { s.given("a") = [&] {}; };
+        // clang-format off
+        "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given a
+      | x |
+)gk";
+        // clang-format on
+        failed_once("Data Table");
+      }
+
+      {  // table expected
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps defs = [](auto& s) {
+          s.given("a") = [&](const bdd::gherkin::table&) {};
+        };
+        // clang-format off
+        "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given a
+)gk";
+        // clang-format on
+        failed_once("Data Table");
+      }
+
+      {  // doc string expected / not accepted
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps defs = [](auto& s) {
+          s.given("a") = [&](const bdd::gherkin::doc_string&) {};
+        };
+        // clang-format off
+        "outer"_test = defs | R"gk(
+Feature: F
+  Scenario: S
+    Given a
+)gk";
+        // clang-format on
+        failed_once("Doc String");
+
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps plain = [](auto& s) { s.given("a") = [&] {}; };
+        // clang-format off
+        "outer"_test = plain | R"gk(
+Feature: F
+  Scenario: S
+    Given a
+      """
+      x
+      """
+)gk";
+        // clang-format on
+        failed_once("Doc String");
+      }
+
+      {  // syntax errors
+        test_cfg = fake_cfg{};
+        bdd::gherkin::steps defs = [](auto& s) { s.given("a") = [&] {}; };
+        // clang-format off
+        "outer"_test = defs | R"gk(
+bogus
+Feature: F
+  Scenario: S
+    Given a
+      | a |
+      | b | c |
+)gk";
+        // clang-format on
+        test_assert(1 == std::size(test_cfg.run_calls));
+        test_assert(2 == std::size(test_cfg.assertion_calls));
+        test_assert(not test_cfg.assertion_calls[0].result);
+        test_assert(not test_cfg.assertion_calls[1].result);
+        test_assert(logged("expected 'Feature:'"));
+        test_assert(logged("inconsistent"));
+      }
+    }
+
+    {  // 23. rule nesting
+      auto& test_cfg = ut::cfg<ut::override>;
+      test_cfg = fake_cfg{};
+      trace.clear();
+
+      bdd::gherkin::steps with_rule = [](auto& s) {
+        s.feature("*") = [&] {
+          trace.push_back("feature");
+          s.rule("R*") = [&] {
+            trace.push_back("rule");
+            s.scenario("*") = [&] {
+              trace.push_back("scenario");
+              s.given("a") = [&] { trace.push_back("a"); };
+            };
+          };
+        };
+      };
+
+      // clang-format off
+      const auto text = R"gk(
+Feature: F
+  Rule: Rx
+    Scenario: S
+      Given a
+)gk";
+      // clang-format on
+      "outer"_test = with_rule | text;
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"feature", "rule", "scenario",
+                                            "a"}) == trace);
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      bdd::gherkin::steps no_rule = [](auto& s) {
+        s.feature("*") = [&] {
+          s.scenario("*") = [&] {
+            s.given("a") = [&] { trace.push_back("a"); };
+          };
+        };
+      };
+      "outer"_test = no_rule | text;
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert(2 == std::size(test_cfg.run_calls));
+      test_assert((std::vector<std::string>{"a"}) == trace);
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      bdd::gherkin::steps flat = [](auto& s) {
+        s.given("a") = [&] { trace.push_back("a"); };
+      };
+      "outer"_test = flat | text;
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"a"}) == trace);
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      "outer"_test = with_rule | R"gk(
+Feature: F
+  Rule: Other
+    Scenario: S
+      Given a
+)gk";
+      test_assert(1 == std::size(test_cfg.assertion_calls));
+      test_assert(not test_cfg.assertion_calls[0].result);
+    }
+
+    // ---- additional parser / execution checks ----
+
+    {  // BOM is skipped
+      const auto doc = gk::parse(std::string{"\xEF\xBB\xBF"} +
+                                 "Feature: F\n  Scenario: S\n    Given x\n");
+      test_assert(std::empty(doc.errors));
+      test_assert(doc.feature.has_value());
+      test_assert("F" == doc.feature->name);
+    }
+
+    {  // steps are only allowed inside scenarios
+      // clang-format off
+      const auto in_examples = gk::parse(R"gk(
+Feature: F
+  Scenario Outline: O
+    Given x <n>
+    Examples:
+      Given bad
+      | n |
+      | 1 |
+)gk");
+      const auto in_feature = gk::parse(R"gk(
+Feature: F
+  Given bad
+  Scenario: S
+    Given x
+)gk");
+      const auto in_rule = gk::parse(R"gk(
+Feature: F
+  Rule: R
+    Given bad
+    Scenario: S
+      Given x
+)gk");
+      // clang-format on
+      const auto has_error = [](const gk::ast::document& doc, int line) {
+        for (const auto& error : doc.errors) {
+          if (static_cast<int>(error.line) == line and
+              error.message.find("steps are only allowed") !=
+                  std::string::npos) {
+            return true;
+          }
+        }
+        return false;
+      };
+      test_assert(has_error(in_examples, 6));
+      test_assert(in_examples.feature.has_value());
+      test_assert(std::empty(
+          in_examples.feature->scenarios[0].examples[0].description));
+      test_assert(has_error(in_feature, 3));
+      test_assert(has_error(in_rule, 4));
+    }
+
+    {  // doc string is closed only by a line equal to the delimiter
+      // clang-format off
+      const auto quotes = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given x
+      """
+      """" quoted
+      """json
+      """
+)gk");
+      const auto ticks = gk::parse(R"gk(
+Feature: F
+  Scenario: S
+    Given x
+      ```
+      ```cpp
+      ```
+)gk");
+      // clang-format on
+      test_assert(std::empty(quotes.errors));
+      test_assert(quotes.feature.has_value());
+      test_assert("\"\"\"\" quoted\n\"\"\"json" ==
+                  quotes.feature->scenarios[0].steps[0].doc->content);
+      test_assert(std::empty(ticks.errors));
+      test_assert(ticks.feature.has_value());
+      test_assert("```cpp" ==
+                  ticks.feature->scenarios[0].steps[0].doc->content);
+    }
+
+    {  // empty document at parser level
+      const auto doc = gk::parse("");
+      test_assert(not doc.feature.has_value());
+      test_assert(std::empty(doc.errors));
+    }
+
+    {  // no Feature: at all
+      auto& test_cfg = ut::cfg<ut::override>;
+      bdd::gherkin::steps defs = [](auto& s) { s.given("a") = [&] {}; };
+      for (const auto* text : {"", "\n# only a comment\n\n   \n"}) {
+        test_cfg = fake_cfg{};
+        "outer"_test = defs | text;
+        test_assert(1 == std::size(test_cfg.assertion_calls));
+        test_assert(not test_cfg.assertion_calls[0].result);
+        test_assert(logged("expected 'Feature:'"));
+        for (const auto& call : test_cfg.run_calls) {
+          test_assert("scenario" != call.type);
+        }
+      }
+    }
+
+    {  // numbered names for scenarios sharing a name
+      auto& test_cfg = ut::cfg<ut::override>;
+      const auto scenario_names = [&] {
+        std::vector<std::string> names;
+        for (const auto& call : test_cfg.run_calls) {
+          if (call.type == "scenario") {
+            names.emplace_back(call.name);
+          }
+        }
+        return names;
+      };
+
+      test_cfg = fake_cfg{};
+      bdd::gherkin::steps wild = [](auto& s) {
+        s.scenario("*") = [&] { s.given("a") = [&] {}; };
+      };
+      // clang-format off
+      "outer"_test = wild | R"gk(
+Feature: F
+  Scenario Outline: same
+    Given a
+    Examples:
+      | n |
+      | 1 |
+      | 2 |
+      | 3 |
+)gk";
+      // clang-format on
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"same (1)", "same (2)",
+                                            "same (3)"}) == scenario_names());
+
+      test_cfg = fake_cfg{};
+      // clang-format off
+      "outer"_test = wild | R"gk(
+Feature: F
+  Scenario Outline: eating <n>
+    Given a
+    Examples:
+      | n |
+      | 1 |
+      | 2 |
+)gk";
+      // clang-format on
+      test_assert((std::vector<std::string>{"eating 1", "eating 2"}) ==
+                  scenario_names());
+
+      test_cfg = fake_cfg{};
+      // clang-format off
+      "outer"_test = wild | R"gk(
+Feature: F
+  Rule: R1
+    Scenario: dup
+      Given a
+  Rule: R2
+    Scenario: dup
+      Given a
+)gk";
+      // clang-format on
+      test_assert((std::vector<std::string>{"dup (1)", "dup (2)"}) ==
+                  scenario_names());
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      bdd::gherkin::steps exact = [](auto& s) {
+        s.scenario("same") = [&] {
+          s.given("a") = [&] { trace.push_back("a"); };
+        };
+      };
+      // clang-format off
+      "outer"_test = exact | R"gk(
+Feature: F
+  Scenario Outline: same
+    Given a
+    Examples:
+      | n |
+      | 1 |
+      | 2 |
+      | 3 |
+)gk";
+      // clang-format on
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert(3 == std::size(trace));
+    }
+
+    {  // every matching definition is entered
+      auto& test_cfg = ut::cfg<ut::override>;
+      // clang-format off
+      const auto text = R"gk(
+Feature: F
+  Scenario: S
+    Given a
+    When b
+)gk";
+      // clang-format on
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      bdd::gherkin::steps two_features = [](auto& s) {
+        s.feature("*") = [&] { s.given("a") = [&] { trace.push_back("a"); }; };
+        s.feature("*") = [&] { s.when("b") = [&] { trace.push_back("b"); }; };
+      };
+      "outer"_test = two_features | text;
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"a", "b"}) == trace);
+
+      test_cfg = fake_cfg{};
+      trace.clear();
+      bdd::gherkin::steps two_scenarios = [](auto& s) {
+        s.scenario("*") = [&] { s.given("a") = [&] { trace.push_back("a"); }; };
+        s.scenario("*") = [&] { s.when("b") = [&] { trace.push_back("b"); }; };
+      };
+      "outer"_test = two_scenarios | text;
+      test_assert(std::empty(test_cfg.assertion_calls));
+      test_assert((std::vector<std::string>{"a", "b"}) == trace);
+    }
+
+    // ---- parser error paths and description fallbacks ----
+
+    const auto reported = [](const gk::ast::document& doc,
+                             const std::size_t line,
+                             const std::string_view message) {
+      for (const auto& error : doc.errors) {
+        if (error.line == line and
+            error.message.find(message) != std::string::npos) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    {  // Examples without a Scenario
+      const auto doc =
+          gk::parse("Feature: F\n@t\nExamples:\n| a |\nScenario: S\nGiven x\n");
+      test_assert(1 == std::size(doc.errors));
+      test_assert(reported(doc, 3, "Examples must follow the steps"));
+      test_assert(doc.feature.has_value());
+      test_assert(1 == std::size(doc.feature->scenarios));
+      test_assert(std::empty(doc.feature->scenarios[0].tags));
+      test_assert(std::empty(doc.feature->scenarios[0].examples));
+    }
+
+    {  // table row and Doc String which have nothing to belong to
+      const auto doc = gk::parse(
+          "Feature: F\nBackground:\nGiven x\nBackground:\n| a |\n"
+          "\"\"\"\nignored\n\"\"\"\nScenario: S\nGiven y\n");
+      test_assert(3 == std::size(doc.errors));
+      test_assert(reported(doc, 4, "only one Background"));
+      test_assert(reported(doc, 5, "table row must follow a step or Examples"));
+      test_assert(reported(doc, 6, "Doc String must follow a step"));
+      test_assert(doc.feature.has_value());
+      test_assert(1 == std::size(doc.feature->background->steps));
+      test_assert(not doc.feature->background->steps[0].data);
+      test_assert(not doc.feature->background->steps[0].doc);
+      test_assert(1 == std::size(doc.feature->scenarios));
+      test_assert("y" == doc.feature->scenarios[0].steps[0].text);
+    }
+
+    {  // text after a step or an Examples table
+      const auto after_step =
+          gk::parse("Feature: F\nScenario: S\nGiven x\nstray text\nThen y\n");
+      test_assert(1 == std::size(after_step.errors));
+      test_assert(reported(after_step, 4, "unexpected 'stray text'"));
+      test_assert(2 == std::size(after_step.feature->scenarios[0].steps));
+
+      const auto after_table = gk::parse(
+          "Feature: F\nScenario Outline: O\nGiven <a>\nExamples:\n"
+          "| a |\n| 1 |\nstray text\n");
+      test_assert(1 == std::size(after_table.errors));
+      test_assert(reported(after_table, 7, "unexpected 'stray text'"));
+      test_assert(
+          2 == std::size(after_table.feature->scenarios[0].examples[0].data));
+    }
+
+    {  // table row and Doc String delimiter are part of a description
+      const auto row =
+          gk::parse("Feature: F\n| not a table |\nScenario: S\nGiven x\n");
+      test_assert(std::empty(row.errors));
+      test_assert("| not a table |" == row.feature->description);
+      test_assert(1 == std::size(row.feature->scenarios));
+
+      const auto quotes =
+          gk::parse("Feature: F\n  \"\"\" quoted\nScenario: S\nGiven x\n");
+      test_assert(std::empty(quotes.errors));
+      test_assert("\"\"\" quoted" == quotes.feature->description);
+      test_assert(1 == std::size(quotes.feature->scenarios));
+      test_assert(not quotes.feature->scenarios[0].steps[0].doc);
+    }
+
+    {  // table accessors
+      const gk::table none{};
+      test_assert(none.empty());
+      test_assert(none.begin() == none.end());
+
+      const auto doc =
+          gk::parse("Feature: F\nScenario: S\nGiven x\n| a | b |\n| c | d |\n");
+      test_assert(std::empty(doc.errors));
+      const auto& data = *doc.feature->scenarios[0].steps[0].data;
+      test_assert(not data.empty());
+      std::string cells{};
+      for (const auto& row : data) {
+        for (const auto& cell : row) {
+          cells += cell;
+        }
+      }
+      test_assert("abcd" == cells);
+      test_assert(2 == data.end() - data.begin());
+    }
+  }
+
+  {
+    using namespace ut;
+
+    test_assert(std::empty(bdd::gherkin::feature_file()));
+
+    const auto argc = detail::cfg::largc;
+    const auto argv = detail::cfg::largv;
+    const char* args[] = {"ut", "--feature", "calculator.feature"};
+    detail::cfg::parse(3, args);
+    test_assert("calculator.feature" == bdd::gherkin::feature_file());
+    test_assert(std::empty(detail::cfg::query_pattern));
+
+    detail::cfg::feature_filename.clear();
+    detail::cfg::parse(argc, argv);
+    detail::cfg::largc = argc;
+    detail::cfg::largv = argv;
+    test_assert(std::empty(bdd::gherkin::feature_file()));
+  }
 }

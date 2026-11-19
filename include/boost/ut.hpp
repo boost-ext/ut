@@ -202,9 +202,10 @@ template <class TPattern, class TStr>
   };
 
   while (pi < std::size(pattern) && si < std::size(str)) {
-    if (pattern[pi] == '\'' and str[si] == '\'' and pattern[pi + 1] == '{') {
+    if ((pattern[pi] == '\'' or pattern[pi] == '"') and
+        str[si] == pattern[pi] and pattern[pi + 1] == '{') {
       ++si;
-      matcher('\'', '}');
+      matcher(pattern[pi], '}');
     } else if (pattern[pi] == '{') {
       matcher(' ', '}', ',');
     } else if (pattern[pi] != str[si]) {
@@ -715,6 +716,7 @@ struct cfg {
   static inline bool show_duration = false;     // <- done
   static inline std::size_t show_min_duration = 0;
   static inline std::string input_filename;
+  static inline std::string feature_filename;  // <- done
   static inline bool show_test_names = false;  // <- done
   static inline bool show_reporters = false;   // <- done
   static inline std::string sort_order = "decl";
@@ -744,7 +746,8 @@ struct cfg {
   {"--rng-seed", "<'time'|number>", std::ref(rnd_seed), "set a specific seed for random numbers"},
   {"--use-colour", "<yes|no>", std::ref(use_colour), "should output be colourised"},
   {"--libidentify", "", std::ref(show_lib_identity), "report name and version according to libidentify standard"},
-  {"--wait-for-keypress", "<never|start|exit|both>", std::ref(wait_for_keypress), "waits for a keypress before exiting"}
+  {"--wait-for-keypress", "<never|start|exit|both>", std::ref(wait_for_keypress), "waits for a keypress before exiting"},
+  {"--feature", "<filename>", std::ref(feature_filename), "gherkin feature file, see bdd::gherkin::feature_file()"}
       // clang-format on
   };
 
@@ -2085,7 +2088,9 @@ class runner {
       for (const auto& tag2 : test.tag) {
         matches |= utility::regex_match(tag2.data(), regex.c_str());
       }
-      if (matches) {
+      if (level_ and not detail::cfg::invert_query_pattern) {
+        // nested tests are run together with the selected test
+      } else if (matches) {
         execute = !detail::cfg::invert_query_pattern;
       } else {
         execute = detail::cfg::invert_query_pattern;
@@ -3210,44 +3215,780 @@ namespace bdd {
   return detail::test{"then", std::forward<decltype(name)>(name)};
 };
 
+/**
+ * Gherkin - https://cucumber.io/docs/gherkin/reference (English keywords)
+ */
 namespace gherkin {
+/// Doc String step argument, passed as the last argument of a step definition
+struct doc_string {
+  std::string content{};
+  std::string content_type{};
+};
+
+/// Data Table step argument, passed as the last argument of a step definition
+struct table {
+  using row_t = std::vector<std::string>;
+
+  [[nodiscard]] auto empty() const -> bool { return std::empty(rows); }
+  [[nodiscard]] auto size() const -> std::size_t { return std::size(rows); }
+  [[nodiscard]] auto operator[](std::size_t index) const -> const row_t& {
+    return rows[index];
+  }
+  [[nodiscard]] auto begin() const { return std::cbegin(rows); }
+  [[nodiscard]] auto end() const { return std::cend(rows); }
+
+  std::vector<row_t> rows{};
+};
+
+namespace ast {
+/// `And`, `But` and `*` take the type of the preceding step
+enum class step_type { unknown, given, when, then };
+
+struct step {
+  std::size_t line{};
+  std::string keyword{};
+  step_type type{};
+  std::string text{};
+  std::optional<gherkin::doc_string> doc{};
+  std::optional<gherkin::table> data{};
+};
+
+struct examples {
+  std::size_t line{};
+  std::vector<std::string> tags{};
+  std::string keyword{};
+  std::string name{};
+  std::string description{};
+  gherkin::table data{};  /// first row is the header
+};
+
+struct background {
+  std::size_t line{};
+  std::string name{};
+  std::string description{};
+  std::vector<step> steps{};
+};
+
+struct scenario {
+  std::size_t line{};
+  std::vector<std::string> tags{};
+  std::string keyword{};
+  std::string name{};
+  std::string description{};
+  std::vector<step> steps{};
+  std::vector<ast::examples> examples{};
+};
+
+struct rule {
+  std::size_t line{};
+  std::vector<std::string> tags{};
+  std::string name{};
+  std::string description{};
+  std::optional<ast::background> background{};
+  std::vector<scenario> scenarios{};
+};
+
+struct feature {
+  std::size_t line{};
+  std::vector<std::string> tags{};
+  std::string name{};
+  std::string description{};
+  std::optional<ast::background> background{};
+  std::vector<scenario> scenarios{};  /// scenarios outside of any rule
+  std::vector<rule> rules{};
+};
+
+struct error {
+  std::size_t line{};
+  std::string message{};
+};
+
+struct document {
+  std::optional<ast::feature> feature{};
+  std::vector<error> errors{};
+};
+}  // namespace ast
+
+/// Runnable scenario: background steps prepended, outline row substituted,
+/// tags inherited
+struct pickle {
+  std::size_t line{};
+  std::string feature{};
+  std::optional<std::string> rule{};
+  std::string keyword{};
+  std::string name{};
+  std::vector<std::string> tags{};
+  std::vector<ast::step> steps{};
+};
+
+class parser {
+  static constexpr std::string_view whitespace = " \t\r\v\f";
+  static constexpr std::string_view quotes = "\"\"\"";
+  static constexpr std::string_view backticks = "```";
+
+ public:
+  [[nodiscard]] auto parse(std::string_view text) -> ast::document {
+    if (text.starts_with("\xEF\xBB\xBF")) {
+      text.remove_prefix(3);  /// UTF-8 byte order mark
+    }
+
+    for (std::size_t first{};;) {
+      const auto last = text.find('\n', first);
+      ++line_;
+      on_line(text.substr(
+          first, last == std::string_view::npos ? last : last - first));
+      if (last == std::string_view::npos) {
+        break;
+      }
+      first = last + 1;
+    }
+
+    if (doc_string_) {
+      error(opened_, "unterminated Doc String");
+    }
+    reject_tags();
+    close();
+
+    std::stable_sort(
+        std::begin(document_.errors), std::end(document_.errors),
+        [](const auto& lhs, const auto& rhs) { return lhs.line < rhs.line; });
+
+    return std::move(document_);
+  }
+
+ private:
+  [[nodiscard]] static auto trim(std::string_view str) -> std::string_view {
+    const auto first = str.find_first_not_of(whitespace);
+    if (first == std::string_view::npos) {
+      return {};
+    }
+    return str.substr(first, str.find_last_not_of(whitespace) - first + 1);
+  }
+
+  [[nodiscard]] static auto title(std::string_view line,
+                                  std::string_view keyword)
+      -> std::optional<std::string_view> {
+    if (line.starts_with(keyword) and std::size(line) > std::size(keyword) and
+        line[std::size(keyword)] == ':') {
+      return trim(line.substr(std::size(keyword) + 1));
+    }
+    return {};
+  }
+
+  [[nodiscard]] static auto unescape(std::string_view cell) -> std::string {
+    std::string result{};
+    for (std::size_t i{}; i < std::size(cell); ++i) {
+      if (cell[i] == '\\' and i + 1 < std::size(cell)) {
+        const auto next = cell[i + 1];
+        if (next == 'n' or next == '|' or next == '\\') {
+          result += next == 'n' ? '\n' : next;
+          ++i;
+          continue;
+        }
+      }
+      result += cell[i];
+    }
+    return result;
+  }
+
+  [[nodiscard]] static auto cells(std::string_view line, table::row_t& row)
+      -> bool {
+    std::size_t first{1};
+    for (auto i = first; i < std::size(line); ++i) {
+      if (line[i] == '\\') {
+        ++i;
+      } else if (line[i] == '|') {
+        row.push_back(unescape(trim(line.substr(first, i - first))));
+        first = i + 1;
+      }
+    }
+    return first == std::size(line) and not std::empty(row);
+  }
+
+  auto error(std::size_t line, std::string message) -> void {
+    document_.errors.push_back({line, std::move(message)});
+  }
+
+  auto reject_tags() -> void {
+    if (not std::empty(tags_)) {
+      error(tags_line_,
+            "tags must be followed by Feature, Rule, Scenario, Scenario "
+            "Outline or Examples");
+      tags_.clear();
+    }
+  }
+
+  [[nodiscard]] auto take_tags() { return std::exchange(tags_, {}); }
+
+  auto describe(std::string* description) -> void {
+    description_ = description;
+    blank_ = {};
+  }
+
+  /// leaves the current Background/Scenario
+  auto close() -> void {
+    if (scenario_ and outline_ and std::empty(scenario_->examples)) {
+      error(scenario_->line,
+            "Scenario Outline must contain one or more Examples");
+    }
+    scenario_ = {};
+    examples_ = {};
+    steps_ = {};
+    step_ = {};
+    describe({});
+  }
+
+  auto on_line(std::string_view raw) -> void {
+    if (doc_string_) {
+      return on_doc_string_line(raw);
+    }
+
+    const auto line = trim(raw);
+    if (std::empty(line)) {
+      blank_ += description_ and not std::empty(*description_);
+      return;
+    }
+    if (line.front() == '#') {
+      return;
+    }
+    if (line.front() == '@') {
+      return on_tags(line);
+    }
+    if (const auto name = title(line, "Feature")) {
+      return on_feature(*name);
+    }
+    if (not document_.feature) {
+      if (not std::exchange(missing_feature_, true)) {
+        error(line_, "expected 'Feature:'");
+      }
+      return;
+    }
+    if (const auto name = title(line, "Rule")) {
+      return on_rule(*name);
+    }
+    if (const auto name = title(line, "Background")) {
+      return on_background(*name);
+    }
+    for (const std::string_view keyword : {"Example", "Scenario"}) {
+      if (const auto name = title(line, keyword)) {
+        return on_scenario(keyword, *name, false);
+      }
+    }
+    for (const std::string_view keyword :
+         {"Scenario Outline", "Scenario Template"}) {
+      if (const auto name = title(line, keyword)) {
+        return on_scenario(keyword, *name, true);
+      }
+    }
+    for (const std::string_view keyword : {"Examples", "Scenarios"}) {
+      if (const auto name = title(line, keyword)) {
+        return on_examples(keyword, *name);
+      }
+    }
+    if (line.front() == '|') {
+      return on_row(line);
+    }
+    if (line.starts_with(quotes) or line.starts_with(backticks)) {
+      return on_doc_string(raw, line);
+    }
+    for (const std::string_view keyword :
+         {"Given", "When", "Then", "And", "But", "*"}) {
+      if (line.starts_with(keyword) and std::size(line) > std::size(keyword) and
+          (line[std::size(keyword)] == ' ' or
+           line[std::size(keyword)] == '\t')) {
+        return on_step(keyword, trim(line.substr(std::size(keyword))));
+      }
+    }
+    on_other(line);
+  }
+
+  auto on_tags(std::string_view line) -> void {
+    if (std::empty(tags_)) {
+      tags_line_ = line_;
+    }
+    for (auto first = line.find_first_not_of(whitespace);
+         first != std::string_view::npos;
+         first = line.find_first_not_of(whitespace, first)) {
+      const auto last = math::min_value(line.find_first_of(whitespace, first),
+                                        std::size(line));
+      const auto word = line.substr(first, last - first);
+      if (word.front() == '#') {
+        break;
+      }
+      if (word.front() != '@' or std::size(word) == 1) {
+        error(line_, "invalid tag '" + std::string{word} + "'");
+      } else {
+        tags_.emplace_back(word.substr(1));
+      }
+      first = last;
+    }
+  }
+
+  auto on_feature(std::string_view name) -> void {
+    if (document_.feature) {
+      tags_.clear();
+      return error(line_, "only one Feature is allowed per document");
+    }
+    auto& added = document_.feature.emplace();
+    added.line = line_;
+    added.tags = take_tags();
+    added.name = name;
+    describe(&added.description);
+  }
+
+  auto on_rule(std::string_view name) -> void {
+    close();
+    rule_ = &document_.feature->rules.emplace_back();
+    rule_->line = line_;
+    rule_->tags = take_tags();
+    rule_->name = name;
+    describe(&rule_->description);
+  }
+
+  auto on_background(std::string_view name) -> void {
+    reject_tags();
+    close();
+    auto& target = rule_ ? rule_->background : document_.feature->background;
+    const auto& scenarios =
+        rule_ ? rule_->scenarios : document_.feature->scenarios;
+    if (target) {
+      error(line_, "only one Background is allowed per Feature or Rule");
+    } else if (not std::empty(scenarios)) {
+      error(line_, "Background must be placed before the first Scenario");
+    } else {
+      target.emplace();
+      target->line = line_;
+      target->name = name;
+      steps_ = &target->steps;
+      return describe(&target->description);
+    }
+    ignored_steps_.clear();
+    steps_ = &ignored_steps_;
+  }
+
+  auto on_scenario(std::string_view keyword, std::string_view name,
+                   bool outline) -> void {
+    close();
+    scenario_ = &(rule_ ? rule_->scenarios : document_.feature->scenarios)
+                     .emplace_back();
+    scenario_->line = line_;
+    scenario_->tags = take_tags();
+    scenario_->keyword = keyword;
+    scenario_->name = name;
+    outline_ = outline;
+    steps_ = &scenario_->steps;
+    describe(&scenario_->description);
+  }
+
+  auto on_examples(std::string_view keyword, std::string_view name) -> void {
+    if (not scenario_) {
+      tags_.clear();
+      return error(line_, "Examples must follow the steps of a Scenario");
+    }
+    examples_ = &scenario_->examples.emplace_back();
+    examples_->line = line_;
+    examples_->tags = take_tags();
+    examples_->keyword = keyword;
+    examples_->name = name;
+    steps_ = {};
+    step_ = {};
+    describe(&examples_->description);
+  }
+
+  auto on_step(std::string_view keyword, std::string_view text) -> void {
+    if (not steps_) {
+      reject_tags();
+      return error(line_,
+                   "steps are only allowed in Background, Scenario or "
+                   "Scenario Outline");
+    }
+    reject_tags();
+    describe({});
+    const auto type = keyword == "Given"    ? ast::step_type::given
+                      : keyword == "When"   ? ast::step_type::when
+                      : keyword == "Then"   ? ast::step_type::then
+                      : std::empty(*steps_) ? ast::step_type::unknown
+                                            : steps_->back().type;
+    step_ = &steps_->emplace_back();
+    step_->line = line_;
+    step_->keyword = keyword;
+    step_->type = type;
+    step_->text = text;
+  }
+
+  auto on_row(std::string_view line) -> void {
+    if (not examples_ and not step_) {
+      if (description_) {
+        return on_other(line);
+      }
+      reject_tags();
+      return error(line_, "table row must follow a step or Examples");
+    }
+    reject_tags();
+    describe({});
+    if (step_ and step_->doc) {
+      return error(line_, "a step takes either a Doc String or a Data Table");
+    }
+    auto& target = examples_     ? examples_->data
+                   : step_->data ? *step_->data
+                                 : step_->data.emplace();
+    table::row_t row{};
+    if (not cells(line, row)) {
+      return error(line_, "table row must be delimited by '|'");
+    }
+    if (not std::empty(target.rows) and
+        std::size(row) != std::size(target.rows.front())) {
+      return error(line_, "inconsistent number of cells in the table row");
+    }
+    target.rows.push_back(std::move(row));
+  }
+
+  auto on_doc_string(std::string_view raw, std::string_view line) -> void {
+    if (not step_ and description_) {
+      return on_other(line);
+    }
+    reject_tags();
+    describe({});
+    ignored_doc_string_ = {};
+    doc_string_ = &ignored_doc_string_;
+    if (not step_) {
+      error(line_, "Doc String must follow a step");
+    } else if (step_->doc or step_->data) {
+      error(line_, "a step takes either a Doc String or a Data Table");
+    } else {
+      doc_string_ = &step_->doc.emplace();
+    }
+    doc_string_->content_type = trim(line.substr(std::size(quotes)));
+    separator_ = line.substr(0, std::size(quotes));
+    indent_ = raw.find_first_not_of(" \t");
+    opened_ = line_;
+    first_ = true;
+  }
+
+  auto on_doc_string_line(std::string_view raw) -> void {
+    if (trim(raw) == separator_) {
+      doc_string_ = {};
+      return;
+    }
+    if (not std::empty(raw) and raw.back() == '\r') {
+      raw.remove_suffix(1);
+    }
+    /// dedent according to the opening delimiter
+    raw.remove_prefix(math::min_value(
+        indent_,
+        math::min_value(raw.find_first_not_of(" \t"), std::size(raw))));
+
+    if (not std::exchange(first_, false)) {
+      doc_string_->content += '\n';
+    }
+    const std::string_view escaped =
+        separator_ == quotes ? "\\\"\\\"\\\"" : "\\`\\`\\`";
+    for (auto first = raw.find(escaped);; first = raw.find(escaped)) {
+      doc_string_->content += raw.substr(0, first);
+      if (first == std::string_view::npos) {
+        break;
+      }
+      doc_string_->content += separator_;
+      raw.remove_prefix(first + std::size(escaped));
+    }
+  }
+
+  auto on_other(std::string_view line) -> void {
+    reject_tags();
+    if (not description_) {
+      return error(line_, "unexpected '" + std::string{line} + "'");
+    }
+    if (not std::empty(*description_)) {
+      description_->append(blank_ + 1, '\n');
+    }
+    description_->append(line);
+    blank_ = {};
+  }
+
+  ast::document document_{};
+  std::size_t line_{};
+  bool missing_feature_{};
+
+  std::vector<std::string> tags_{};
+  std::size_t tags_line_{};
+
+  std::string* description_{};
+  std::size_t blank_{};
+
+  ast::rule* rule_{};
+  ast::scenario* scenario_{};
+  bool outline_{};
+  ast::examples* examples_{};
+  std::vector<ast::step>* steps_{};
+  ast::step* step_{};
+  std::vector<ast::step> ignored_steps_{};
+
+  doc_string* doc_string_{};
+  doc_string ignored_doc_string_{};
+  std::string_view separator_{};
+  std::size_t indent_{};
+  std::size_t opened_{};
+  bool first_{};
+};
+
+/// Parses a Gherkin document; syntax errors are reported in `errors`
+[[nodiscard]] inline auto parse(std::string_view text) -> ast::document {
+  return parser{}.parse(text);
+}
+
+/// Compiles a feature into runnable scenarios
+[[nodiscard]] inline auto compile(const ast::feature& source)
+    -> std::vector<pickle> {
+  using row_t = table::row_t;
+
+  const auto substitute = [](std::string_view text, const row_t& header,
+                             const row_t& values) {
+    std::string result{};
+    for (std::size_t i{}; i < std::size(text);) {
+      if (text[i] == '<') {
+        if (const auto last = text.find('>', i + 1);
+            last != std::string_view::npos) {
+          const auto index = static_cast<std::size_t>(
+              std::find(std::cbegin(header), std::cend(header),
+                        text.substr(i + 1, last - i - 1)) -
+              std::cbegin(header));
+          if (index < std::size(header) and index < std::size(values)) {
+            result += values[index];
+            i = last + 1;
+            continue;
+          }
+        }
+      }
+      result += text[i++];
+    }
+    return result;
+  };
+
+  const auto append = [](auto& to, const auto& from) {
+    to.insert(std::end(to), std::cbegin(from), std::cend(from));
+  };
+
+  std::vector<pickle> pickles{};
+
+  const auto add = [&](const ast::rule* rule, const ast::scenario& item) {
+    pickle base{};
+    base.line = item.line;
+    base.feature = source.name;
+    base.keyword = item.keyword;
+    base.name = item.name;
+    append(base.tags, source.tags);
+    if (rule) {
+      base.rule = rule->name;
+      append(base.tags, rule->tags);
+    }
+    append(base.tags, item.tags);
+    if (not std::empty(item.steps)) {
+      if (source.background) {
+        append(base.steps, source.background->steps);
+      }
+      if (rule and rule->background) {
+        append(base.steps, rule->background->steps);
+      }
+    }
+
+    if (std::empty(item.examples)) {
+      append(base.steps, item.steps);
+      pickles.push_back(std::move(base));
+      return;
+    }
+
+    for (const auto& block : item.examples) {
+      for (std::size_t row{1}; row < std::size(block.data.rows); ++row) {
+        const auto& header = block.data.rows.front();
+        const auto& values = block.data.rows[row];
+        auto current = base;
+        current.name = substitute(item.name, header, values);
+        append(current.tags, block.tags);
+        for (auto step : item.steps) {
+          step.text = substitute(step.text, header, values);
+          if (step.doc) {
+            step.doc->content = substitute(step.doc->content, header, values);
+            step.doc->content_type =
+                substitute(step.doc->content_type, header, values);
+          }
+          if (step.data) {
+            for (auto& cells : step.data->rows) {
+              for (auto& cell : cells) {
+                cell = substitute(cell, header, values);
+              }
+            }
+          }
+          current.steps.push_back(std::move(step));
+        }
+        pickles.push_back(std::move(current));
+      }
+    }
+  };
+
+  for (const auto& item : source.scenarios) {
+    add(nullptr, item);
+  }
+  for (const auto& rule : source.rules) {
+    for (const auto& item : rule.scenarios) {
+      add(&rule, item);
+    }
+  }
+
+  return pickles;
+}
+
+/// Feature file given on the command line with `--feature <filename>`, empty
+/// if there is none. The command line is parsed when the test suites are run,
+/// see `cfg<>.run({.argc = argc, .argv = argv})`
+[[nodiscard]] inline auto feature_file() -> const std::string& {
+  return detail::cfg::feature_filename;
+}
+
 class steps {
-  using step_t = std::string;
+  enum class level { feature, rule, scenario, step };
+
+  /// Feature, Rule or Scenario header or a step of the running scenario
+  struct item {
+    std::string title{};
+    std::string text{};
+    std::size_t line{};
+    ast::step_type keyword{};
+    const ast::step* step{};
+  };
+
+  struct header {
+    item value{};
+    bool present{};  /// part of the running scenario
+    bool defined{};  /// there is a definition of that level
+    bool entered{};  /// there is a definition which matched
+  };
+
   using steps_t = void (*)(steps&);
-  using gherkin_t = std::vector<step_t>;
-  using call_step_t = utility::function<void(const std::string&)>;
-  using call_steps_t = std::vector<std::pair<step_t, call_step_t>>;
+  using call_t = utility::function<void(const item&)>;
 
-  class step {
+  struct definition_t {
+    ast::step_type keyword{};
+    std::string pattern{};
+    call_t call;
+  };
+
+  /// step definitions live as long as the definition which registered them
+  struct scope {
+    explicit scope(steps& self)
+        : self_{self}, size_{std::size(self.definitions_)} {}
+    scope(const scope&) = delete;
+    auto operator=(const scope&) -> scope& = delete;
+    ~scope() {
+      while (std::size(self_.definitions_) > size_) {
+        self_.definitions_.pop_back();
+      }
+    }
+
+    steps& self_;
+    std::size_t size_{};
+  };
+
+  /// braced initialization evaluates the arguments in order
+  struct invoker {
+    template <class TExpr, class... TArgs>
+    explicit invoker(const TExpr& expr, TArgs&&... args) {
+      expr(static_cast<TArgs&&>(args)...);
+    }
+  };
+
+  class definition {
    public:
-    template <class TPattern>
-    step(steps& steps, const TPattern& pattern)
-        : steps_{steps}, pattern_{pattern} {}
-
-    ~step() { steps_.next(pattern_); }
+    definition(steps& self, level type, ast::step_type keyword,
+               const std::string& pattern)
+        : steps_{self}, type_{type}, keyword_{keyword}, pattern_{pattern} {}
 
     template <class TExpr>
     auto operator=(const TExpr& expr) -> void {
-      for (const auto& [pattern, _] : steps_.call_steps()) {
-        if (pattern_ == pattern) {
-          return;
-        }
+      using args_t = typename type_traits::function_traits<TExpr>::args;
+
+      if (type_ == level::step) {
+        steps_.definitions_.push_back(
+            {keyword_, pattern_,
+             call_t{[expr, pattern = pattern_](const item& current) {
+               call(expr, pattern, current, args_t{});
+             }}});
+        return steps_.next();
       }
 
-      steps_.call_steps().emplace_back(
-          pattern_, [expr, pattern = pattern_](const auto& _step) {
-            [=]<class... TArgs>(type_traits::list<TArgs...>) {
-              log << _step;
-              auto i = 0u;
-              const auto& ms = utility::match(pattern, _step);
-              expr(lexical_cast<TArgs>(ms[i++])...);
-            }(typename type_traits::function_traits<TExpr>::args{});
-          });
+      /// Feature, Rule and Scenario definitions are optional
+      auto& current = steps_.headers_[static_cast<std::size_t>(type_)];
+      current.defined = true;
+      if (current.present and matches(pattern_, current.value.text)) {
+        current.entered = true;
+        const scope guard{steps_};
+        call(expr, pattern_, current.value, args_t{});
+      }
     }
 
    private:
     template <class T>
-    static auto lexical_cast(const std::string& str) {
+    static constexpr auto is_argument_v =
+        std::is_same_v<T, table> or std::is_same_v<T, doc_string>;
+
+    template <class TExpr, class... TArgs>
+    static auto call(const TExpr& expr, const std::string& pattern,
+                     const item& current, type_traits::list<TArgs...>) -> void {
+      const auto values = utility::match(pattern, current.text);
+      const auto expected =
+          (std::size_t{} + ... +
+           std::size_t{not is_argument_v<std::remove_cvref_t<TArgs>>});
+      const auto expects = [](const bool expected_argument, const bool argument,
+                              const std::string_view name) {
+        if (expected_argument == argument) {
+          return std::string{};
+        }
+        return (expected_argument ? "definition expects a "
+                                  : "definition does not accept the ") +
+               std::string{name};
+      };
+
+      auto message =
+          std::size(values) < expected
+              ? "definition takes more values than '" + pattern + "' captures"
+              : std::string{};
+      if (std::empty(message)) {
+        message = expects(
+            (false or ... or std::is_same_v<std::remove_cvref_t<TArgs>, table>),
+            current.step and current.step->data, "Data Table");
+      }
+      if (std::empty(message)) {
+        message =
+            expects((false or ... or
+                     std::is_same_v<std::remove_cvref_t<TArgs>, doc_string>),
+                    current.step and current.step->doc, "Doc String");
+      }
+
+      typename type_traits::identity<detail::log, TExpr>::type{}
+          << current.title;
+      if (not std::empty(message)) {
+        return fail<TExpr>(current.line,
+                           message + " in '" + current.title + "'");
+      }
+
+      [[maybe_unused]] std::size_t i{};
+      invoker{expr, convert<std::remove_cvref_t<TArgs>>(current, values, i)...};
+    }
+
+    template <class T>
+    [[nodiscard]] static auto convert(const item& current,
+                                      const std::vector<std::string>& values,
+                                      std::size_t& i) -> decltype(auto) {
+      if constexpr (std::is_same_v<T, table>) {
+        return (*current.step->data);
+      } else if constexpr (std::is_same_v<T, doc_string>) {
+        return (*current.step->doc);
+      } else {
+        return lexical_cast<T>(values[i++]);
+      }
+    }
+
+    template <class T>
+    [[nodiscard]] static auto lexical_cast(const std::string& str) {
       T t{};
       std::istringstream iss{};
       iss.str(str);
@@ -3260,6 +4001,8 @@ class steps {
     }
 
     steps& steps_;
+    level type_{};
+    ast::step_type keyword_{};
     std::string pattern_{};
   };
 
@@ -3269,70 +4012,168 @@ class steps {
 
   template <class TGherkin>
   auto operator|(const TGherkin& gherkin) {
-    gherkin_ = utility::split<std::string>(gherkin, '\n');
-    for (auto& _step : gherkin_) {
-      _step.erase(0, _step.find_first_not_of(" \t"));
+    const std::string text(gherkin);
+    auto document = parse(text);
+    auto scenarios =
+        document.feature ? compile(*document.feature) : std::vector<pickle>{};
+    if (not document.feature and std::empty(document.errors)) {
+      document.errors.push_back({1, "expected 'Feature:'"});
     }
 
-    return [this] {
-      step_ = {};
-      steps_(*this);
+    /// tests of the scenarios which share a name are numbered
+    std::vector<std::string> names{};
+    for (const auto& current : scenarios) {
+      const auto count = [&](const auto last) {
+        return std::count_if(
+            std::cbegin(scenarios), last,
+            [&](const auto& other) { return other.name == current.name; });
+      };
+      names.push_back(current.name);
+      if (count(std::cend(scenarios)) > 1) {
+        const auto index = static_cast<std::ptrdiff_t>(std::size(names));
+        names.back() +=
+            " (" + std::to_string(count(std::cbegin(scenarios) + index)) + ")";
+      }
+    }
+
+    return [this, errors = std::move(document.errors),
+            pickles = std::move(scenarios), names = std::move(names)] {
+      for (const auto& error : errors) {
+        fail<TGherkin>(error.line, error.message);
+      }
+      if (not std::empty(errors)) {
+        return;
+      }
+      for (std::size_t index{}; index < std::size(pickles); ++index) {
+        const auto& current = pickles[index];
+        detail::test nested{"scenario", names[index]};
+        if (std::find(std::cbegin(current.tags), std::cend(current.tags),
+                      "skip") != std::cend(current.tags)) {
+          nested.tag.emplace_back("skip");
+        }
+        nested = [this, &current] { run<TGherkin>(current); };
+      }
     };
   }
+
   auto feature(const std::string& pattern) {
-    return step{*this, "Feature: " + pattern};
+    return definition{*this, level::feature, ast::step_type::unknown, pattern};
+  }
+  auto rule(const std::string& pattern) {
+    return definition{*this, level::rule, ast::step_type::unknown, pattern};
   }
   auto scenario(const std::string& pattern) {
-    return step{*this, "Scenario: " + pattern};
+    return definition{*this, level::scenario, ast::step_type::unknown, pattern};
   }
   auto given(const std::string& pattern) {
-    return step{*this, "Given " + pattern};
+    return definition{*this, level::step, ast::step_type::given, pattern};
   }
   auto when(const std::string& pattern) {
-    return step{*this, "When " + pattern};
+    return definition{*this, level::step, ast::step_type::when, pattern};
   }
   auto then(const std::string& pattern) {
-    return step{*this, "Then " + pattern};
+    return definition{*this, level::step, ast::step_type::then, pattern};
+  }
+  /// keyword agnostic step
+  auto step(const std::string& pattern) {
+    return definition{*this, level::step, ast::step_type::unknown, pattern};
   }
 
  private:
-  template <class TPattern>
-  auto next(const TPattern& pattern) -> void {
-    const auto is_scenario = [&pattern](const auto& _step) {
-      constexpr auto scenario = "Scenario";
-      return pattern.find(scenario) == std::string::npos and
-             _step.find(scenario) != std::string::npos;
+  /// Everything which emits an event depends on a template parameter, so that
+  /// including the header does not instantiate cfg<override> and it can still
+  /// be specialized
+  template <class T>
+  static auto fail(std::size_t line, const std::string& message) -> void {
+    expect(typename type_traits::identity<bool, T>::type{})
+        << "gherkin:" + std::to_string(line) + ": " + message;
+  }
+
+  [[nodiscard]] static auto matches(const std::string& pattern,
+                                    const std::string& text) -> bool {
+    return utility::is_match(text, pattern) or
+           not std::empty(utility::match(pattern, text));
+  }
+
+  template <class T>
+  auto run(const pickle& current) -> void {
+    const auto set = [this, &current](const level type,
+                                      const std::string_view keyword,
+                                      const std::string& name) {
+      headers_[static_cast<std::size_t>(type)] = {
+          {std::string{keyword} + ": " + name, name, current.line,
+           ast::step_type::unknown, nullptr},
+          true,
+          false,
+          false};
     };
 
-    const auto call_steps = [this, is_scenario](const auto& _step,
-                                                const auto i) {
-      for (const auto& [name, call] : call_steps_) {
-        if (is_scenario(_step)) {
-          break;
-        }
+    headers_ = {};
+    set(level::feature, "Feature", current.feature);
+    if (current.rule) {
+      set(level::rule, "Rule", *current.rule);
+    }
+    set(level::scenario, current.keyword, current.name);
 
-        if (utility::is_match(_step, name) or
-            not std::empty(utility::match(name, _step))) {
-          step_ = i;
-          call(_step);
+    items_.clear();
+    for (const auto& _step : current.steps) {
+      items_.push_back({_step.keyword + " " + _step.text, _step.text,
+                        _step.line, _step.type, &_step});
+    }
+    position_ = {};
+    definitions_.clear();
+
+    steps_(*this);
+
+    if (position_ < std::size(items_)) {
+      for (const auto& [value, present, defined, entered] : headers_) {
+        if (present and defined and not entered) {
+          return fail<T>(value.line,
+                         "no definition matches '" + value.title + "'");
         }
       }
-    };
-
-    decltype(step_) i{};
-    for (const auto& _step : gherkin_) {
-      if (i++ == step_) {
-        call_steps(_step, i);
-      }
+      fail<T>(items_[position_].line,
+              "undefined step '" + items_[position_].title + "'");
     }
   }
 
-  auto call_steps() -> call_steps_t& { return call_steps_; }
+  /// runs the pending steps for as long as there are definitions for them
+  auto next() -> void {
+    while (position_ < std::size(items_)) {
+      const auto& current = items_[position_];
+      const auto index = find(current);
+      if (index == std::size(definitions_)) {
+        break;
+      }
+      ++position_;
+      const scope guard{*this};
+      definitions_[index].call(current);
+    }
+  }
+
+  /// keywords are not taken into account when looking for a step definition
+  /// unless there are multiple definitions which match
+  [[nodiscard]] auto find(const item& current) const -> std::size_t {
+    auto found = std::size(definitions_);
+    for (auto index = found; index-- > 0;) {
+      if (not matches(definitions_[index].pattern, current.text)) {
+        continue;
+      }
+      if (definitions_[index].keyword == current.keyword) {
+        return index;
+      }
+      if (found == std::size(definitions_)) {
+        found = index;
+      }
+    }
+    return found;
+  }
 
   steps_t steps_{};
-  gherkin_t gherkin_{};
-  call_steps_t call_steps_{};
-  decltype(sizeof("")) step_{};
+  std::array<header, 3> headers_{};
+  std::vector<item> items_{};
+  std::vector<definition_t> definitions_{};
+  std::size_t position_{};
 };
 }  // namespace gherkin
 }  // namespace bdd
